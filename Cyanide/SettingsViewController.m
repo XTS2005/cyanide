@@ -1479,15 +1479,68 @@ static BOOL settings_dark_tweaks_any_enabled(NSUserDefaults *d)
            [d boolForKey:kSettingsDSDoubleTapToLock];
 }
 
-static bool settings_apply_dark_tweaks_from_defaults_locked(NSUserDefaults *d)
-{
-    if (!settings_dark_tweaks_any_enabled(d)) return false;
+typedef struct {
+    bool any;
+    bool disableAppLibrary;
+    bool disableIconFlyIn;
+    bool zeroWakeAnimation;
+    bool zeroBacklightFade;
+    bool doubleTapToLock;
+} SettingsDarkTweaksResult;
 
-    return darksword_tweaks_apply_in_session([d boolForKey:kSettingsDSDisableAppLibrary],
-                                             [d boolForKey:kSettingsDSDisableIconFlyIn],
-                                             [d boolForKey:kSettingsDSZeroWakeAnimation],
-                                             [d boolForKey:kSettingsDSZeroBacklightFade],
-                                             [d boolForKey:kSettingsDSDoubleTapToLock]);
+static bool settings_dark_tweaks_result_all_ok(SettingsDarkTweaksResult result)
+{
+    return result.any &&
+           result.disableAppLibrary &&
+           result.disableIconFlyIn &&
+           result.zeroWakeAnimation &&
+           result.zeroBacklightFade &&
+           result.doubleTapToLock;
+}
+
+static SettingsDarkTweaksResult settings_apply_dark_tweaks_from_defaults_locked(NSUserDefaults *d)
+{
+    BOOL disableAppLibrary = [d boolForKey:kSettingsDSDisableAppLibrary];
+    BOOL disableIconFlyIn = [d boolForKey:kSettingsDSDisableIconFlyIn];
+    BOOL zeroWakeAnimation = [d boolForKey:kSettingsDSZeroWakeAnimation];
+    BOOL zeroBacklightFade = [d boolForKey:kSettingsDSZeroBacklightFade];
+    BOOL doubleTapToLock = [d boolForKey:kSettingsDSDoubleTapToLock];
+    SettingsDarkTweaksResult result = {
+        .disableAppLibrary = true,
+        .disableIconFlyIn = true,
+        .zeroWakeAnimation = true,
+        .zeroBacklightFade = true,
+        .doubleTapToLock = true,
+    };
+
+    printf("[DST] apply appLib=%d flyIn=%d wake=%d backlight=%d dblTap=%d\n",
+           disableAppLibrary,
+           disableIconFlyIn,
+           zeroWakeAnimation,
+           zeroBacklightFade,
+           doubleTapToLock);
+
+    if (disableAppLibrary) {
+        result.any = true;
+        result.disableAppLibrary = darksword_tweak_disable_app_library_in_session();
+    }
+    if (disableIconFlyIn) {
+        result.any = true;
+        result.disableIconFlyIn = darksword_tweak_disable_icon_fly_in_in_session();
+    }
+    if (zeroWakeAnimation) {
+        result.any = true;
+        result.zeroWakeAnimation = darksword_tweak_zero_wake_animation_in_session();
+    }
+    if (zeroBacklightFade) {
+        result.any = true;
+        result.zeroBacklightFade = darksword_tweak_zero_backlight_fade_in_session();
+    }
+    if (doubleTapToLock) {
+        result.any = true;
+        result.doubleTapToLock = darksword_tweak_double_tap_to_lock_in_session();
+    }
+    return result;
 }
 
 static bool settings_apply_layout_extras_from_defaults_locked(NSUserDefaults *d)
@@ -3266,17 +3319,25 @@ static void settings_schedule_live_apply_for_key(NSString *key)
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             @synchronized (settings_rc_lock()) {
                 if (settings_cleanup_in_progress() || !g_springboard_rc_ready) return;
-                bool ok = settings_apply_dark_tweaks_from_defaults_locked(d);
-                for (NSString *darkKey in @[
-                    kSettingsDSDisableAppLibrary,
-                    kSettingsDSDisableIconFlyIn,
-                    kSettingsDSZeroWakeAnimation,
-                    kSettingsDSZeroBacklightFade,
-                    kSettingsDSDoubleTapToLock,
-                ]) {
-                    if ([d boolForKey:darkKey]) settings_mark_tweak_applied(darkKey, ok);
-                }
-                printf("[SETTINGS] live DarkSword tweaks apply result=%d\n", ok);
+                SettingsDarkTweaksResult result = settings_apply_dark_tweaks_from_defaults_locked(d);
+                bool ok = settings_dark_tweaks_result_all_ok(result);
+                if ([d boolForKey:kSettingsDSDisableAppLibrary])
+                    settings_mark_tweak_applied(kSettingsDSDisableAppLibrary, result.disableAppLibrary);
+                if ([d boolForKey:kSettingsDSDisableIconFlyIn])
+                    settings_mark_tweak_applied(kSettingsDSDisableIconFlyIn, result.disableIconFlyIn);
+                if ([d boolForKey:kSettingsDSZeroWakeAnimation])
+                    settings_mark_tweak_applied(kSettingsDSZeroWakeAnimation, result.zeroWakeAnimation);
+                if ([d boolForKey:kSettingsDSZeroBacklightFade])
+                    settings_mark_tweak_applied(kSettingsDSZeroBacklightFade, result.zeroBacklightFade);
+                if ([d boolForKey:kSettingsDSDoubleTapToLock])
+                    settings_mark_tweak_applied(kSettingsDSDoubleTapToLock, result.doubleTapToLock);
+                printf("[SETTINGS] live DarkSword tweak results appLib=%d flyIn=%d wake=%d backlight=%d dblTap=%d all=%d\n",
+                       [d boolForKey:kSettingsDSDisableAppLibrary] ? result.disableAppLibrary : -1,
+                       [d boolForKey:kSettingsDSDisableIconFlyIn] ? result.disableIconFlyIn : -1,
+                       [d boolForKey:kSettingsDSZeroWakeAnimation] ? result.zeroWakeAnimation : -1,
+                       [d boolForKey:kSettingsDSZeroBacklightFade] ? result.zeroBacklightFade : -1,
+                       [d boolForKey:kSettingsDSDoubleTapToLock] ? result.doubleTapToLock : -1,
+                       ok);
             }
             settings_notify_package_queue_changed_async();
         });
@@ -3627,17 +3688,25 @@ void settings_run_actions(void)
 
                     if (runDarkTweaks) {
                         settings_progress(&step, total, "Applying DarkSword runtime hooks");
-                        bool ok = settings_apply_dark_tweaks_from_defaults_locked(d);
-                        for (NSString *key in @[
-                            kSettingsDSDisableAppLibrary,
-                            kSettingsDSDisableIconFlyIn,
-                            kSettingsDSZeroWakeAnimation,
-                            kSettingsDSZeroBacklightFade,
-                            kSettingsDSDoubleTapToLock,
-                        ]) {
-                            if ([d boolForKey:key]) settings_mark_tweak_applied(key, ok);
-                        }
-                        printf("[SETTINGS] DarkSword tweaks result=%d\n", ok);
+                        SettingsDarkTweaksResult result = settings_apply_dark_tweaks_from_defaults_locked(d);
+                        bool ok = settings_dark_tweaks_result_all_ok(result);
+                        if ([d boolForKey:kSettingsDSDisableAppLibrary])
+                            settings_mark_tweak_applied(kSettingsDSDisableAppLibrary, result.disableAppLibrary);
+                        if ([d boolForKey:kSettingsDSDisableIconFlyIn])
+                            settings_mark_tweak_applied(kSettingsDSDisableIconFlyIn, result.disableIconFlyIn);
+                        if ([d boolForKey:kSettingsDSZeroWakeAnimation])
+                            settings_mark_tweak_applied(kSettingsDSZeroWakeAnimation, result.zeroWakeAnimation);
+                        if ([d boolForKey:kSettingsDSZeroBacklightFade])
+                            settings_mark_tweak_applied(kSettingsDSZeroBacklightFade, result.zeroBacklightFade);
+                        if ([d boolForKey:kSettingsDSDoubleTapToLock])
+                            settings_mark_tweak_applied(kSettingsDSDoubleTapToLock, result.doubleTapToLock);
+                        printf("[SETTINGS] DarkSword tweak results appLib=%d flyIn=%d wake=%d backlight=%d dblTap=%d all=%d\n",
+                               [d boolForKey:kSettingsDSDisableAppLibrary] ? result.disableAppLibrary : -1,
+                               [d boolForKey:kSettingsDSDisableIconFlyIn] ? result.disableIconFlyIn : -1,
+                               [d boolForKey:kSettingsDSZeroWakeAnimation] ? result.zeroWakeAnimation : -1,
+                               [d boolForKey:kSettingsDSZeroBacklightFade] ? result.zeroBacklightFade : -1,
+                               [d boolForKey:kSettingsDSDoubleTapToLock] ? result.doubleTapToLock : -1,
+                               ok);
                         log_user("%s DarkSword hooks %s.\n",
                                  ok ? "[OK]" : "[WARN]",
                                  ok ? "applied" : "may need a refresh");

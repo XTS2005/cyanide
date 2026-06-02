@@ -108,11 +108,91 @@ compute_new_version() {
     echo "${major}.${minor}.${patch}"
 }
 
+parent_tree_dirty() {
+    if ! git diff-index --quiet HEAD --; then
+        return 0
+    fi
+    if [ -n "$(git ls-files --others --exclude-standard)" ]; then
+        return 0
+    fi
+    return 1
+}
+
+submodule_paths() {
+    git config --file .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null \
+        | awk '{print $2}'
+}
+
+submodule_is_dirty() {
+    local path="$1"
+    git -C "$path" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
+    if ! git -C "$path" diff-index --quiet HEAD --; then
+        return 0
+    fi
+    if [ -n "$(git -C "$path" ls-files --others --exclude-standard)" ]; then
+        return 0
+    fi
+    return 1
+}
+
+dirty_submodule_paths() {
+    local path
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        if submodule_is_dirty "$path"; then
+            printf '%s\n' "$path"
+        fi
+    done < <(submodule_paths)
+}
+
+commit_dirty_submodules() {
+    local paths="$1"
+    local path branch
+    [ -z "$paths" ] && return 0
+    if [ -z "$MSG" ]; then
+        echo "error: dirty submodule changes require a commit message." >&2
+        echo "       pass a message as the first arg, or commit/stash submodule changes." >&2
+        exit 1
+    fi
+
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        submodule_is_dirty "$path" || continue
+
+        branch=$(git -C "$path" rev-parse --abbrev-ref HEAD)
+        if [ "$branch" = "HEAD" ]; then
+            echo "error: submodule $path is on a detached HEAD; cannot push dirty changes safely." >&2
+            exit 1
+        fi
+
+        echo "==> committing dirty submodule $path on $branch"
+        git -C "$path" add -A
+        if ! git -C "$path" diff --cached --quiet; then
+            git -C "$path" commit -m "$MSG"
+        fi
+
+        echo "==> pushing submodule $path:$branch"
+        git -C "$path" push origin "$branch"
+    done <<< "$paths"
+}
+
 # Snapshot dirty state *before* the bump so we can tell apart bump-only commits
 # (auto-message OK) vs. mixed commits (user-supplied message required).
 TREE_WAS_DIRTY=0
-if ! git diff-index --quiet HEAD -- || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+DIRTY_SUBMODULES_BEFORE="$(dirty_submodule_paths)"
+DIRTY_FILES_BEFORE="$(
+    {
+        git diff --name-only --diff-filter=ACMRT HEAD -- 2>/dev/null || true
+        git ls-files --others --exclude-standard 2>/dev/null || true
+    } | sort -u
+)"
+if parent_tree_dirty || [ -n "$DIRTY_SUBMODULES_BEFORE" ]; then
     TREE_WAS_DIRTY=1
+fi
+if [ "$TREE_WAS_DIRTY" = "1" ] && [ -z "$MSG" ]; then
+    echo "error: working tree has changes but no commit message was provided." >&2
+    echo "       pass a message as the first arg, or stash changes." >&2
+    exit 1
 fi
 
 CURRENT_VERSION=$(current_marketing_version)
@@ -155,9 +235,30 @@ fi
 #     Bullets whose key already appears in MSG (case-insensitive substring)
 #     are dropped so we don't repeat the human's wording.
 compute_extra_bullets() {
-    local msg_lower out base pretty key_lower f name
+    local msg_lower out changed_files base pretty key_lower f name path
     msg_lower=$(printf '%s' "$MSG" | tr '[:upper:]' '[:lower:]')
     out=""
+    changed_files="$DIRTY_FILES_BEFORE"
+
+    add_bullet() {
+        local bullet="$1"
+        local key="${2:-$1}"
+        local key_lower out_lower
+        key_lower=$(printf '%s' "$key" | tr '[:upper:]' '[:lower:]')
+        if [ -n "$msg_lower" ] && printf '%s' "$msg_lower" | grep -Fq "$key_lower"; then
+            return
+        fi
+        out_lower=$(printf '%s' "$out" | tr '[:upper:]' '[:lower:]')
+        if printf '%s' "$out_lower" | grep -Fq "$key_lower"; then
+            return
+        fi
+        out+="$bullet"$'\n'
+    }
+
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        add_bullet "Update $(basename "$path") submodule changes" "$(basename "$path") submodule"
+    done <<< "$DIRTY_SUBMODULES_BEFORE"
 
     while IFS= read -r f; do
         [ -z "$f" ] && continue
@@ -169,28 +270,36 @@ compute_extra_bullets() {
             killallapps)       continue ;;     # disabled in UI; don't advertise
             *)                 pretty="$base" ;;
         esac
-        key_lower=$(printf '%s' "$pretty" | tr '[:upper:]' '[:lower:]')
-        if [ -n "$msg_lower" ] && printf '%s' "$msg_lower" | grep -Fq "$key_lower"; then
-            continue
-        fi
-        out+="Add ${pretty} tweak"$'\n'
+        add_bullet "Add ${pretty} tweak" "$pretty"
     done < <(git ls-files --others --exclude-standard 2>/dev/null \
              | grep -E '^Cyanide/tweaks/.*\.m$' || true)
 
     while IFS= read -r name; do
         [ -z "$name" ] && continue
-        key_lower=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
-        if [ -n "$msg_lower" ] && printf '%s' "$msg_lower" | grep -Fq "$key_lower"; then
-            continue
-        fi
-        if printf '%s' "$out" | tr '[:upper:]' '[:lower:]' | grep -Fq "$key_lower"; then
-            continue
-        fi
-        out+="Add ${name} package"$'\n'
+        add_bullet "Add ${name} package" "$name"
     done < <(git diff --no-color -- Cyanide/installer/PackageCatalog.m 2>/dev/null \
              | grep -E '^\+[[:space:]]+name:@"' \
              | sed -E 's/^\+[[:space:]]+name:@"([^"]+)".*/\1/' \
              | head -10)
+
+    if printf '%s\n' "$changed_files" | grep -Eq '^Cyanide/installer/'; then
+        add_bullet "Update package installer UI and catalog" "installer"
+    fi
+    if printf '%s\n' "$changed_files" | grep -Fxq 'Cyanide/SettingsViewController.m'; then
+        add_bullet "Update settings apply workflow" "settings"
+    fi
+    if printf '%s\n' "$changed_files" | grep -Fxq 'Cyanide/LogTextView.m'; then
+        add_bullet "Update in-app log view behavior" "log view"
+    fi
+    if printf '%s\n' "$changed_files" | grep -Fxq 'Cyanide/tweaks/darksword_tweaks.m'; then
+        add_bullet "Update DarkSword tweak handling" "darksword"
+    fi
+    if printf '%s\n' "$changed_files" | grep -Fxq 'Cyanide/tweaks/private'; then
+        add_bullet "Update private tweak submodule pointer" "private submodule"
+    fi
+    if printf '%s\n' "$changed_files" | grep -Fxq 'Cyanide.xcodeproj/project.pbxproj'; then
+        add_bullet "Update Xcode project settings" "project settings"
+    fi
 
     printf '%s' "$out"
 }
@@ -278,6 +387,8 @@ with open(path, "w") as f:
     f.write("\n")
 PY
 fi
+
+commit_dirty_submodules "$DIRTY_SUBMODULES_BEFORE"
 
 # 3. Commit if there's anything to commit: pre-existing tree changes, the
 #    MARKETING_VERSION bump, or the source.json refresh.
