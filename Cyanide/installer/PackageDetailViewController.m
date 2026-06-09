@@ -591,7 +591,7 @@ typedef NS_ENUM(NSInteger, PackageDetailSection) {
 - (void)promptSelectThemeBeforeInstall
 {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Select a Theme"
-                                                                   message:@"Cyanide Themer needs a selected theme before it can be activated. Choose iOS 6 Theme or import a custom theme first."
+                                                                   message:@"Icon themes need a selected theme before they can be activated. Choose iOS 6 Theme or import a custom theme first."
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Open Theme Settings"
                                              style:UIAlertActionStyleDefault

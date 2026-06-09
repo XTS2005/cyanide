@@ -24,11 +24,11 @@ static const NSInteger kSecPowercuff        = 12;
 static const NSInteger kSecDragCoefficient  = 14;
 static const NSInteger kSecLayoutExtras     = 15;
 static const NSInteger kSecNanoRegistry     = 16;
-static const NSInteger kSecThemer           = 17;
 static const NSInteger kSecSnowBoardLite    = 18;
 static const NSInteger kSecLiveWP           = 19;
 static const NSInteger kSecLocationSim      = 20;
 static const NSInteger kSecGravityLite      = 21;
+static const NSInteger kSecAppSwitcherGrid  = 22;
 
 + (NSArray<Package *> *)allPackages
 {
@@ -227,25 +227,10 @@ static const NSInteger kSecGravityLite      = 21;
         locationSim.experimental = NO;
         locationSim.unstableWarning = @"Beta: requires Apple Maps installed and set up. Changes CoreLocation's active simulation state — may affect time zone, date/time, and other location-tied behavior. Some apps and services prohibit or detect simulated locations. Only use this if you know what you're doing.";
 
-        Package *themer = [[Package alloc] initWithIdentifier:@"com.darksword.themer"
-                                           name:@"Cyanide Themer"
-                               shortDescription:@"Per-bundle icon theme engine"
-                                longDescription:@"Replaces stock app icons by walking SpringBoard's SBIconView hierarchy and swapping each icon's image with a PNG matched on the app's bundle identifier.\n\nPick a theme in Settings > Cyanide Themer. Cyanide ships with iOS 6 Theme, using icons from zagnut531/iOS-6-Icons: https://github.com/zagnut531/iOS-6-Icons. You can also import a custom folder of <bundleID>.png files or a binary plist mapping bundle IDs to PNG data.\n\nApplied at Run; not persisted across respring. The current build also seeds SpringBoard's icon cache and rounds imported PNGs before upload so icons survive common home-screen relayouts more cleanly."
-                                        version:version
-                                         author:@"zeroxjf"
-                                       category:@"Beta"
-                                     symbolName:@"paintpalette.fill"
-                                          kind:PackageInstallKindToggle
-                                     enabledKey:kSettingsThemerEnabled
-                                          isNew:YES];
-        themer.experimental = NO;
-        themer.settingsSection = kSecThemer;
-        themer.unstableWarning = @"⚠️ Beta: icon theming works but RemoteCall-backed changes may need re-applying after a respring or SpringBoard restart. Pick a theme in Settings > Cyanide Themer before running.";
-
         Package *snowboardLite = [[Package alloc] initWithIdentifier:@"com.darksword.snowboardlite"
                                            name:@"SnowBoard Lite"
                                shortDescription:@"Local SnowBoard-style icon themes"
-                                longDescription:@"Imports SnowBoard/IconBundles themes into a local library and applies the selected theme through Cyanide's icon replacement pipeline. Supports the bundled iOS 6 theme and local folder imports.\n\nPorted from d1y/cyanide-ios."
+                                longDescription:@"Imports SnowBoard/IconBundles themes into a local library and applies the selected theme through Cyanide's icon replacement pipeline. Supports the bundled iOS 6 theme and local folder imports.\n\nSnowBoard Lite is the main icon-theme entry point in Cyanide.\n\nPorted from d1y/cyanide-ios."
                                         version:version
                                          author:@"d1y"
                                        category:@"Beta"
@@ -307,6 +292,20 @@ static const NSInteger kSecGravityLite      = 21;
             @"Install is slow as hell. WIP. Cyanide has to capture every visible icon and widget before physics start.",
             @"Page swipes, folder opens, or SpringBoard relayouts may stop the effect. Run Gravity again.",
         ];
+
+        Package *appSwitcherGrid = [[Package alloc] initWithIdentifier:@"com.darksword.appswitchergrid"
+                                           name:@"App Switcher Grid"
+                               shortDescription:@"Grid-style app switcher"
+                                longDescription:@"Applies a runtime SpringBoard method patch that makes the app switcher use grid/deck style.\n\nThis does not write system files. A respring restores the stock app switcher.\n\nPorted from d1y/cyanide-ios."
+                                        version:version
+                                         author:@"rooootdev"
+                                       category:@"Beta"
+                                     symbolName:@"square.grid.2x2.fill"
+                                           kind:PackageInstallKindToggle
+                                     enabledKey:kSettingsAppSwitcherGridEnabled
+                                          isNew:YES];
+        appSwitcherGrid.settingsSection = kSecAppSwitcherGrid;
+        appSwitcherGrid.unstableWarning = @"Beta: patches SpringBoard runtime methods in memory. Respring restores stock, but unsupported builds may glitch the app switcher or crash SpringBoard.";
 
         Package *nanoRegistry = [[Package alloc] initWithIdentifier:@"com.darksword.nanoregistry"
                                            name:@"Watch Pairing Override"
@@ -451,9 +450,9 @@ static const NSInteger kSecGravityLite      = 21;
             stageStrip,
 #endif
             locationSim,
-            themer,
             snowboardLite,
             liveWP,
+            appSwitcherGrid,
         ];
     });
     return list;

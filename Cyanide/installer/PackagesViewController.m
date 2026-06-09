@@ -12,6 +12,8 @@
 static NSString * const kPackageCellID         = @"PackageCell";
 static NSString * const kGroupByCategoryDefault = @"installer.groupByCategory";
 static NSString * const kTipsExpandedDefault    = @"installer.tipsExpanded";
+static NSString * const kSignalGroupURL         = @"https://signal.group/#CjQKIP0pxjc9V52ddCNk--04DosuoQl-vVOsznJfQ4GwlrlxEhCveFhBS8YdNcILpUFt7IqC";
+static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/cyanide/issues";
 
 @interface PackagesViewController () <UISearchResultsUpdating>
 @property (nonatomic, copy)   NSArray<Package *> *allPackagesSorted;
@@ -129,16 +131,51 @@ static NSString * const kTipsExpandedDefault    = @"installer.tipsExpanded";
         @{ @"icon":  @"wand.and.stars",
            @"color": UIColor.systemPurpleColor,
            @"title": @"What's new",
-           @"body":  @"• Gravity Lite adds home screen and dock icon physics with widget support\n• Drag Coefficient lets you tune SpringBoard animation speed\n• Installer state is more reliable after applying or reopening Cyanide\n• StatBar uses less battery and now has an adjustable refresh rate" },
+           @"body":  @"• App Switcher Grid adds a grid-style app switcher option\n• LiveWP now supports video picking from Files and Photos\n• Location Simulator is available as a public Beta tool\n• Call Recording Sound is available as a public Beta package" },
         @{ @"icon":  @"exclamationmark.triangle.fill",
            @"color": UIColor.systemOrangeColor,
            @"title": @"Don't force-quit Cyanide",
            @"body":  @"From the App Switcher kills live tweaks instantly — StatBar, Axon Lite, and anything else running per session stops the moment the app dies." },
-        @{ @"icon":  @"envelope.fill",
-           @"color": UIColor.systemBlueColor,
-           @"title": @"Need specific help?",
-           @"body":  @"Diagnostic log uploads are opt-in from Settings > About. Use the button below to reach me directly with your device info — tell me what you ran into." },
+        @{ @"icon":  @"hand.tap.fill",
+           @"color": UIColor.systemTealColor,
+           @"title": @"New Beta tools",
+           @"body":  @"Try exact-coordinate location simulation, App Switcher Grid, LiveWP video wallpapers, and SnowBoard-style local icon themes from the Installer." },
     ];
+}
+
+- (void)openURLString:(NSString *)urlString
+{
+    NSURL *url = [NSURL URLWithString:urlString];
+    if (!url) return;
+    [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+}
+
+- (UIButton *)buildSupportButtonWithTitle:(NSString *)title
+                                     icon:(NSString *)iconName
+                              background:(UIColor *)backgroundColor
+                                      url:(NSString *)urlString
+                                    width:(CGFloat)width
+                                   height:(CGFloat)height
+{
+    UIButtonConfiguration *cfg = [UIButtonConfiguration filledButtonConfiguration];
+    cfg.title = title;
+    cfg.image = [UIImage systemImageNamed:iconName];
+    cfg.imagePadding = 8.0;
+    cfg.imagePlacement = NSDirectionalRectEdgeLeading;
+    cfg.cornerStyle = UIButtonConfigurationCornerStyleCapsule;
+    cfg.baseBackgroundColor = backgroundColor;
+    cfg.baseForegroundColor = UIColor.whiteColor;
+    cfg.contentInsets = NSDirectionalEdgeInsetsMake(0.0, 16.0, 0.0, 16.0);
+
+    __weak typeof(self) weakSelf = self;
+    UIButton *button = [UIButton buttonWithConfiguration:cfg
+                                           primaryAction:[UIAction actionWithHandler:^(UIAction *_) {
+        typeof(self) strongSelf = weakSelf;
+        [strongSelf openURLString:urlString];
+    }]];
+    button.frame = CGRectMake(0, 0, width, height);
+    button.layer.cornerCurve = kCACornerCurveContinuous;
+    return button;
 }
 
 // Builds the icon + title/body subview for one tip row at a fixed width.
@@ -207,8 +244,9 @@ static NSString * const kTipsExpandedDefault    = @"installer.tipsExpanded";
     CGFloat contentWidth     = width - horizontalMargin * 2 - cardInset * 2;
     CGFloat rowGap           = 14.0;
     CGFloat headingGap       = 10.0;    // gap after heading
-    CGFloat buttonGap        = 14.0;
-    CGFloat buttonHeight     = 36.0;
+    CGFloat supportGap       = 10.0;
+    CGFloat supportButtonGap = 8.0;
+    CGFloat supportButtonHeight = 46.0;
     CGFloat chevronSize      = 14.0;
 
     BOOL expanded = [[NSUserDefaults standardUserDefaults] boolForKey:kTipsExpandedDefault];
@@ -268,24 +306,6 @@ static NSString * const kTipsExpandedDefault    = @"installer.tipsExpanded";
             y += f.size.height + rowGap;
         }
         y -= rowGap;        // last row didn't need trailing gap
-        y += buttonGap;     // explicit gap before the button
-
-        // Contact button
-        UIButtonConfiguration *cfg = [UIButtonConfiguration tintedButtonConfiguration];
-        cfg.title = @"Contact zeroxjf";
-        cfg.image = [UIImage systemImageNamed:@"envelope.fill"];
-        cfg.imagePadding = 6.0;
-        cfg.imagePlacement = NSDirectionalRectEdgeLeading;
-        cfg.cornerStyle = UIButtonConfigurationCornerStyleMedium;
-        __weak typeof(self) weakSelf = self;
-        UIButton *contact = [UIButton buttonWithConfiguration:cfg
-                                                primaryAction:[UIAction actionWithHandler:^(UIAction *_) {
-            typeof(self) strongSelf = weakSelf;
-            if (strongSelf) cyanide_present_contact(strongSelf);
-        }]];
-        contact.frame = CGRectMake(cardInset, y, contentWidth, buttonHeight);
-        [placed addObject:contact];
-        y += buttonHeight;
     }
 
     y += cardInset;     // final bottom padding inside the card
@@ -307,9 +327,32 @@ static NSString * const kTipsExpandedDefault    = @"installer.tipsExpanded";
     card.layer.cornerCurve = kCACornerCurveContinuous;
     for (UIView *v in placed) [card addSubview:v];
 
-    UIView *container = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width,
-                                                                 card.frame.size.height + topPadding + bottomPadding)];
+    CGFloat supportWidth = width - horizontalMargin * 2;
+    UIButton *signal = [self buildSupportButtonWithTitle:@"Join Signal Group"
+                                                    icon:@"bubble.left.and.bubble.right.fill"
+                                             background:UIColor.systemBlueColor
+                                                     url:kSignalGroupURL
+                                                   width:supportWidth
+                                                  height:supportButtonHeight];
+    CGRect signalFrame = signal.frame;
+    signalFrame.origin = CGPointMake(horizontalMargin, CGRectGetMaxY(card.frame) + supportGap);
+    signal.frame = signalFrame;
+
+    UIButton *issues = [self buildSupportButtonWithTitle:@"GitHub Issues"
+                                                    icon:@"exclamationmark.bubble.fill"
+                                             background:UIColor.systemIndigoColor
+                                                     url:kGitHubIssuesURL
+                                                   width:supportWidth
+                                                  height:supportButtonHeight];
+    CGRect issuesFrame = issues.frame;
+    issuesFrame.origin = CGPointMake(horizontalMargin, CGRectGetMaxY(signal.frame) + supportButtonGap);
+    issues.frame = issuesFrame;
+
+    CGFloat containerHeight = CGRectGetMaxY(issues.frame) + bottomPadding;
+    UIView *container = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, containerHeight)];
     [container addSubview:card];
+    [container addSubview:signal];
+    [container addSubview:issues];
 
     self.tableView.tableHeaderView = container;
 }
@@ -812,7 +855,7 @@ static NSString * const kTipsExpandedDefault    = @"installer.tipsExpanded";
 - (void)presentThemeRequiredAlertForPackage:(Package *)pkg
 {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Select a Theme"
-                                                                   message:@"Cyanide Themer needs a selected theme before it can be activated. Choose iOS 6 Theme or import a custom theme first."
+                                                                   message:@"Icon themes need a selected theme before they can be activated. Choose iOS 6 Theme or import a custom theme first."
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Open Theme Settings"
                                              style:UIAlertActionStyleDefault

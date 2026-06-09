@@ -402,6 +402,22 @@ static DTLockOutcome ds_install_double_tap_on_view(uint64_t view, uint64_t sb, u
     return DTLockOutcomeInstalled;
 }
 
+static bool ds_remove_double_tap_from_view(uint64_t view, uint64_t assocKey, const char *tag)
+{
+    if (!r_is_objc_ptr(view) || !assocKey) return false;
+
+    uint64_t existing = r_dlsym_call(R_TIMEOUT, "objc_getAssociatedObject",
+                                     view, assocKey, 0, 0, 0, 0, 0, 0);
+    if (!r_is_objc_ptr(existing)) return false;
+
+    r_msg2_main(view, "removeGestureRecognizer:", existing, 0, 0, 0);
+    r_dlsym_call(R_TIMEOUT, "objc_setAssociatedObject",
+                 view, assocKey, 0, 0, 0, 0, 0, 0);
+    printf("[DST:LOCK] removed window-level recognizer from %s view=0x%llx\n",
+           tag ? tag : "view", view);
+    return true;
+}
+
 bool darksword_tweak_double_tap_to_lock_in_session(void)
 {
     printf("[DST:LOCK] installing double-tap to lock\n");
@@ -429,22 +445,17 @@ bool darksword_tweak_double_tap_to_lock_in_session(void)
     uint64_t windows = ds_try_msg0(app, "windows");
     uint64_t count = ds_try_msg0(windows, "count");
     uint64_t limit = count < 20 ? count : 20;
-    int installed = 0, alreadyInstalled = 0, failed = 0, skipped = 0;
+    int removed = 0, skipped = 0;
     for (uint64_t i = 0; i < limit; i++) {
         uint64_t win = r_msg2(windows, "objectAtIndex:", i, 0, 0, 0);
         if (!r_is_objc_ptr(win) || win == homeView) { skipped++; continue; }
 
         char tag[32];
         snprintf(tag, sizeof(tag), "window[%llu]", i);
-        DTLockOutcome r = ds_install_double_tap_on_view(win, sb, selLock, assocKey, tag, false);
-        switch (r) {
-            case DTLockOutcomeInstalled:        installed++; ok = true; break;
-            case DTLockOutcomeAlreadyInstalled: alreadyInstalled++;     break;
-            case DTLockOutcomeFailed:           failed++;               break;
-        }
+        if (ds_remove_double_tap_from_view(win, assocKey, tag)) removed++;
     }
-    printf("[DST:LOCK] windows scanned=%llu installed=%d already=%d skipped=%d failed=%d\n",
-           limit, installed, alreadyInstalled, skipped, failed);
+    printf("[DST:LOCK] windows scanned=%llu removed=%d skipped=%d\n",
+           limit, removed, skipped);
 
     printf("[DST:LOCK] result=%d\n", ok);
     return ok;

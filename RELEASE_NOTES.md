@@ -27,6 +27,17 @@ safe to describe as a public user-facing behavior change, omit it.
 
 ## Released
 
+### v1.2.15 - 2026-06-09
+
+- [x] Fixed Double Tap to Lock triggering while entering a Lock Screen passcode.
+- [x] Added App Switcher Grid as a Beta tweak.
+- [x] Replaced the installer contact button with Signal group and GitHub Issues links.
+- [x] Removed the standalone Cyanide Themer listing in favor of SnowBoard Lite.
+- [x] Let active Location Simulator target changes use parked kernel recovery before refreshing.
+- [x] Kept OTA Block behind kernel recovery before editing launchd job state.
+- [x] Kept Call Recording Sound behind kernel recovery before writing CallServices files.
+- [x] Kept Watch Pairing override behind kernel recovery before writing NanoRegistry files.
+
 ### v1.2.14 - 2026-06-09
 
 - [x] Fixed Dynamic Stage Lite visibility for paid users.

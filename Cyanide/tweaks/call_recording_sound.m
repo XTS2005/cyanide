@@ -5,6 +5,7 @@
 
 #import "call_recording_sound.h"
 #import "../LogTextView.h"
+#import "../kexploit/kexploit_opa334.h"
 #import "../kexploit/persistence.h"
 #import "../kexploit/vnode.h"
 #import "../utils/sandbox.h"
@@ -349,6 +350,12 @@ static bool cr_restore_payloads(void)
 
 bool call_recording_sound_set_disabled(bool disabled)
 {
+    if (!kexploit_krw_ready()) {
+        printf("[CALLREC] refusing file edit: KRW is not active/recovered\n");
+        log_user("[CALLREC] Failed: kernel recovery is not active. Run the chain first.\n");
+        return false;
+    }
+
     if (!cr_prepare_sandbox()) return false;
 
     if (disabled) {

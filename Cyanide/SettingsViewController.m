@@ -22,6 +22,7 @@
 #import "tweaks/snowboardlite.h"
 #import "tweaks/livewp.h"
 #import "tweaks/gravitylite.h"
+#import "tweaks/appswitchergrid.h"
 #import <CoreMotion/CoreMotion.h>
 
 #import <objc/runtime.h>
@@ -203,6 +204,7 @@ NSString * const kSettingsAxonLiteEnabled = @"AxonLiteEnabled";
 
 NSString * const kSettingsTypeBannerEnabled = @"TypeBannerEnabled";
 NSString * const kSettingsNotificationIslandEnabled = @"NotificationIslandEnabled";
+NSString * const kSettingsAppSwitcherGridEnabled = @"AppSwitcherGridEnabled";
 
 NSString * const kSettingsGravityLiteEnabled = @"GravityLiteEnabled";
 NSString * const kSettingsGravityLiteDockEnabled = @"GravityLiteDockEnabled";
@@ -464,6 +466,15 @@ static bool settings_stop_notificationisland_registered(BOOL springboardWillDie)
     return notificationisland_stop_in_session();
 }
 
+static bool settings_stop_appswitchergrid_registered(BOOL springboardWillDie)
+{
+    if (springboardWillDie) {
+        appswitchergrid_forget_remote_state();
+        return false;
+    }
+    return appswitchergrid_stop_in_session();
+}
+
 static bool settings_stop_gravitylite_registered(BOOL springboardWillDie)
 {
     (void)springboardWillDie;
@@ -502,6 +513,7 @@ static void settings_each_springboard_cleanup_entry(void (^block)(const Settings
         { kSettingsAxonLiteEnabled, "Axon Lite", settings_request_axonlite_stop, settings_stop_axonlite_registered, axonlite_forget_remote_state, settings_axonlite_running, YES, YES },
         { kSettingsTypeBannerEnabled, "TypeBanner", settings_request_typebanner_stop, settings_stop_typebanner_registered, typebanner_forget_remote_state, settings_typebanner_running, YES, YES },
         { kSettingsNotificationIslandEnabled, "Notification Island", settings_request_notificationisland_stop, settings_stop_notificationisland_registered, notificationisland_forget_remote_state, settings_notificationisland_running, YES, YES },
+        { kSettingsAppSwitcherGridEnabled, "App Switcher Grid", NULL, settings_stop_appswitchergrid_registered, appswitchergrid_forget_remote_state, NULL, YES, YES },
         { kSettingsGravityLiteEnabled, "Gravity Lite", settings_request_gravitylite_stop, settings_stop_gravitylite_registered, gravitylite_forget_remote_state, NULL, YES, YES },
         { kSettingsThemerEnabled, "Themer", settings_request_themer_stop, settings_stop_themer_registered, themer_forget_remote_state, settings_themer_running, YES, YES },
         { kSettingsSnowBoardLiteEnabled, "SnowBoard Lite", settings_request_themer_stop, settings_stop_themer_registered, themer_forget_remote_state, settings_themer_running, YES, YES },
@@ -856,7 +868,7 @@ static void settings_note_themer_stage_conflict(BOOL userVisible)
     g_themer_live_stop_requested = 1;
     printf("[SETTINGS] Themer live icon repair paused while Dynamic Stage Lite is enabled\n");
     if (userVisible && __sync_bool_compare_and_swap(&g_themer_stage_suppression_logged, 0, 1)) {
-        log_user("[COMPAT] Dynamic Stage Lite is enabled, so Cyanide Themer live icon repair is paused to avoid SpringBoard resprings. The selected theme still applies once; live repair resumes after Dynamic Stage is disabled.\n");
+        log_user("[COMPAT] Dynamic Stage Lite is enabled, so icon theme live repair is paused to avoid SpringBoard resprings. The selected theme still applies once; live repair resumes after Dynamic Stage is disabled.\n");
     }
 }
 
@@ -2494,7 +2506,7 @@ static bool settings_apply_themer_from_defaults_locked(NSUserDefaults *d)
     if (![theme isEqualToString:kThemerThemeBuiltinIOS6] &&
         ![theme isEqualToString:kThemerThemeCustom]) {
         printf("[THEMER] resolve: no selected theme; install/apply blocked\n");
-        log_user("[THEMER] Pick a theme in Settings > Cyanide Themer before running.\n");
+        log_user("[THEMER] Pick a theme in SnowBoard Lite settings before running.\n");
         return false;
     }
 
@@ -4273,6 +4285,11 @@ static BOOL settings_key_is_notificationisland(NSString *key)
     return [key isEqualToString:kSettingsNotificationIslandEnabled];
 }
 
+static BOOL settings_key_is_appswitchergrid(NSString *key)
+{
+    return [key isEqualToString:kSettingsAppSwitcherGridEnabled];
+}
+
 static BOOL settings_key_is_gravitylite(NSString *key)
 {
     return [key isEqualToString:kSettingsGravityLiteEnabled] ||
@@ -4712,12 +4729,6 @@ static void settings_schedule_live_apply_for_key(NSString *key)
             settings_post_actions_complete_async(NO, @"Location Simulator is unavailable in this build.");
             return;
         }
-        if (!g_kexploit_done) {
-            printf("[LOCSIM] live apply deferred until kexploit has run\n");
-            settings_notify_package_queue_changed_async();
-            settings_post_actions_complete_async(NO, @"Location refresh deferred. Run kexploit first.");
-            return;
-        }
         if (settings_any_registered_live_loop_running()) {
             log_user("[LOCSIM] Location update deferred: a live SpringBoard tweak is running. Hit Apply Tweaks to serialize the process switch.\n");
             settings_notify_package_queue_changed_async();
@@ -4725,20 +4736,43 @@ static void settings_schedule_live_apply_for_key(NSString *key)
             return;
         }
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            @synchronized (settings_rc_lock()) {
-                settings_destroy_springboard_remote_call_locked_internal("switching to Location Simulator", NO);
-                bool ok = settings_apply_location_sim_from_defaults_locked(d);
-                if (ok) {
-                    [d setBool:YES forKey:kSettingsLocationSimStarted];
-                    [d synchronize];
-                }
-                log_user("%s Location Simulator %s.\n",
-                         ok ? "[OK]" : "[WARN]",
-                         ok ? "target refreshed" : "did not apply cleanly");
-                settings_post_actions_complete_async(ok,
-                    ok ? @"Location target refreshed." : @"Location refresh failed. Check the log.");
+            if (__sync_lock_test_and_set(&g_settings_actions_running, 1)) {
+                log_user("[LOCSIM] Location update deferred: Apply Tweaks is still running.\n");
+                settings_post_actions_complete_async(NO, @"Location refresh deferred while Apply Tweaks is running.");
+                settings_notify_package_queue_changed_async();
+                return;
             }
-            settings_notify_package_queue_changed_async();
+            @try {
+                if (!settings_ensure_kexploit()) {
+                    printf("[LOCSIM] live target refresh failed to acquire KRW\n");
+                    log_user("[LOCSIM] Target refresh failed: kernel primitives were not acquired. Please try running chain again.\n");
+                    settings_post_actions_complete_async(NO, @"Location refresh failed: kernel primitives were not acquired.");
+                    settings_notify_package_queue_changed_async();
+                    return;
+                }
+                if (settings_any_registered_live_loop_running()) {
+                    log_user("[LOCSIM] Location update deferred: a live SpringBoard tweak started while recovery was running. Hit Apply Tweaks to serialize the process switch.\n");
+                    settings_post_actions_complete_async(NO, @"Location refresh deferred while another live tweak is running.");
+                    settings_notify_package_queue_changed_async();
+                    return;
+                }
+                @synchronized (settings_rc_lock()) {
+                    settings_destroy_springboard_remote_call_locked_internal("switching to Location Simulator", NO);
+                    bool ok = settings_apply_location_sim_from_defaults_locked(d);
+                    if (ok) {
+                        [d setBool:YES forKey:kSettingsLocationSimStarted];
+                        [d synchronize];
+                    }
+                    log_user("%s Location Simulator %s.\n",
+                             ok ? "[OK]" : "[WARN]",
+                             ok ? "target refreshed" : "did not apply cleanly");
+                    settings_post_actions_complete_async(ok,
+                        ok ? @"Location target refreshed." : @"Location refresh failed. Check the log.");
+                }
+                settings_notify_package_queue_changed_async();
+            } @finally {
+                __sync_lock_release(&g_settings_actions_running);
+            }
         });
         return;
     }
@@ -4831,6 +4865,36 @@ static void settings_schedule_live_apply_for_key(NSString *key)
                 });
             } else {
                 notificationisland_forget_remote_state();
+            }
+        }
+        return;
+    }
+
+    if (settings_key_is_appswitchergrid(key)) {
+        if ([d boolForKey:kSettingsAppSwitcherGridEnabled] && g_springboard_rc_ready) {
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                @synchronized (settings_rc_lock()) {
+                    if (settings_cleanup_in_progress() ||
+                        ![d boolForKey:kSettingsAppSwitcherGridEnabled] ||
+                        !g_springboard_rc_ready) return;
+                    bool ok = appswitchergrid_apply_in_session();
+                    settings_mark_tweak_applied(kSettingsAppSwitcherGridEnabled,
+                                                ok && [d boolForKey:kSettingsAppSwitcherGridEnabled]);
+                    printf("[SETTINGS] live App Switcher Grid apply result=%d\n", ok);
+                }
+                settings_notify_package_queue_changed_async();
+            });
+        } else if (![d boolForKey:kSettingsAppSwitcherGridEnabled]) {
+            settings_mark_tweak_applied(kSettingsAppSwitcherGridEnabled, NO);
+            settings_notify_package_queue_changed_async();
+            if (g_springboard_rc_ready) {
+                dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                    @synchronized (settings_rc_lock()) {
+                        if (g_springboard_rc_ready) appswitchergrid_stop_in_session();
+                    }
+                });
+            } else {
+                appswitchergrid_forget_remote_state();
             }
         }
         return;
@@ -5221,6 +5285,8 @@ void settings_register_defaults(void)
         kSettingsLiveWPEnabled: @NO,
         kSettingsLiveWPVideoPath: @"",
 
+        kSettingsAppSwitcherGridEnabled: @NO,
+
         kSettingsExperimentalTweaksEnabled: @NO,
 
         kSettingsNanoMaxPairing:       @(kNanoDefaultMaxPairing),
@@ -5281,8 +5347,7 @@ void settings_register_defaults(void)
         }
         if (changed) [defaults synchronize];
     }
-    if ([defaults boolForKey:kSettingsThemerEnabled] &&
-        !settings_themer_has_selected_theme()) {
+    if ([defaults boolForKey:kSettingsThemerEnabled]) {
         [defaults setBool:NO forKey:kSettingsThemerEnabled];
         [defaults synchronize];
     }
@@ -5333,6 +5398,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             BOOL axonLiteEnabled = [d boolForKey:kSettingsAxonLiteEnabled];
             BOOL typeBannerEnabled = settings_typebanner_install_allowed() && [d boolForKey:kSettingsTypeBannerEnabled];
             BOOL notificationIslandEnabled = settings_notificationisland_install_allowed() && [d boolForKey:kSettingsNotificationIslandEnabled];
+            BOOL appSwitcherGridEnabled = [d boolForKey:kSettingsAppSwitcherGridEnabled];
             BOOL themerEnabled = [d boolForKey:kSettingsThemerEnabled];
             BOOL snowboardLiteEnabled = [d boolForKey:kSettingsSnowBoardLiteEnabled];
             BOOL liveWPEnabled = [d boolForKey:kSettingsLiveWPEnabled];
@@ -5348,6 +5414,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             BOOL runAxonLite = settings_enabled_tweak_should_run(d, kSettingsAxonLiteEnabled, springBoardPendingOnly);
             BOOL runTypeBanner = settings_typebanner_install_allowed() && settings_enabled_tweak_should_run(d, kSettingsTypeBannerEnabled, springBoardPendingOnly);
             BOOL runNotificationIsland = settings_notificationisland_install_allowed() && settings_enabled_tweak_should_run(d, kSettingsNotificationIslandEnabled, springBoardPendingOnly);
+            BOOL runAppSwitcherGrid = settings_enabled_tweak_should_run(d, kSettingsAppSwitcherGridEnabled, springBoardPendingOnly);
             BOOL runThemer = settings_enabled_tweak_should_run(d, kSettingsThemerEnabled, springBoardPendingOnly);
             BOOL runSnowBoardLite = settings_enabled_tweak_should_run(d, kSettingsSnowBoardLiteEnabled, springBoardPendingOnly);
             BOOL runLiveWP = settings_enabled_tweak_should_run(d, kSettingsLiveWPEnabled, springBoardPendingOnly);
@@ -5359,7 +5426,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 settings_note_themer_stage_conflict(YES);
             }
             BOOL cleanupDisabledSpringBoardTweaks = settings_disabled_applied_springboard_cleanup_needed(d);
-            BOOL needsSpringBoardWork = runSBC || runDarkTweaks || runStatBar || runNSBar || runNiceBarLite || runRSSI || runAxonLite || runGravityLite || runLayoutExtras || runTypeBanner || runNotificationIsland || runThemer || runSnowBoardLite || runLiveWP || runStageStrip || cleanupDisabledSpringBoardTweaks;
+            BOOL needsSpringBoardWork = runSBC || runDarkTweaks || runStatBar || runNSBar || runNiceBarLite || runRSSI || runAxonLite || runGravityLite || runLayoutExtras || runTypeBanner || runNotificationIsland || runAppSwitcherGrid || runThemer || runSnowBoardLite || runLiveWP || runStageStrip || cleanupDisabledSpringBoardTweaks;
             BOOL runSandboxEscape = [d boolForKey:kSettingsRunSandboxEscape] && (!pendingOnly || needsSpringBoardWork);
             // TypeBanner prewarms its hidden SpringBoard window during Apply
             // and reuses the open SpringBoard session for text-only updates.
@@ -5385,6 +5452,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             if (runGravityLite) total++;
             if (runTypeBanner) total++;
             if (runNotificationIsland) total++;
+            if (runAppSwitcherGrid) total++;
             if (runStageStrip) total++;
             if (cleanupDisabledSpringBoardTweaks) total++;
             NSUInteger step = 0;
@@ -5399,6 +5467,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             if (runRSSI) [enabledTweaks addObject:@"rssi"];
             if (runAxonLite) [enabledTweaks addObject:@"axon"];
             if (runNotificationIsland) [enabledTweaks addObject:@"notification-island"];
+            if (runAppSwitcherGrid) [enabledTweaks addObject:@"app-switcher-grid"];
             if (runGravityLite) [enabledTweaks addObject:[NSString stringWithFormat:@"gravity(%ld%%)", (long)[d integerForKey:kSettingsGravityLiteMagnitudePct]]];
             if (runPowercuff) [enabledTweaks addObject:[NSString stringWithFormat:@"power(%@)", [d stringForKey:kSettingsPowercuffLevel] ?: @"nominal"]];
             if (runDarkTweaks) [enabledTweaks addObject:@"dark"];
@@ -5567,11 +5636,11 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runThemer) {
-                        settings_progress(&step, total, "Applying Cyanide Themer");
+                        settings_progress(&step, total, "Applying Icon Theme Engine");
                         bool ok = settings_apply_themer_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsThemerEnabled, ok);
                         printf("[SETTINGS] Themer result=%d\n", ok);
-                        log_user("%s Cyanide Themer %s.\n",
+                        log_user("%s Icon Theme Engine %s.\n",
                                  ok ? "[OK]" : "[WARN]",
                                  ok ? "applied" : "did not apply cleanly");
                         cyanide_upload_log_milestone(ok ? @"themer-applied" : @"themer-warning");
@@ -5724,6 +5793,20 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                                  ok ? "watching incoming banners" : "did not start cleanly");
                         cyanide_upload_log_milestone(ok ? @"notification-island-initial-applied" :
                                                          @"notification-island-initial-failed");
+                    }
+
+                    if (runAppSwitcherGrid) {
+                        settings_progress(&step, total, "Enabling App Switcher Grid");
+                        bool ok = appswitchergrid_apply_in_session();
+                        settings_mark_tweak_applied(kSettingsAppSwitcherGridEnabled,
+                                                    ok && [d boolForKey:kSettingsAppSwitcherGridEnabled]);
+                        printf("[SETTINGS] App Switcher Grid result=%d\n", ok);
+                        log_user("%s App Switcher Grid %s.\n",
+                                 ok ? "[OK]" : "[WARN]",
+                                 ok ? "enabled" : "did not apply cleanly");
+                        cyanide_upload_log_milestone(ok ? @"app-switcher-grid-applied" : @"app-switcher-grid-failed");
+                    } else if (!appSwitcherGridEnabled) {
+                        appswitchergrid_stop_in_session();
                     }
 
                     if (runStageStrip) {
@@ -5885,6 +5968,7 @@ typedef NS_ENUM(NSInteger, SettingsSection) {
     SectionLiveWP,
     SectionLocationSim,
     SectionGravityLite,
+    SectionAppSwitcherGrid,
     SectionCount,
 };
 
@@ -6828,7 +6912,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     NSMutableArray<NSDictionary *> *rows = [NSMutableArray arrayWithArray:@[
         @{ @"kind": @"info",
            @"title": @"Selected Theme",
-           @"subtitle": hasSelection ? selected : @"None selected. Pick a theme before running Cyanide Themer." },
+           @"subtitle": hasSelection ? selected : @"None selected. Pick a theme before running the icon theme engine." },
 
         @{ @"kind": @"button",
            @"title": [selected isEqualToString:@"iOS 6 Theme"]
@@ -6895,6 +6979,21 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     return rows;
 }
 
+- (NSArray<NSDictionary *> *)appSwitcherGridRows
+{
+    BOOL applied = settings_tweak_is_applied(kSettingsAppSwitcherGridEnabled);
+    return @[
+        @{ @"kind": @"info",
+           @"title": applied ? @"Current Style: Grid" : @"Current Style: Stock",
+           @"subtitle": @"This is a runtime SpringBoard method patch. It does not write system files; respring restores the stock app switcher." },
+        @{ @"kind": @"button",
+           @"title": @"Restore Stock Switcher",
+           @"subtitle": @"Restores the original switcher style in the active SpringBoard session when available.",
+           @"action": @"appswitchergrid-restore",
+           @"destructive": @YES },
+    ];
+}
+
 + (NSArray<NSDictionary<NSString *, NSString *> *> *)settingsSummaryForSection:(NSInteger)section
 {
     NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
@@ -6933,6 +7032,9 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     } else if (section == SectionRSSI) {
         [out addObject:@{@"title": @"WiFi (bar count)", @"value": [d boolForKey:kSettingsRSSIDisplayWifi] ? @"On" : @"Off"}];
         [out addObject:@{@"title": @"Cellular (dBm)",   @"value": [d boolForKey:kSettingsRSSIDisplayCell] ? @"On" : @"Off"}];
+    } else if (section == SectionAppSwitcherGrid) {
+        [out addObject:@{@"title": @"Switcher style",
+                         @"value": settings_tweak_is_applied(kSettingsAppSwitcherGridEnabled) ? @"Grid" : @"Stock"}];
     } else if (section == SectionPowercuff) {
         NSString *lvl = [d stringForKey:kSettingsPowercuffLevel] ?: @"nominal";
         [out addObject:@{@"title": @"Level", @"value": lvl}];
@@ -6982,6 +7084,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         case SectionAxonLite:  return self.axonLiteRows;
         case SectionTypeBanner: return self.typebannerRows;
         case SectionNotificationIsland: return self.notificationIslandRows;
+        case SectionAppSwitcherGrid: return self.appSwitcherGridRows;
         case SectionGravityLite: return self.gravityLiteRows;
         case SectionLocationSim: return self.locationSimRows;
         case SectionSnowBoardLite: return self.snowboardLiteRows;
@@ -7013,8 +7116,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"title": @"Notification Island", @"icon": @"bell.and.waves.left.and.right.fill",  @"color": [UIColor systemOrangeColor], @"section": @(SectionNotificationIsland), @"indev": @YES },
 #endif
         @{ @"title": @"Gravity Lite",       @"icon": @"arrow.down.circle.fill",              @"color": [UIColor systemGreenColor],  @"section": @(SectionGravityLite) },
+        @{ @"title": @"App Switcher Grid",  @"icon": @"square.grid.2x2.fill",                @"color": [UIColor systemOrangeColor], @"section": @(SectionAppSwitcherGrid) },
         @{ @"title": @"Location Simulator", @"icon": @"location.fill",                       @"color": [UIColor systemGreenColor],  @"section": @(SectionLocationSim) },
-        @{ @"title": @"Cyanide Themer",     @"icon": @"paintpalette.fill",                   @"color": [UIColor systemPinkColor],   @"section": @(SectionThemer) },
         @{ @"title": @"SnowBoard Lite",     @"icon": @"square.stack.3d.up.fill",             @"color": [UIColor systemCyanColor],   @"section": @(SectionSnowBoardLite) },
         @{ @"title": @"LiveWP",             @"icon": @"play.rectangle.fill",                 @"color": [UIColor systemPurpleColor], @"section": @(SectionLiveWP) },
         @{ @"title": @"Powercuff",          @"icon": @"bolt.slash.fill",                     @"color": [UIColor systemOrangeColor], @"section": @(SectionPowercuff) },
@@ -7222,6 +7325,9 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     if (s == SectionNotificationIsland) {
         return @"Experimental Dynamic Island notification route. Cyanide polls SpringBoard's active banner request through the shared RemoteCall session, then mirrors it through the app's ActivityKit Live Activity.";
     }
+    if (s == SectionAppSwitcherGrid) {
+        return @"Runtime patch. It changes SpringBoard's app switcher style in memory, writes no system files, and a respring restores stock. Unsupported builds may glitch the app switcher or crash SpringBoard.";
+    }
     if (s == SectionGravityLite) {
         return @"RemoteCall-only core port of Julio Verne's Gravity. Run applies UIDynamicAnimator gravity, collision, bounce, friction, optional dock physics, and accelerometer steering to SpringBoard icon snapshots. It can restore the icon layout or fire a manual explosion pulse while the SpringBoard session is active.\n\nNot included in this core port: Activator/Home-button hooks, drag gestures, automatic shake effects, and preference-daemon notifications.";
     }
@@ -7229,8 +7335,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         return @"Beta CoreLocation simulation. Requires Apple Maps installed and set up — Maps is the RemoteCall host process that drives the simulation.\n\nThis is a manual tool, not an installable package. Use Simulate Current Target to start; use Restore Real Location to stop simulation and return CoreLocation to the device's real providers. Each run opens the activity log and marks completion when the request returns.\n\nNot all apps respect the simulated location. Apps that use their own location validation or additional signals may ignore it.\n\nCredits: kolbicz for the RemoteCall/CLSimulationManager GPS spoofer prototype, and ezzuldinSt's LSpoof for picker/route references.\n\nWarning: this can affect more than maps. Location-tied system behavior, including time zone and date/time handling, may behave unexpectedly. Only use this if you know what you're doing.";
     }
     if (s == SectionThemer) {
-        return @"Note: Cyanide Themer is still rough around the edges and may be glitchy. It will be iteratively improved to be more stable over time.\n\n"
-               @"Pick a theme before running Cyanide Themer.\n\n"
+        return @"Legacy icon theme engine settings.\n\n"
+               @"Pick a theme before running the icon theme engine.\n\n"
                @"Compatibility: when Dynamic Stage Lite is enabled, live icon repair is paused to avoid SpringBoard resprings. The selected theme still applies once.\n\n"
                @"Custom themes can be a folder of PNG files named by bundle ID, such as com.apple.mobilesafari.png, or a binary plist mapping bundle IDs to PNG data. Import copies the theme into Cyanide's Documents/Themes folder. Theme Format Guide includes examples and plist exports.";
     }
@@ -7576,7 +7682,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         g_themer_live_stop_requested = 1;
     }
     [d synchronize];
-    log_user("[THEMER] Cleared selected theme; Cyanide Themer is no longer pending activation.\n");
+    log_user("[THEMER] Cleared selected theme; the icon theme engine is no longer pending activation.\n");
     [self reloadThemerSectionAndQueue];
 }
 
@@ -7988,7 +8094,7 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls
             ok = isDir ? [self importThemerFolderAtURL:url error:&err]
                        : [self importThemerPlistAtURL:url error:&err];
             NSString *name = settings_themer_selected_theme_display_name();
-            successMessage = [NSString stringWithFormat:@"\"%@\" is now selected. Toggle Cyanide Themer on and tap Run to apply.", name];
+            successMessage = [NSString stringWithFormat:@"\"%@\" is now selected. Toggle SnowBoard Lite on and tap Run to apply.", name];
         }
         if (scoped) [url stopAccessingSecurityScopedResource];
 
@@ -10550,6 +10656,38 @@ void cyanide_present_contact(UIViewController *host)
                          ok ? "[OK]" : "[WARN]",
                          ok ? "started" : "did not start");
                 if (ok) settings_start_notificationisland_live_loop();
+            });
+        }
+        return;
+    }
+
+    if (indexPath.section == SectionAppSwitcherGrid) {
+        NSDictionary *row = [self rowsForSection:indexPath.section][indexPath.row];
+        if (![row[@"kind"] isEqualToString:@"button"]) return;
+        NSString *action = row[@"action"];
+        if ([action isEqualToString:@"appswitchergrid-restore"]) {
+            NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
+            [d setBool:NO forKey:kSettingsAppSwitcherGridEnabled];
+            [d synchronize];
+            settings_mark_tweak_applied(kSettingsAppSwitcherGridEnabled, NO);
+            settings_notify_package_queue_changed_async();
+            if (!g_springboard_rc_ready) {
+                appswitchergrid_forget_remote_state();
+                log_user("[ASG] App Switcher Grid disabled. No active SpringBoard session was available; respring restores stock if needed.\n");
+                [self reloadSectionOrAll:SectionAppSwitcherGrid];
+                return;
+            }
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                @synchronized (settings_rc_lock()) {
+                    if (settings_cleanup_in_progress() || !g_springboard_rc_ready) return;
+                    bool ok = appswitchergrid_stop_in_session();
+                    log_user("%s App Switcher Grid restore %s.\n",
+                             ok ? "[OK]" : "[WARN]",
+                             ok ? "completed" : "did not find an active patch; respring restores stock");
+                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self reloadSectionOrAll:SectionAppSwitcherGrid];
+                });
             });
         }
         return;
