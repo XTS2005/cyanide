@@ -32,6 +32,13 @@ omit it.
 
 ## Released
 
+### v1.2.20 - 2026-06-12
+
+- [x] Fixed SBCustomizer showing as still queued after a successful icon-label or layout apply.
+- [x] Fixed unsupported-version runs leaving the Activity sheet stuck in a running state.
+- [x] Fixed local builds failing on macOS Bash when no simulator-only xcodebuild extras are set.
+- [x] Fixed SnowBoard Lite imports on Signulous installs by copying selected themes into Cyanide instead of opening them in place.
+
 ### v1.2.19 - 2026-06-11
 
 - [x] Added FastLockX Lite, available to Patrons for early access, as an experimental tool that automatically unlocks the screen once Face ID is accepted; tested on iOS 18 and iOS 26, with iOS 17 support not confirmed yet. Credits: original FastLockX author Artem Kasper and Cyanide port by zeroxjf.

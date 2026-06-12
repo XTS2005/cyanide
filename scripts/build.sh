@@ -43,7 +43,7 @@ xcodebuild \
     -configuration "$CONFIG" \
     -derivedDataPath "$DERIVED" \
     CODE_SIGNING_ALLOWED=NO \
-    "${XCODEBUILD_EXTRA[@]}" \
+    ${XCODEBUILD_EXTRA[@]+"${XCODEBUILD_EXTRA[@]}"} \
     build \
     | xcbeautify --quiet 2>/dev/null \
     || xcodebuild \
@@ -53,7 +53,7 @@ xcodebuild \
          -configuration "$CONFIG" \
          -derivedDataPath "$DERIVED" \
          CODE_SIGNING_ALLOWED=NO \
-         "${XCODEBUILD_EXTRA[@]}" \
+         ${XCODEBUILD_EXTRA[@]+"${XCODEBUILD_EXTRA[@]}"} \
          build
 
 APP_PATH="$PRODUCT_DIR/$APP_NAME"

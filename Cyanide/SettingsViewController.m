@@ -864,6 +864,7 @@ static void settings_start_themer_live_loop(void);
 static void settings_schedule_themer_repair_burst(const char *reason);
 static void settings_schedule_themer_quiet_repair_burst(const char *reason);
 static void settings_notify_remote_call_state_changed(void);
+static void settings_notify_remote_call_state_changed_preserving_applied(BOOL preserveApplied);
 static void settings_request_all_live_loops_stop(const char *reason);
 
 static BOOL settings_should_log_statbar_tick(NSUInteger tick) {
@@ -1363,9 +1364,14 @@ static void settings_begin_statbar_background_task_async(const char *reason)
 
 static void settings_notify_remote_call_state_changed(void)
 {
+    settings_notify_remote_call_state_changed_preserving_applied(NO);
+}
+
+static void settings_notify_remote_call_state_changed_preserving_applied(BOOL preserveApplied)
+{
     BOOL ready = (g_springboard_rc_ready != 0);
     BOOL cleared = NO;
-    if (!ready) {
+    if (!ready && !preserveApplied) {
         cleared = settings_clear_all_applied_locked();
     }
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -1730,7 +1736,7 @@ static BOOL settings_ensure_springboard_remote_call_locked(void)
     return YES;
 }
 
-static void settings_destroy_springboard_remote_call_locked_internal(const char *reason, BOOL notifyState)
+static void settings_destroy_springboard_remote_call_locked_internal_ex(const char *reason, BOOL notifyState, BOOL preserveApplied)
 {
     if (!g_springboard_rc_ready) return;
 
@@ -1739,7 +1745,12 @@ static void settings_destroy_springboard_remote_call_locked_internal(const char 
     destroy_remote_call();
     g_springboard_rc_ready = 0;
     g_springboard_sandbox_escaped = 0;
-    if (notifyState) settings_notify_remote_call_state_changed();
+    if (notifyState) settings_notify_remote_call_state_changed_preserving_applied(preserveApplied);
+}
+
+static void settings_destroy_springboard_remote_call_locked_internal(const char *reason, BOOL notifyState)
+{
+    settings_destroy_springboard_remote_call_locked_internal_ex(reason, notifyState, NO);
 }
 
 static void settings_destroy_springboard_remote_call_locked(const char *reason)
@@ -5697,8 +5708,14 @@ void settings_register_defaults(void)
 static void settings_run_actions_internal(BOOL pendingOnly)
 {
     if (!settings_device_supported()) {
-        printf("[SETTINGS] run blocked: %s\n", settings_unsupported_message().UTF8String);
-        log_user("[RUN] %s\n", settings_unsupported_message().UTF8String);
+        NSString *message = settings_unsupported_message();
+        printf("[SETTINGS] run blocked: %s\n", message.UTF8String);
+        log_user("[RUN] %s\n", message.UTF8String);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[NSNotificationCenter defaultCenter] postNotificationName:PackageQueueDidChangeNotification
+                                                                object:[PackageQueue sharedQueue]];
+        });
+        settings_post_actions_complete_async(NO, message);
         return;
     }
 
@@ -6223,7 +6240,15 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 @synchronized (settings_rc_lock()) {
                     if (!settings_has_persistent_springboard_remote_call_user() &&
                         g_springboard_rc_ready) {
-                        settings_destroy_springboard_remote_call_locked("non-live run complete");
+                        // Closing the synthetic-call channel does not undo
+                        // one-shot SpringBoard patches like SBCustomizer's
+                        // icon-label/layout changes. Keep the applied marker
+                        // so Installer doesn't immediately re-queue a package
+                        // that just finished successfully; SpringBoard restart,
+                        // manual cleanup, and respring cleanup still clear it.
+                        settings_destroy_springboard_remote_call_locked_internal_ex("non-live run complete",
+                                                                                   YES,
+                                                                                   YES);
                         closedNonLiveRemoteCall = YES;
                     }
                 }
@@ -7819,7 +7844,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
                @"Custom themes can be a folder of PNG files named by bundle ID, such as com.apple.mobilesafari.png, or a binary plist mapping bundle IDs to PNG data. Import copies the theme into Cyanide's Documents/Themes folder. Theme Format Guide includes examples and plist exports.";
     }
     if (s == SectionSnowBoardLite) {
-        return @"SnowBoard/IconBundles importer ported from d1y/cyanide-ios. Folder imports are copied into Cyanide's Documents/SnowBoardLite library and applied through the existing icon replacement pipeline.\n\nCompatibility: when Dynamic Stage Lite is enabled, live icon repair is paused to avoid SpringBoard resprings. The selected theme still applies once.";
+        return @"SnowBoard/IconBundles importer ported from d1y/cyanide-ios. Folder imports are copied into Cyanide's Documents/SnowBoardLite library and applied through the existing icon replacement pipeline.\n\nImport uses a local copy of the selected folder or archive, so the original theme in Files is not changed.\n\nCompatibility: when Dynamic Stage Lite is enabled, live icon repair is paused to avoid SpringBoard resprings. The selected theme still applies once.";
     }
     if (s == SectionLiveWP) {
         return @"Video wallpaper ported from d1y/cyanide-ios. Select an MP4, MOV, or M4V; Cyanide copies it into Documents/LiveWP and plays it in SpringBoard while the RemoteCall session stays alive.";
@@ -8190,7 +8215,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     [hint addAction:[UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
         (void)a;
         UIDocumentPickerViewController *picker =
-            [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[UTTypeFolder, UTTypePropertyList]];
+            [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[UTTypeFolder, UTTypePropertyList] asCopy:YES];
         picker.delegate = self;
         picker.allowsMultipleSelection = NO;
         self.pendingThemeImportMode = @"themer";
@@ -8204,7 +8229,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 {
     UIAlertController *hint = [UIAlertController
         alertControllerWithTitle:@"Import SnowBoard Theme"
-                         message:@"Choose a theme folder that contains an IconBundles directory. ZIP and DEB archives are also accepted when they contain IconBundles."
+                         message:@"Choose a theme folder that contains an IconBundles directory. ZIP and DEB archives are also accepted when they contain IconBundles. Cyanide imports a local copy and leaves the original theme unchanged."
                   preferredStyle:UIAlertControllerStyleAlert];
     [hint addAction:[UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
         (void)a;
@@ -8214,7 +8239,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
             [UTType typeWithFilenameExtension:@"deb"] ?: UTTypeData,
         ];
         UIDocumentPickerViewController *picker =
-            [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:types];
+            [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:types asCopy:YES];
         picker.delegate = self;
         picker.allowsMultipleSelection = NO;
         self.pendingThemeImportMode = @"snowboardlite";
@@ -8281,7 +8306,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 - (void)presentLiveWPDocumentPicker
 {
     UIDocumentPickerViewController *picker =
-        [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:[self liveWPVideoDocumentTypes]];
+        [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:[self liveWPVideoDocumentTypes] asCopy:YES];
     picker.delegate = self;
     picker.allowsMultipleSelection = NO;
     self.pendingThemeImportMode = @"livewp";
