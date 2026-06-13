@@ -6970,8 +6970,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     return @[
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"自动运行 kexploit" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"沙盒逃逸 (escape_sbx_demo2)" },
-        @{ @"key": kSettingsKeepAlive,          @"title": @"保持应用活跃",
-           @"subtitle": @"供 App 驱动的实时调整在最小化后保持运行所需，包括 StatBar 持续接收新的实时数据。" },
+        @{ @"key": kSettingsKeepAlive,          @"title": @"保持后台运行",
+           @"subtitle": @"供应用驱动的实时插件在最小化后保持运行所需，包括 StatBar 持续接收新的实时数据。" },
     ];
 }
 
@@ -7011,7 +7011,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"stepper",
            @"key": kSettingsNanoMaxPairing,
            @"title": @"watchOS 配对上限",
-           @"subtitle": @"此 iPhone 将接受的最高 watchOS 配对代数。99 提高手机端上限以支持更新的 watchOS 版本。",
+           @"subtitle": @"调整此值以在此 iPhone 上配对更新的 watchOS 版本。 [范围：99] ",
            @"min": @(kNanoUIRowMin),
            @"max": @(kNanoUIRowMax),
            @"default": @(kNanoDefaultMaxPairing) },
@@ -7019,7 +7019,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"stepper",
            @"key": kSettingsNanoMinPairing,
            @"title": @"设置协议下限",
-           @"subtitle": @"此 iPhone 将接受的最低配对设置代数。保持为 23 以确保第 23 代设置消息不被拒绝。",
+           @"subtitle": @"调整此值以在此 iPhone 上设置消息不被拒绝。[范围：23]",
            @"min": @(kNanoUIRowMin),
            @"max": @(kNanoUIRowMax),
            @"default": @(kNanoDefaultMinPairing) },
@@ -7027,7 +7027,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"stepper",
            @"key": kSettingsNanoMinPairingChipID,
            @"title": @"旧芯片下限",
-           @"subtitle": @"除非您正在尝试配对旧 S 芯片手表（如 Series 3），否则请保持此设置不变。",
+           @"subtitle": @"调整此值以在此 iPhone 上配对旧 S 芯片手表（如 Series 3），仅旧款手表需要此设置，否则请保持此设置不变。[范围：10]",
            @"min": @(kNanoUIRowMin),
            @"max": @(kNanoUIRowMax),
            @"default": @(kNanoDefaultMinPairingChipID) },
@@ -7035,7 +7035,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"stepper",
            @"key": kSettingsNanoMinQuickSwitch,
            @"title": @"多手表切换",
-           @"subtitle": @"除非在多台旧配对手表之间切换不起作用，否则请保持此设置不变。",
+           @"subtitle": @"除非在多台旧配对手表之间切换不起作用，否则请保持此设置不变。[范围：6]",
            @"min": @(kNanoUIRowMin),
            @"max": @(kNanoUIRowMax),
            @"default": @(kNanoDefaultMinQuickSwitch) },
@@ -7045,7 +7045,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
            @"action": @"nano-load" },
 
         @{ @"kind": @"button",
-           @"title": @"使用 watchOS 范围 99/23/10/6",
+           @"title": @"使用 watchOS",
            @"action": @"nano-preset-newer" },
 
         @{ @"kind": @"button",
@@ -7773,7 +7773,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     }
     NSInteger s = self.underlyingSection;
     if (s == SectionLaunch) {
-        return @"kexploit_opa334 每次启动仅运行一次。保活仅在 Cyanide 最小化时生效；从 App 切换器强制退出仍会终止进程。";
+        return @"kexploit 每次启动仅运行一次。保活仅在 Cyanide 最小化时生效；从 App 切换器强制退出仍会终止进程。";
     }
     if (s == SectionSBC) {
         return [NSString stringWithFormat:@"系统默认值：Dock %ld，列 %ld，行 %ld。",
@@ -7800,7 +7800,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     }
     if (s == SectionNanoRegistry) {
         return @"更改此 iPhone 上保存的 watchOS 配对范围。\n\n"
-               @"大多数人应该点击“使用 watchOS 范围 99/23/10/6”，然后点击“应用配对覆盖设置”。"
+               @"大多数人应该点击“使用 watchOS”，然后点击“应用配对覆盖设置”。"
                @"这些是配对协议的代数，而不是 Apple Watch 型号编号。"
                @"99 提高 watchOS 配对上限。23 保持接受第 23 代设置协议。"
                @"10 和 6 将旧芯片和多手表下限保持在正常值。\n\n"
@@ -11486,7 +11486,7 @@ void cyanide_present_contact(UIViewController *host)
             settings_present_controller(ac, self);
         } else if (indexPath.row == 2) {
             UIAlertController *ac = [UIAlertController
-                alertControllerWithTitle:@"重置插件配置？"
+                alertControllerWithTitle:@"重置所有插件？"
                                  message:@"卸载所有插件并清空待处理。已应用的补丁会持续到注销或重启。每个插件的单独设置不受影响。"
                           preferredStyle:UIAlertControllerStyleAlert];
             [ac addAction:[UIAlertAction actionWithTitle:@"取消"
