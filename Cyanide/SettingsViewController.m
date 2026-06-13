@@ -4918,7 +4918,7 @@ static NSString *settings_location_sim_target_summary(NSUserDefaults *d)
     NSInteger altitude = [d integerForKey:kSettingsLocationSimAltitude];
     NSInteger accuracy = [d integerForKey:kSettingsLocationSimHorizontalAccuracy];
     if (accuracy <= 0) accuracy = kLocationSimDefaultAccuracy;
-    return [NSString stringWithFormat:@"%.7f, %.7f via %@ (%ldm alt, %ldm acc)",
+    return [NSString stringWithFormat:@"%.7f, %.7f 通过 %@（海拔 %ldm，精度 %ldm）",
             lat,
             lon,
             settings_location_sim_host_process(d),
@@ -4933,7 +4933,7 @@ static NSString *settings_location_sim_mode_summary(NSUserDefaults *d)
         ? @"模式：目标位置模拟已启动"
         : @"模式：请求真实位置";
     NSString *note = simulationStarted ? @"\n使用「恢复真实位置」可停止该功能。" : @"";
-    return [NSString stringWithFormat:@"%@%@\nTarget: %@", simulation, note,
+    return [NSString stringWithFormat:@"%@%@\n目标: %@", simulation, note,
             settings_location_sim_target_summary(d)];
 }
 
@@ -7838,7 +7838,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         return @"Julio Verne's Gravity 的纯 RemoteCall 核心移植版。运行后会将 UIDynamicAnimator 重力、碰撞、弹跳、摩擦力、可选 Dock 栏物理效果以及加速度计转向应用于主屏幕（SpringBoard）图标快照。在主屏幕（SpringBoard）通道活跃期间，可恢复图标布局或手动触发爆发脉冲。\n\n此核心移植版未包含：Activator/主屏幕按钮 hooks、拖拽手势、自动摇晃效果及偏好设置守护进程通知。";
     }
     if (s == SectionLocationSim) {
-        return @"测试版 CoreLocation 模拟。需要已安装并设置好的 Apple Maps——Maps 是驱动该模拟的 RemoteCall 宿主进程。\n\n这是一个手动工具，而非可安装包。使用“模拟当前位置”开始；使用“恢复真实位置”停止模拟，并将 CoreLocation 交还给设备的真实定位源。每次运行都会打开活动日志，并在请求返回时标记完成。\n\n并非所有 App 都会遵循模拟位置。使用自有位置验证或额外信号的 App 可能会忽略此模拟。\n\n鸣谢：kolbicz 提供的 RemoteCall/CLSimulationManager GPS 欺骗原型，以及 ezzuldinSt 的 LSpoof 提供的选择器/路线参考。\n\n警告：此功能的影响范围可能超出地图。与位置绑定的系统行为——包括时区和日期/时间处理——可能出现异常。请仅在清楚操作后果时使用。";
+        return @"测试版 CoreLocation 模拟。需要已安装并设置好的 Apple 地图——地图是驱动该模拟的 RemoteCall 宿主进程。\n\n这是一个手动工具，而非可安装包。使用“模拟当前位置”开始；使用“恢复真实位置”停止模拟，并将 CoreLocation 交还给设备的真实定位源。每次运行都会打开活动日志，并在请求返回时标记完成。\n\n并非所有 App 都会遵循模拟位置。使用自有位置验证或额外信号的 App 可能会忽略此模拟。\n\n鸣谢：kolbicz 提供的 RemoteCall/CLSimulationManager GPS 欺骗原型，以及 ezzuldinSt 的 LSpoof 提供的选择器/路线参考。\n\n警告：此功能的影响范围可能超出地图。与位置绑定的系统行为——包括时区和日期/时间处理——可能出现异常。请仅在清楚操作后果时使用。";
     }
     if (s == SectionIPADecryptor) {
         return @"开发中的本地 IPA 解密工具。当前版本可发现已安装的用户应用、将粘贴的 App Store 链接解析为包名 ID、登录 App Store 获取下载令牌，以及将加密 IPA 下载到 Documents 目录。下载后的 IPA 仍需经过 SINF/iTunesMetadata 修补和 KRW 转储/重建阶段才能成为已解密的 IPA。";
