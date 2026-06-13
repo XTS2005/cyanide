@@ -150,14 +150,14 @@ static BOOL PackageCanQueueInstall(Package *package)
     BOOL isHideHomeBar = package.kind == PackageInstallKindHideHomeBar;
     if (isHideHomeBar && [self pendingCountExcludingPackage:package] > 0) {
         if (reason) {
-            *reason = @"隐藏 Home Bar 会更改系统主屏幕指示条资源，需要立即重启桌面。请清空当前队列，单独运行隐藏 Home Bar，重启桌面，然后再将其他插件加入队列。";
+            *reason = @"隐藏主屏幕横条会修改系统主屏幕指示器资源，之后需要立即注销。请清空当前待处理，单独运行隐藏主屏幕横条，注销，然后再加入其它插件。";
         }
         return NO;
     }
 
     if (!isHideHomeBar && [self hasQueuedHideHomeBarIntentExcludingPackage:package]) {
         if (reason) {
-            *reason = @"隐藏 Home Bar 已在队列中等待，必须单独运行。请先应用或移除隐藏 Home Bar，重启桌面后再将其他插件加入队列。";
+            *reason = @"隐藏主屏幕横条已在待处理中等待，且必须单独运行。请先应用或移除隐藏主屏幕横条，注销后再加入其它插件。";
         }
         return NO;
     }
