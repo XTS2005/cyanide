@@ -345,7 +345,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         Package *nanoRegistry = [[Package alloc] initWithIdentifier:@"com.darksword.nanoregistry"
                                            name:@"手表配对"
                                shortDescription:@"配对较新的手表或恢复旧款手表"
-                                longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围值，以支持更多的手表。"
+                                longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围值，以支持更多的手表。\nApple Watch Ultra 3 目前无法在低于 26 的 iOS 版本上配对。\n应用后先注销或重启，再尝试配对。"
                                         version:version
                                          author:@"zeroxjf"
                                        category:@"Beta"
