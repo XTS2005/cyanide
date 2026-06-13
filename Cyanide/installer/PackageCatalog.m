@@ -231,7 +231,7 @@ static const NSInteger kSecFastLockXLite    = 24;
 #endif
 
         Package *locationSim = [[Package alloc] initWithIdentifier:@"com.darksword.locationsim"
-                                           name:@"Location Simulator"
+                                           name:@"位置模拟器"
                                shortDescription:@"位置模拟"
                                 longDescription:@"定位模拟器可以伪装设备的 GPS 位置。需要先安装并设置好 Apple 地图作为宿主进程。选择一个目标位置即可开始模拟，点击“恢复真实位置”即可停止。仅支持固定点位模拟。部分 App 可能会无视模拟位置，也可能影响时区、天气等系统功能。请自行承担使用风险。"
                                         version:version
@@ -344,7 +344,7 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *nanoRegistry = [[Package alloc] initWithIdentifier:@"com.darksword.nanoregistry"
                                            name:@"手表配对"
-                               shortDescription:@"配对较新的手表或恢复旧款手表"
+                               shortDescription:@"配对较新的手表或恢复旧款手表配对"
                                 longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围值，以支持更多的手表。\nApple Watch Ultra 3 目前无法在低于 26 的 iOS 版本上配对。\n应用后先注销或重启，再尝试配对。"
                                         version:version
                                          author:@"zeroxjf"
