@@ -345,7 +345,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         Package *nanoRegistry = [[Package alloc] initWithIdentifier:@"com.darksword.nanoregistry"
                                            name:@"手表配对"
                                shortDescription:@"配对较新的手表或恢复旧款手表"
-                                longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围。\n\n大多数人应该在“设置”中使用 watchOS 范围 99/23/10/6，然后应用覆盖设置。这些是配对协议的代数，而不是 Apple Watch 型号。99 会提高 watchOS 配对上限。23 保持第 23 代设置协议被接受。10 和 6 将旧款芯片和多手表切换的下限保持在正常值。\n\nApple Watch Ultra 3 目前无法在低于 26 的 iOS 版本上配对。\n\n系统文件警告：这会修改本地的 NanoRegistry 兼容性索引 MobileAsset，并在原文件旁保存一份 .cyanide.bak 备份。配对资源编辑可能失败、部分应用、需要注销或重启才能生效，或使配对状态不一致。应用或移除此覆盖设置请自行承担风险。\n\n安装或移除覆盖设置后，请注销或重启，然后再尝试配对。"
+                                longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围值，以支持更多的手表。"
                                         version:version
                                          author:@"zeroxjf"
                                        category:@"Beta"
@@ -359,7 +359,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         Package *callRecordingSound = [[Package alloc] initWithIdentifier:@"com.darksword.callrecording-sound"
                                            name:@"通话录音"
                                shortDescription:@"禁用通话录音提示音"
-                                longDescription:@"将 iOS 通话录音时强制播放的提示音替换为空音频，使录音开始与结束不再发出任何声音。\n启用此功能会自动备份原始音频，可随时恢复。\n请注意：通话录音提示音在某些地区可能属于法律合规要求，请仅在获得许可并了解适用法规的前提下使用。"
+                                longDescription:@"将 iOS 通话录音时强制播放的提示音替换为空音频，使录音开始与结束不再发出任何声音。\n启用此功能会自动备份原生音频，可随时恢复。\n请注意：通话录音提示音在某些地区可能属于法律合规要求，请仅在获得许可并了解适用法规的前提下使用。"
                                         version:version
                                          author:@"YangJiiii (@duongduong0908) / zeroxjf"
                                        category:@"Beta"
