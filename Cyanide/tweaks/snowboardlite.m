@@ -259,10 +259,10 @@ BOOL settings_snowboardlite_has_selected_theme(void)
 
 NSString *settings_snowboardlite_selected_theme_display_name(void)
 {
-    if (settings_sbl_selected_builtin_ios6()) return @"iOS 6 Theme";
+    if (settings_sbl_selected_builtin_ios6()) return @"iOS 6 主题";
     NSDictionary *theme = settings_sbl_selected_theme();
     NSString *name = theme[@"name"];
-    return name.length > 0 ? name : @"None";
+    return name.length > 0 ? name : @"无";
 }
 
 static NSArray<NSURL *> *settings_sbl_iconbundles_dirs_in_folder(NSURL *rootURL)
@@ -303,7 +303,7 @@ BOOL settings_sbl_import_folder_theme_named(NSURL *url,
         if (error) {
             *error = [NSError errorWithDomain:@"SnowBoardLite"
                                          code:1
-                                     userInfo:@{NSLocalizedDescriptionKey: @"No IconBundles directory was found in this folder."}];
+                                     userInfo:@{NSLocalizedDescriptionKey: @"此文件夹中未找到 IconBundles 目录。"}];
         }
         return NO;
     }
@@ -314,7 +314,7 @@ BOOL settings_sbl_import_folder_theme_named(NSURL *url,
     if (error && *error) return NO;
 
     NSString *baseName = displayName.length ? displayName :
-        (url.lastPathComponent.length ? url.lastPathComponent : @"Imported Theme");
+        (url.lastPathComponent.length ? url.lastPathComponent : @"导入的主题");
     NSString *themeID = [NSString stringWithFormat:@"sbl-%llu",
                          (unsigned long long)(NSDate.date.timeIntervalSince1970 * 1000.0)];
     NSString *themeDir = [root stringByAppendingPathComponent:themeID];
@@ -387,7 +387,7 @@ BOOL settings_sbl_import_folder_theme_named(NSURL *url,
         if (error) {
             *error = [NSError errorWithDomain:@"SnowBoardLite"
                                          code:2
-                                     userInfo:@{NSLocalizedDescriptionKey: @"IconBundles was found, but no bundle-ID PNG icons could be imported."}];
+                                     userInfo:@{NSLocalizedDescriptionKey: @"已找到 IconBundles，但未能导入任何 bundle-ID PNG 图标。"}];
         }
         return NO;
     }
