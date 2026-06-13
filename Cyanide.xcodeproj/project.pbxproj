@@ -415,10 +415,10 @@
 				};
 			};
 			buildConfigurationList = AAA297722F72D439000B5902 /* Build configuration list for PBXProject "Cyanide" */;
-			developmentRegion = en;
+			developmentRegion = zh-Hans;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				zh-Hans,
 				Base,
 			);
 			mainGroup = AAA2976E2F72D439000B5902;
