@@ -2101,7 +2101,7 @@ static NSString *settings_nsbar_position_name(NSInteger position)
 static NSString *settings_livewp_video_detail(void)
 {
     NSString *path = livewp_absolute_path();
-    if (path.length == 0) return @"未选择视频。";
+    if (path.length == 0) return @"未选择视频";
     NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
     if (attrs) {
         unsigned long long bytes = [attrs fileSize];
@@ -11597,7 +11597,7 @@ void cyanide_present_contact(UIViewController *host)
         } else if ([action isEqualToString:@"nano-clear"]) {
             UIAlertController *ac = [UIAlertController
                 alertControllerWithTitle:@"移除配对覆盖？"
-                                 message:@"移除已保存的手表配对覆盖，不会影响您手表的其他数据。之后需要注销或重启。"
+                                 message:@"移除已保存的手表配对覆盖，不会影响您手表的其它数据。之后需要注销或重启。"
                           preferredStyle:UIAlertControllerStyleAlert];
             [ac addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
             [ac addAction:[UIAlertAction actionWithTitle:@"移除" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *_) {
