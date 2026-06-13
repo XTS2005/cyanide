@@ -4918,7 +4918,7 @@ static NSString *settings_location_sim_target_summary(NSUserDefaults *d)
     NSInteger altitude = [d integerForKey:kSettingsLocationSimAltitude];
     NSInteger accuracy = [d integerForKey:kSettingsLocationSimHorizontalAccuracy];
     if (accuracy <= 0) accuracy = kLocationSimDefaultAccuracy;
-    return [NSString stringWithFormat:@"%.7f, %.7f 通过 %@（海拔 %ldm，精度 %ldm）",
+    return [NSString stringWithFormat:@"%.7f, %.7f 通过 %@ (海拔 %ldm，精度 %ldm)",
             lat,
             lon,
             settings_location_sim_host_process(d),
@@ -4930,10 +4930,10 @@ static NSString *settings_location_sim_mode_summary(NSUserDefaults *d)
 {
     BOOL simulationStarted = [d boolForKey:kSettingsLocationSimStarted];
     NSString *simulation = simulationStarted
-        ? @"模式：目标位置模拟已启动"
-        : @"模式：请求真实位置";
+        ? @"模式：模拟位置"
+        : @"模式：真实位置";
     NSString *note = simulationStarted ? @"\n使用「恢复真实位置」可停止该功能。" : @"";
-    return [NSString stringWithFormat:@"%@%@\n目标: %@", simulation, note,
+    return [NSString stringWithFormat:@"%@%@\n坐标: %@", simulation, note,
             settings_location_sim_target_summary(d)];
 }
 
@@ -5099,7 +5099,7 @@ static void settings_schedule_live_apply_for_key(NSString *key)
                              ok ? "[OK]" : "[WARN]",
                              ok ? "target refreshed" : "did not apply cleanly");
                     settings_post_actions_complete_async(ok,
-                        ok ? @"位置目标已刷新。" : @"位置刷新失败。请检查日志。");
+                        ok ? @"位置坐标已刷新。" : @"位置刷新失败。请检查日志。");
                 }
                 settings_notify_package_queue_changed_async();
             } @finally {
@@ -7242,7 +7242,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
     return @[
         @{ @"kind": @"info",
-           @"title": @"模式",
+           @"title": @"状态",
            @"subtitle": settings_location_sim_mode_summary(d) },
 
         @{ @"kind": @"button",
@@ -7552,7 +7552,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     } else if (section == SectionLiveWP) {
         [out addObject:@{@"title": @"视频", @"value": settings_livewp_video_detail()}];
     } else if (section == SectionLocationSim) {
-        [out addObject:@{@"title": @"目标", @"value": settings_location_sim_target_summary(d)}];
+        [out addObject:@{@"title": @"坐标", @"value": settings_location_sim_target_summary(d)}];
     } else if (section == SectionIPADecryptor) {
         [out addObject:@{@"title": @"目标", @"value": settings_ipadecryptor_target_summary(d)}];
         [out addObject:@{@"title": @"App Store", @"value": settings_ipadecryptor_app_store_summary(d)}];
@@ -11164,7 +11164,7 @@ void cyanide_present_contact(UIViewController *host)
 {
     NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
     UIAlertController *ac = [UIAlertController alertControllerWithTitle:@"精确坐标"
-                                                                message:@"输入十进制度数，或粘贴一对坐标，如 40.7128, -74.0060。"
+                                                                message:@"输入经纬度，如 40.7128, -74.0060。"
                                                          preferredStyle:UIAlertControllerStyleAlert];
     [ac addTextFieldWithConfigurationHandler:^(UITextField *field) {
         field.placeholder = @"纬度或 lat, lon";
@@ -11203,7 +11203,7 @@ void cyanide_present_contact(UIViewController *host)
     };
 
     [ac addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"设置目标"
+    [ac addAction:[UIAlertAction actionWithTitle:@"设置坐标"
                                            style:UIAlertActionStyleDefault
                                          handler:^(__unused UIAlertAction *action) {
         commit(NO);
