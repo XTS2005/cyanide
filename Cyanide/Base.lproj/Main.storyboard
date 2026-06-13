@@ -29,11 +29,11 @@
             </objects>
             <point key="canvasLocation" x="7072.5190839694651" y="-558.45070422535218"/>
         </scene>
-        <!--Settings-->
+        <!--设置-->
         <scene sceneID="cy4-QU-ZIz">
             <objects>
                 <navigationController id="8yM-QB-lo1" userLabel="Settings" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Settings" image="gear" catalog="system" id="90p-V5-FPd">
+                    <tabBarItem key="tabBarItem" title="设置" image="gear" catalog="system" id="90p-V5-FPd">
                         <color key="badgeColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     </tabBarItem>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" barStyle="black" id="YsO-k3-Sb5">
@@ -48,7 +48,7 @@
             </objects>
             <point key="canvasLocation" x="8079" y="-391"/>
         </scene>
-        <!--Settings-->
+        <!--设置-->
         <scene sceneID="iCC-Sc-yhh">
             <objects>
                 <tableViewController id="Lfv-cA-jkS" customClass="SettingsViewController" sceneMemberID="viewController">
@@ -57,17 +57,17 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Settings" id="Ofz-kh-Dfg"/>
+                    <navigationItem key="navigationItem" title="设置" id="Ofz-kh-Dfg"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="1bh-fX-dfw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="8909" y="-404"/>
         </scene>
-        <!--Installer-->
+        <!--安装器-->
         <scene sceneID="InsScNav">
             <objects>
                 <navigationController id="InsNv001" userLabel="Installer" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Installer" image="shippingbox.fill" catalog="system" id="InsTb001"/>
+                    <tabBarItem key="tabBarItem" title="安装器" image="shippingbox.fill" catalog="system" id="InsTb001"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" barStyle="black" id="InsNb001">
                         <rect key="frame" x="0.0" y="118" width="393" height="54"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -80,7 +80,7 @@
             </objects>
             <point key="canvasLocation" x="8079" y="-750"/>
         </scene>
-        <!--Installer-->
+        <!--安装器-->
         <scene sceneID="InsScTv">
             <objects>
                 <tableViewController id="InsTv001" customClass="PackagesViewController" sceneMemberID="viewController">
@@ -89,17 +89,17 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Installer" id="InsNi001"/>
+                    <navigationItem key="navigationItem" title="安装器" id="InsNi001"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="InsFr002" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="8909" y="-750"/>
         </scene>
-        <!--Log-->
+        <!--日志-->
         <scene sceneID="LogScNav">
             <objects>
                 <navigationController id="LogNv001" userLabel="Log" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Log" image="terminal" catalog="system" id="LogTb001"/>
+                    <tabBarItem key="tabBarItem" title="日志" image="terminal" catalog="system" id="LogTb001"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" barStyle="black" id="LogNb001">
                         <rect key="frame" x="0.0" y="118" width="393" height="54"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -112,7 +112,7 @@
             </objects>
             <point key="canvasLocation" x="8079" y="-220"/>
         </scene>
-        <!--Log-->
+        <!--日志-->
         <scene sceneID="LogScVc">
             <objects>
                 <viewController id="LogVc001" customClass="LogViewController" sceneMemberID="viewController">
@@ -122,7 +122,7 @@
                         <color key="backgroundColor" red="0.02" green="0.05" blue="0.06" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="LogSa001"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Log" id="LogNi001"/>
+                    <navigationItem key="navigationItem" title="日志" id="LogNi001"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LogFr002" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
