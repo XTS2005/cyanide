@@ -7811,10 +7811,10 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         return @"通过模拟热压力，借助温控守护进程（thermalmonitord）对 CPU/GPU 降频。标准为日常使用默认档。轻度、中度、重度会刻意加大降频幅度，可能使设备变卡，老机型尤为明显。";
     }
     if (s == SectionStatBar) {
-        return @"实时叠加层。开启后，StatBar 会保持一个主屏幕（SpringBoard）RemoteCall 通道打开。当 Cyanide 最小化但屏幕仍亮着时，刷新率正常生效；锁屏或休眠后 StatBar 会暂停刷新。";
+        return @"当 Cyanide 最小化但屏幕仍亮着时，刷新正常生效；锁屏或休眠后 StatBar 会暂停刷新。";
     }
     if (s == SectionNSBar) {
-        return @"网速叠加层，移植自 d1y/cyanide-ios。开启后，NSBar 会保持一个主屏幕（SpringBoard）RemoteCall 通道打开，大约每秒刷新一次。";
+        return @"显示实时下载和上传速度，大约每秒刷新一次。";
     }
     if (s == SectionNiceBarLite) {
         return @"点击方框可选择其显示内容。NiceBar Lite 会将纯文本放入刘海或灵动岛周围已配置的状态栏槽位中，包括底部居中位置。天气数据通过 Open-Meteo 从你的当前位置获取，并遵循摄氏度开关设置。";
