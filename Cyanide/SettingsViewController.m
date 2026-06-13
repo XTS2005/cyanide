@@ -7365,7 +7365,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
            @"subtitle": hasSelection ? selected : @"未选择。请在运行图标主题引擎之前选择一个主题。" },
 
         @{ @"kind": @"button",
-           @"title": [selected isEqualToString:@"iOS 6 Theme"]
+           @"title": [selected isEqualToString:@"iOS 6 主题"]
                 ? @"iOS 6 主题 ✓" : @"使用 iOS 6 主题",
            @"action": @"themer-select-ios6" },
 
@@ -7395,7 +7395,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
            @"title": @"已选主题",
            @"subtitle": hasSelection ? selected : @"未选择。请在运行 SnowBoard Lite 之前选择或导入一个主题。" },
         @{ @"kind": @"button",
-           @"title": [selected isEqualToString:@"iOS 6 Theme"] ? @"iOS 6 主题 ✓" : @"使用 iOS 6 主题",
+           @"title": [selected isEqualToString:@"iOS 6 主题"] ? @"iOS 6 主题 ✓" : @"使用 iOS 6 主题",
            @"action": @"sbl-select-ios6" },
         @{ @"kind": @"button",
            @"title": @"导入主题文件夹…",
