@@ -111,7 +111,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         signal.settingsSection = kSecRSSI;
         signal.experimental = YES;
         signal.creatorOnly = YES;
-        signal.unstableWarning = @"⚠️ 开发中 — 可能完全无法正常工作。实时状态栏刷新会干扰其他主屏幕插件，并可能导致读数完全丢失。";
+        signal.unstableWarning = @"⚠️ 开发中 — 可能完全无法正常工作。实时状态栏刷新会干扰其它主屏幕插件，并可能导致读数完全丢失。";
 #endif
 
         Package *sbc = [[Package alloc] initWithIdentifier:@"com.darksword.sbcustomizer"
@@ -243,7 +243,7 @@ static const NSInteger kSecFastLockXLite    = 24;
                                           isNew:YES];
         locationSim.settingsSection = kSecLocationSim;
         locationSim.experimental = NO;
-        locationSim.unstableWarning = @"Beta：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其他与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
+        locationSim.unstableWarning = @"Beta：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其它与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
 
         Package *snowboardLite = [[Package alloc] initWithIdentifier:@"com.darksword.snowboardlite"
                                            name:@"SnowBoard Lite"
@@ -305,7 +305,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         gravityLite.settingsSection = kSecGravityLite;
         gravityLite.unstableWarning = @"Beta：可能会因主屏幕重新布局而重置，例如翻页、旋转屏幕、文件夹切换或注销。如果图标仍偏移未复原，请使用“恢复图标布局”。";
         gravityLite.knownIssues = @[
-            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 Gravity Lite。目前没有其他方法可以停止它。",
+            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 Gravity Lite。目前没有其它方法可以停止它。",
             @"尚不支持触摸已偏移的图标。在此环境中转发触摸是一个重要的开发中功能。",
             @"安装过程非常缓慢。Cyanide 必须在物理效果开始前捕获每个可见的图标和小部件。",
             @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 Gravity。",
@@ -517,7 +517,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         @"Beta",
         @"状态栏",
         @"主屏幕布局",
-        @"其他插件",
+        @"其它插件",
         @"性能",
         @"系统更新",
         @"系统",

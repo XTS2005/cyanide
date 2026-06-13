@@ -184,7 +184,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 
     UILabel *body = [[UILabel alloc] init];
     body.translatesAutoresizingMaskIntoConstraints = NO;
-    body.text = @"它会修改系统主屏幕指示器资源，因此需要注销。请仅确认隐藏主屏幕横条，注销后，再加入其他插件。";
+    body.text = @"它会修改系统主屏幕指示器资源，因此需要注销。请仅确认隐藏主屏幕横条，注销后，再加入其它插件。";
     body.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightRegular];
     body.textColor = UIColor.secondaryLabelColor;
     body.numberOfLines = 0;
@@ -332,7 +332,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     switch ((QueueReviewSection)section) {
         case QueueReviewSectionInstall:
             if (![self queueIncludesHideHomeBar]) return nil;
-            return @"隐藏主屏幕横条必须单独运行，因为它会修改系统主屏幕指示器资源并需要随后注销。请先单独运行它，注销后再应用其他插件。";
+            return @"隐藏主屏幕横条必须单独运行，因为它会修改系统主屏幕指示器资源并需要随后注销。请先单独运行它，注销后再应用其它插件。";
         case QueueReviewSectionReApply:
             if ([self reApplyPackages].count == 0) return nil;
             return @"这些是已激活的插件。如需停止某个插件，可从“安装器”标签页中将其停用，或使用“设置 → 快速操作”中的“重置所有插件”。";
@@ -481,7 +481,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     if (includesHideHomeBar && count > 1) {
         UIAlertController *ac = [UIAlertController
             alertControllerWithTitle:@"隐藏主屏幕条必须单独运行"
-                             message:@"隐藏主屏幕横条会修改系统主屏幕指示器资源，应用后需要注销。请移除其他待处理更改，单独运行隐藏主屏幕横条，注销后再应用其他插件。"
+                             message:@"隐藏主屏幕横条会修改系统主屏幕指示器资源，应用后需要注销。请移除其它待处理更改，单独运行隐藏主屏幕横条，注销后再应用其它插件。"
                       preferredStyle:UIAlertControllerStyleAlert];
         [ac addAction:[UIAlertAction actionWithTitle:@"确定"
                                                style:UIAlertActionStyleDefault
