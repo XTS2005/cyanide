@@ -28,7 +28,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.title = @"Queue";
+    self.title = @"待处理";
     self.view.backgroundColor = UIColor.systemGroupedBackgroundColor;
 
     self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
@@ -43,7 +43,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 
     self.emptyLabel = [[UILabel alloc] init];
     self.emptyLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    self.emptyLabel.text = @"No pending changes\nQueue packages from the Installer tab";
+    self.emptyLabel.text = @"暂无待处理更改\n请在“安装器”标签页中加入待处理";
     self.emptyLabel.font = [UIFont systemFontOfSize:16.0 weight:UIFontWeightMedium];
     self.emptyLabel.textColor = UIColor.tertiaryLabelColor;
     self.emptyLabel.textAlignment = NSTextAlignmentCenter;
@@ -89,7 +89,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     container.backgroundColor = UIColor.systemGroupedBackgroundColor;
 
     UIButtonConfiguration *confirmCfg = [UIButtonConfiguration filledButtonConfiguration];
-    confirmCfg.title = @"Confirm";
+    confirmCfg.title = @"确认";
     confirmCfg.cornerStyle = UIButtonConfigurationCornerStyleLarge;
     confirmCfg.titleTextAttributesTransformer = ^NSDictionary<NSAttributedStringKey,id> *(NSDictionary<NSAttributedStringKey,id> *incoming) {
         NSMutableDictionary *attrs = [incoming mutableCopy];
@@ -103,7 +103,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     [container addSubview:self.confirmButton];
 
     UIButtonConfiguration *clearCfg = [UIButtonConfiguration plainButtonConfiguration];
-    clearCfg.title = @"Clear Queue";
+    clearCfg.title = @"清空待处理";
     clearCfg.baseForegroundColor = UIColor.systemRedColor;
     clearCfg.titleTextAttributesTransformer = ^NSDictionary<NSAttributedStringKey,id> *(NSDictionary<NSAttributedStringKey,id> *incoming) {
         NSMutableDictionary *attrs = [incoming mutableCopy];
@@ -141,11 +141,11 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 
     NSString *confirmTitle;
     if (count == 1) {
-        confirmTitle = @"Confirm 1 Change";
+        confirmTitle = @"确认 1 项更改";
     } else if (count > 1) {
-        confirmTitle = [NSString stringWithFormat:@"Confirm %ld Changes", (long)count];
+        confirmTitle = [NSString stringWithFormat:@"确认 %ld 项更改", (long)count];
     } else {
-        confirmTitle = @"Confirm";
+        confirmTitle = @"确认";
     }
     UIButtonConfiguration *cfg = self.confirmButton.configuration;
     cfg.title = confirmTitle;
@@ -177,14 +177,14 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 
     UILabel *title = [[UILabel alloc] init];
     title.translatesAutoresizingMaskIntoConstraints = NO;
-    title.text = @"Hide Home Bar must run alone";
+    title.text = @"隐藏主屏幕横条必须单独运行";
     title.font = [UIFont systemFontOfSize:16.0 weight:UIFontWeightBold];
     title.textColor = UIColor.labelColor;
     [card addSubview:title];
 
     UILabel *body = [[UILabel alloc] init];
     body.translatesAutoresizingMaskIntoConstraints = NO;
-    body.text = @"It edits the system home-indicator asset and then needs a respring. Confirm only Hide Home Bar, respring, then queue your other tweaks.";
+    body.text = @"它会修改系统主屏幕指示器资源，因此需要注销。请仅确认隐藏主屏幕横条，注销后，再加入其他插件。";
     body.font = [UIFont systemFontOfSize:13.0 weight:UIFontWeightRegular];
     body.textColor = UIColor.secondaryLabelColor;
     body.numberOfLines = 0;
@@ -297,31 +297,31 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     switch ((QueueReviewSection)section) {
         case QueueReviewSectionInstall:
             if (allSameKind && commonKind == PackageInstallKindOTA) {
-                label = @"Disable";
+                label = @"禁用";
             } else if (allSameKind && commonKind == PackageInstallKindNanoRegistry) {
-                label = @"Apply";
+                label = @"应用";
             } else if (allSameKind && commonKind == PackageInstallKindCallRecordingSound) {
-                label = @"Silence";
+                label = @"静音";
             } else if (allSameKind && commonKind == PackageInstallKindHideHomeBar) {
-                label = @"Hide";
+                label = @"隐藏";
             } else {
-                label = @"Activate";
+                label = @"激活";
             }
             break;
         case QueueReviewSectionUninstall:
             if (allSameKind && commonKind == PackageInstallKindOTA) {
-                label = @"Enable";
+                label = @"启用";
             } else if (allSameKind && commonKind == PackageInstallKindNanoRegistry) {
-                label = @"Remove";
+                label = @"移除";
             } else if (allSameKind && commonKind == PackageInstallKindCallRecordingSound) {
-                label = @"Restore";
+                label = @"恢复";
             } else if (allSameKind && commonKind == PackageInstallKindHideHomeBar) {
-                label = @"Restore";
+                label = @"恢复";
             } else {
-                label = @"Deactivate";
+                label = @"停用";
             }
             break;
-        case QueueReviewSectionReApply:   label = @"Already Active";   break;
+        case QueueReviewSectionReApply:   label = @"已激活";   break;
         default:                          return nil;
     }
     return [NSString stringWithFormat:@"%@  ·  %ld", label, (long)list.count];
@@ -332,10 +332,10 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     switch ((QueueReviewSection)section) {
         case QueueReviewSectionInstall:
             if (![self queueIncludesHideHomeBar]) return nil;
-            return @"Hide Home Bar must run by itself because it edits the system home-indicator asset and then needs a respring. Run it alone first, then apply other tweaks after the respring.";
+            return @"隐藏主屏幕横条必须单独运行，因为它会修改系统主屏幕指示器资源并需要随后注销。请先单独运行它，注销后再应用其他插件。";
         case QueueReviewSectionReApply:
             if ([self reApplyPackages].count == 0) return nil;
-            return @"These are already installed, not new pending changes. Confirming re-runs the chain so RemoteCall-backed tweaks come back after a force-quit. To stop one from running, deactivate it from the Installer tab, or use Reset All Packages in Settings → Quick Actions.";
+            return @"这些是已激活的插件。如需停止某个插件，可从“安装器”标签页中将其停用，或使用“设置 → 快速操作”中的“重置所有插件”。";
         default:
             return nil;
     }
@@ -349,9 +349,9 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     }
     NSArray<Package *> *packages = [self packagesForSection:indexPath.section];
     if (indexPath.row >= (NSInteger)packages.count) {
-        cell.textLabel.text = @"No longer pending";
+        cell.textLabel.text = @"不再待处理";
         cell.textLabel.font = [UIFont systemFontOfSize:17.0 weight:UIFontWeightRegular];
-        cell.detailTextLabel.text = @"This queue row was already applied or cleared.";
+        cell.detailTextLabel.text = @"此待处理项已被应用或清除。";
         cell.detailTextLabel.textColor = UIColor.secondaryLabelColor;
         cell.detailTextLabel.font = [UIFont systemFontOfSize:12.0];
         cell.imageView.image = [UIImage systemImageNamed:@"checkmark.circle"];
@@ -371,23 +371,23 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
         case QueueReviewSectionInstall:
             switch (pkg.kind) {
                 case PackageInstallKindOTA:
-                    cell.detailTextLabel.text = @"Pending OTA disable";
+                    cell.detailTextLabel.text = @"待禁用 OTA";
                     cell.detailTextLabel.textColor = UIColor.systemOrangeColor;
                     break;
                 case PackageInstallKindNanoRegistry:
-                    cell.detailTextLabel.text = @"Pending override apply";
+                    cell.detailTextLabel.text = @"待应用覆盖设置";
                     cell.detailTextLabel.textColor = self.view.tintColor;
                     break;
                 case PackageInstallKindCallRecordingSound:
-                    cell.detailTextLabel.text = @"Pending sound silence";
+                    cell.detailTextLabel.text = @"待静音通话录音";
                     cell.detailTextLabel.textColor = UIColor.systemOrangeColor;
                     break;
                 case PackageInstallKindHideHomeBar:
-                    cell.detailTextLabel.text = @"Runs alone; respring required";
+                    cell.detailTextLabel.text = @"单独运行；需重启 SpringBoard";
                     cell.detailTextLabel.textColor = UIColor.systemOrangeColor;
                     break;
                 default:
-                    cell.detailTextLabel.text = @"Activation pending";
+                    cell.detailTextLabel.text = @"待激活";
                     cell.detailTextLabel.textColor = UIColor.systemGreenColor;
                     break;
             }
@@ -395,29 +395,29 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
         case QueueReviewSectionUninstall:
             switch (pkg.kind) {
                 case PackageInstallKindOTA:
-                    cell.detailTextLabel.text = @"Pending OTA enable";
+                    cell.detailTextLabel.text = @"待启用 OTA";
                     cell.detailTextLabel.textColor = UIColor.systemGreenColor;
                     break;
                 case PackageInstallKindNanoRegistry:
-                    cell.detailTextLabel.text = @"Pending override remove";
+                    cell.detailTextLabel.text = @"待移除覆盖设置";
                     cell.detailTextLabel.textColor = UIColor.systemRedColor;
                     break;
                 case PackageInstallKindCallRecordingSound:
-                    cell.detailTextLabel.text = @"Pending sound restore";
+                    cell.detailTextLabel.text = @"待恢复通话录音声音";
                     cell.detailTextLabel.textColor = UIColor.systemGreenColor;
                     break;
                 case PackageInstallKindHideHomeBar:
-                    cell.detailTextLabel.text = @"Pending respring restore";
+                    cell.detailTextLabel.text = @"待恢复（需重启 SpringBoard）";
                     cell.detailTextLabel.textColor = UIColor.systemGreenColor;
                     break;
                 default:
-                    cell.detailTextLabel.text = @"Deactivation pending";
+                    cell.detailTextLabel.text = @"待停用";
                     cell.detailTextLabel.textColor = UIColor.systemRedColor;
                     break;
             }
             break;
         case QueueReviewSectionReApply:
-            cell.detailTextLabel.text = @"Active; will refresh";
+            cell.detailTextLabel.text = @"已激活；将刷新";
             cell.detailTextLabel.textColor = UIColor.secondaryLabelColor;
             break;
         default:
@@ -449,7 +449,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 
     Package *pkg = packages[indexPath.row];
     UIContextualAction *remove = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive
-                                                                         title:@"Remove"
+                                                                         title:@"移除"
                                                                        handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
         [[PackageQueue sharedQueue] removePackage:pkg];
         completionHandler(YES);
@@ -480,10 +480,10 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
     }
     if (includesHideHomeBar && count > 1) {
         UIAlertController *ac = [UIAlertController
-            alertControllerWithTitle:@"Run Hide Home Bar Alone"
-                             message:@"Hide Home Bar edits the system home-indicator asset and needs a respring after it applies. Remove the other pending changes, run Hide Home Bar by itself, then apply other tweaks after the respring."
+            alertControllerWithTitle:@"隐藏主屏幕条必须单独运行"
+                             message:@"隐藏主屏幕横条会修改系统主屏幕指示器资源，应用后需要注销。请移除其他待处理更改，单独运行隐藏主屏幕横条，注销后再应用其他插件。"
                       preferredStyle:UIAlertControllerStyleAlert];
-        [ac addAction:[UIAlertAction actionWithTitle:@"OK"
+        [ac addAction:[UIAlertAction actionWithTitle:@"确定"
                                                style:UIAlertActionStyleDefault
                                              handler:nil]];
         [self presentViewController:ac animated:YES completion:nil];
@@ -503,11 +503,11 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
 - (void)didTapClear
 {
     if ([PackageQueue sharedQueue].pendingCount == 0) return;
-        UIAlertController *ac = [UIAlertController alertControllerWithTitle:@"Clear Queue?"
-                                                                message:@"Discard all pending activation / deactivation changes."
+    UIAlertController *ac = [UIAlertController alertControllerWithTitle:@"清空待处理？"
+                                                                message:@"丢弃所有待处理的激活/停用更改。"
                                                          preferredStyle:UIAlertControllerStyleAlert];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Clear" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *_) {
+    [ac addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+    [ac addAction:[UIAlertAction actionWithTitle:@"清空" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *_) {
         [[PackageQueue sharedQueue] clear];
     }]];
     [self presentViewController:ac animated:YES completion:nil];

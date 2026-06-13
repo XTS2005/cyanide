@@ -59,11 +59,11 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *statBar = [[Package alloc] initWithIdentifier:@"com.darksword.statbar"
                                            name:@"StatBar"
-                               shortDescription:@"Battery temperature + free RAM overlay"
-                                longDescription:@"Installs an overlay window in SpringBoard that shows live battery temperature and free RAM next to the system status bar. Refresh timing is adjustable so you can trade live updates for battery life.\n\nConfigure units, visible metrics, and refresh speed in the Settings tab."
+                               shortDescription:@"显示：电池温度 + 可用内存等"
+                                longDescription:@"可以在状态栏旁边显示实时电池温度和可用内存等。刷新频率可调，方便您在实时更新和续航之间取舍。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"Status Bar"
+                                       category:@"状态栏"
                                      symbolName:@"thermometer.medium"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsStatBarEnabled
@@ -72,11 +72,11 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *nsBar = [[Package alloc] initWithIdentifier:@"com.darksword.nsbar"
                                            name:@"NSBar"
-                               shortDescription:@"Network speed overlay in the status bar"
-                                longDescription:@"Displays real-time download and upload speed in a compact SpringBoard status-bar overlay. Pick its corner or center position in Settings.\n\nPorted from d1y/cyanide-ios."
+                               shortDescription:@"显示：实时网速"
+                                longDescription:@"可以在状态栏旁边显示实时下载和上传速度。"
                                         version:version
                                          author:@"d1y"
-                                       category:@"Status Bar"
+                                       category:@"状态栏"
                                      symbolName:@"network"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsNSBarEnabled
@@ -85,11 +85,11 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *niceBarLite = [[Package alloc] initWithIdentifier:@"com.darksword.nicebarlite"
                                            name:@"NiceBar Lite"
-                               shortDescription:@"NiceBar-style status labels"
-                                longDescription:@"Adds configurable text labels around the status bar. Slots can show custom text, date/time formats, and system values such as battery, memory, network speed, uptime, IP address, disk space, thermal state, and traffic counters.\n\nPorted from d1y/cyanide-ios."
+                               shortDescription:@"状态栏标签（NiceBar 风格）"
+                                longDescription:@"可以在状态栏周围添加可配置的文本标签。可显示自定义文本、日期/时间格式以及系统值，如电池、内存、网速、运行时间、IP 地址、磁盘空间、状态和流量计数器。"
                                         version:version
                                          author:@"d1y"
-                                       category:@"Status Bar"
+                                       category:@"状态栏"
                                      symbolName:@"textformat.size"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsNiceBarLiteEnabled
@@ -98,12 +98,12 @@ static const NSInteger kSecFastLockXLite    = 24;
 
 #if CYANIDE_PRIVATE_TWEAKS_AVAILABLE
         Package *signal = [[Package alloc] initWithIdentifier:@"com.darksword.rssidisplay"
-                                           name:@"Signal Readouts"
-                               shortDescription:@"RSRP dBm on cellular, bar count on WiFi"
-                                longDescription:@"Replaces the signal-strength glyphs in the status bar with live numeric readouts: RSRP in dBm for cellular, and the active bar count for WiFi. Updates roughly once per second.\n\nToggle WiFi-only or cellular-only in the Settings tab."
+                                           name:@"信号显示"
+                               shortDescription:@"蜂窝网络显示 RSRP dBm，Wi-Fi 显示信号格数"
+                                longDescription:@"将状态栏中的信号强度图标替换为实时数值：蜂窝网络显示 RSRP dBm，Wi-Fi 显示当前信号格数。大约每秒更新一次。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"In Development"
+                                       category:@"开发中"
                                      symbolName:@"antenna.radiowaves.left.and.right"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsRSSIDisplayEnabled
@@ -111,16 +111,16 @@ static const NSInteger kSecFastLockXLite    = 24;
         signal.settingsSection = kSecRSSI;
         signal.experimental = YES;
         signal.creatorOnly = YES;
-        signal.unstableWarning = @"⚠️ In development — may not work at all. The live status-bar refresh interferes with other SpringBoard tweaks and can drop readouts entirely.";
+        signal.unstableWarning = @"⚠️ 开发中 — 可能完全无法正常工作。实时状态栏刷新会干扰其他主屏幕插件，并可能导致读数完全丢失。";
 #endif
 
         Package *sbc = [[Package alloc] initWithIdentifier:@"com.darksword.sbcustomizer"
-                                           name:@"SBCustomizer"
-                               shortDescription:@"Custom dock count and home screen grid"
-                                longDescription:@"Customizes the dock icon count and the home screen icon grid (columns and rows). Optionally hides icon labels.\n\nAdjust the per-axis counts and the label-hide switch in the Settings tab."
+                                           name:@"主屏幕定制器"
+                               shortDescription:@"自定义Dock栏图标数和主屏幕网格"
+                                longDescription:@"自定义Dock栏图标数量以及主屏幕图标的网格（列数和行数）。可选择隐藏图标标签。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"Home Screen Layout"
+                                       category:@"主屏幕布局"
                                      symbolName:@"square.grid.3x3.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsSBCEnabled
@@ -129,11 +129,11 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *powercuff = [[Package alloc] initWithIdentifier:@"com.darksword.powercuff"
                                            name:@"Powercuff"
-                               shortDescription:@"Underclock the CPU/GPU thermal pressure"
-                                longDescription:@"Drives thermalmonitord with synthetic thermal pressure to underclock the CPU and GPU. Useful for cooling-sensitive workloads or extending runtime under load. Effects persist until reboot.\n\nNominal is the daily-use default. Light, Moderate, and Heavy intentionally underclock the CPU more, so lag and slower app launches mean it is working as intended. Those levels can be too slow for comfortable day-to-day use, especially on older devices.\n\nPick a level in the Settings tab."
+                               shortDescription:@"通过降低 CPU/GPU 频率来达到省电效果"
+                                longDescription:@"通过模拟热压力驱动温控守护进程（thermalmonitord）来降低 CPU 和 GPU 频率。适用于对散热敏感的工作负载或在负载下延长运行时间。效果持续到重启。"
                                         version:version
                                          author:@"rpetrich"
-                                       category:@"Performance"
+                                       category:@"性能"
                                      symbolName:@"bolt.slash.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsPowercuffEnabled
@@ -142,8 +142,8 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *axon = [[Package alloc] initWithIdentifier:@"com.darksword.axonlite"
                                            name:@"Axon Lite"
-                               shortDescription:@"Group Notification Center requests by app"
-                                longDescription:@"Groups visible Notification Center requests by app in a SpringBoard overlay and filters duplicates while Cyanide keeps the RemoteCall session alive.\n\nNo extra configuration."
+                               shortDescription:@"按 App 分组通知中心"
+                                longDescription:@"按应用把你通知中心里的消息分组显示，同时自动过滤掉重复的内容。"
                                         version:version
                                          author:@"zeroxjf"
                                        category:@"Beta"
@@ -151,16 +151,16 @@ static const NSInteger kSecFastLockXLite    = 24;
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsAxonLiteEnabled
                                           isNew:YES];
-        axon.unstableWarning = @"⚠️ Experimental: work-in-progress. Expect SpringBoard crashes, dropped notifications, layout glitches, and breakage between Cyanide builds. Don't rely on it for anything important.";
+        axon.unstableWarning = @"⚠️ 实验性功能：开发中。可能会出现主屏幕崩溃、通知丢失、布局错乱，以及不同 Cyanide 版本间的不兼容。重要用途请勿依赖此功能。";
 
 #if CYANIDE_PRIVATE_TWEAKS_AVAILABLE
         Package *typeBanner = [[Package alloc] initWithIdentifier:@"com.darksword.typebanner"
                                            name:@"TypeBanner"
-                               shortDescription:@"iMessage typing banner under the Dynamic Island"
-                                longDescription:@"Port of TypeMillennium. Shows a pill banner just below the Dynamic Island when imagent reports an active iMessage typing indicator.\n\nNo extra configuration."
+                               shortDescription:@"灵动岛下方的 iMessage 输入提示横幅"
+                                longDescription:@"TypeMillennium 的移植版。将 iMessage 的“对方正在输入…”状态，从“信息”App 里搬出来，直接在灵动岛下方弹窗提醒，不用一直盯着聊天界面。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"In Development"
+                                       category:@"开发中"
                                      symbolName:@"ellipsis.bubble.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsTypeBannerEnabled
@@ -168,15 +168,15 @@ static const NSInteger kSecFastLockXLite    = 24;
         typeBanner.experimental = YES;
         typeBanner.settingsSection = kSecTypeBanner;
         typeBanner.creatorOnly = YES;
-        typeBanner.unstableWarning = @"⚠️ In development — extremely unstable. Keeps an original-thread imagent RemoteCall session for live polling and may miss indicators or destabilize SpringBoard.";
+        typeBanner.unstableWarning = @"⚠️ 开发中 — 极不稳定。可能会错过输入提示或导致主屏幕（SpringBoard）不稳定。";
 
         Package *notificationIsland = [[Package alloc] initWithIdentifier:@"com.darksword.notificationisland"
-                                           name:@"Notification Island"
-                               shortDescription:@"Mirror incoming banners into the Dynamic Island"
-                                longDescription:@"Experimental Dynamic Island notification route. Watches SpringBoard's active banner request over the shared RemoteCall session, then mirrors the title/body into Cyanide's ActivityKit Live Activity.\n\nNo extra configuration."
+                                           name:@"通知岛"
+                               shortDescription:@"灵动岛通知"
+                                longDescription:@"将系统通知横幅的内容实时抓取并显示到灵动岛上。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"In Development"
+                                       category:@"开发中"
                                      symbolName:@"bell.and.waves.left.and.right.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsNotificationIslandEnabled
@@ -184,15 +184,15 @@ static const NSInteger kSecFastLockXLite    = 24;
         notificationIsland.settingsSection = kSecNotificationIsland;
         notificationIsland.experimental = YES;
         notificationIsland.creatorOnly = YES;
-        notificationIsland.unstableWarning = @"⚠️ In development — polls SpringBoard notification state over RemoteCall and may miss banners, duplicate activity updates, or destabilize SpringBoard.";
+        notificationIsland.unstableWarning = @"⚠️ 开发中 — 可能会出现漏消息、重复显示或导致主屏幕（SpringBoard）不稳定的情况。";
 
         Package *ipaDecryptor = [[Package alloc] initWithIdentifier:@"com.darksword.ipadecryptor"
                                            name:@"IPA Decryptor"
-                               shortDescription:@"Decrypt installed App Store app payloads"
-                                longDescription:@"In-development local IPA decryptor. Select an installed user app or paste an App Store link, resolve it to a bundle ID, sign in for an App Store download token, fetch the encrypted IPA to Documents, probe FairPlay encryption metadata, then run the decrypt pipeline.\n\nCurrent build wires app discovery, App Store link resolution, sign-in, encrypted IPA fetching, and encryption probing first. SINF/iTunesMetadata patching, decrypted page dumping, and rebuilding the Payload IPA are being added behind this same settings tool."
+                               shortDescription:@"解密已安装的 App Store 应用安装包"
+                                longDescription:@"开发中的本地 IPA 解密器。选择一个已安装的 App 或粘贴 App Store 链接，解析为包名 ID，登录获取 App Store 下载令牌，将加密 IPA 下载到 Documents 目录，探测 FairPlay 加密元数据，然后运行解密流程。\n\n当前版本已完成：App 发现、App Store 链接解析、登录、加密 IPA 下载及加密探测。SINF/iTunesMetadata 补丁、解密页面转储及 Payload IPA 重建正在同一设置工具中逐步添加。"
                                         version:version
                                          author:@"londek / zeroxjf"
-                                       category:@"In Development"
+                                       category:@"开发中"
                                      symbolName:@"lock.open.fill"
                                            kind:PackageInstallKindDirectTool
                                      enabledKey:nil
@@ -200,40 +200,40 @@ static const NSInteger kSecFastLockXLite    = 24;
         ipaDecryptor.settingsSection = kSecIPADecryptor;
         ipaDecryptor.experimental = YES;
         ipaDecryptor.creatorOnly = YES;
-        ipaDecryptor.unstableWarning = @"⚠️ In development — encrypted IPA download is experimental. SINF/iTunesMetadata patching, task-port dump, and IPA writer stages are not finished yet.";
+        ipaDecryptor.unstableWarning = @"⚠️ 开发中 — 加密 IPA 下载功能为实验性。SINF/iTunesMetadata 修补、任务端口转储和 IPA 写入器阶段尚未完成。";
 
         Package *stageStrip = [[Package alloc] initWithIdentifier:@"com.darksword.stagestrip"
                                            name:@"Dynamic Stage Lite"
-                               shortDescription:@"Two floating app windows, iPad-style"
+                               shortDescription:@"悬浮应用窗口（iPad 风格）"
                                 longDescription:
-            @"Run two apps as floating, resizable windows on top of SpringBoard.\n\n"
-            @"Based on Dynamic Stage by tomt000 — the original Stage Manager-for-iPhone tweak. Dynamic Stage Lite is an independent, RemoteCall-only re-implementation of the split-view + scene-hosting design; no original tweak code or assets are reused. Go check out tomt000's full version on Havoc.\n\n"
-            @"How to use:\n"
-            @"• Tap the dot in the bottom-right corner of the screen to open the picker.\n"
-            @"• Tap two apps to launch them side-by-side.\n"
-            @"• Drag the top bar to move; drag any corner to resize.\n"
-            @"• X in the top-left of a window closes it.\n"
-            @"• Gear in the picker tray jumps back to Cyanide settings.\n\n"
-            @"First Run is slow. The picker has to enumerate every installed app over RemoteCall and build a tile per app — expect 1-2 minutes on a fresh install. Re-Runs reuse the cache and are fast.\n\n"
-            @"Rough edges:\n"
-            @"• Touch routing into hosted apps isn't wired — windows are for viewing/switching, not scrolling or typing.\n"
-            @"• Auto-close on full-screen launch is not yet hooked up; close manually with the X.\n"
-            @"• Gestures may stutter while the App Library is still filling in."
+            @"在主屏幕上以悬浮、可调整大小的窗口同时运行 App。\n\n"
+            @"Dynamic Stage Lite 是 Dynamic Stage 插件的独立重新实现版本，此版本未使用原版插件的任何代码或资源。\n\n"
+            @"使用方法:\n"
+            @"• 点击屏幕右下角的圆点，即可打开选择器。\n"
+            @"• 点击两个 App，即可将它们并排启动。\n"
+            @"• 拖移顶部栏可移动窗口；拖移任意角落可调整大小。\n"
+            @"• 点击窗口左上角的 X 可关闭该窗口。\n"
+            @"• 选择器托盘中的齿轮图标可跳转回 Cyanide 设置。\n\n"
+            @"首次运行预计需要 1-2 分钟。后续运行会复用缓存，速度很快。\n\n"
+            @"尚待完善之处:\n"
+            @"• 悬浮窗口暂不支持触控交互——窗口目前仅用于查看和切换，无法滚动或输入文字。\n"
+            @"• 全屏启动 App 时不会自动关闭悬浮窗，如需关闭请手动点击窗口左上角的 X。\n"
+            @"• App 资源库仍在加载时，手势操作可能会出现卡顿。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"Experimental"
+                                       category:@"实验性"
                                      symbolName:@"sidebar.left"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsStageStripEnabled
                                           isNew:YES];
         stageStrip.experimental = YES;
-        stageStrip.unstableWarning = @"⚠️ Early development. First Run takes 1-2 minutes because the picker enumerates every installed app and builds a tile per app. Re-Runs are fast. Touch routing into hosted windows isn't wired yet, so scrolling/typing inside a floating window may not work.";
+        stageStrip.unstableWarning = @"⚠️ 早期开发阶段。首次运行需要 1-2 分钟，因为选择器会遍历每个已安装的应用并为每个应用构建一个磁贴。重新运行时会很快。尚未接入对托管窗口的触摸路由，因此浮动窗口内的滚动/输入可能无法正常工作。";
 #endif
 
         Package *locationSim = [[Package alloc] initWithIdentifier:@"com.darksword.locationsim"
                                            name:@"Location Simulator"
-                               shortDescription:@"CoreLocation static point simulation"
-                                longDescription:@"Spoofs the device's GPS location via Apple's CLSimulationManager. Requires Apple Maps installed and set up — Maps is the RemoteCall host process that drives the simulation.\n\nThis is a manual tool, not an installable package. Open Controls, choose a target, then use Simulate Current Target or Restore Real Location. Each run opens the activity log and marks completion when the request returns. Reset may take a few minutes and may require a reboot plus extra wait time.\n\nSettings exposes the current target plus altitude and accuracy. v1 is static-point only; route playback and alternate daemon hosts are next.\n\nNot all apps respect the simulated location. Apps that use their own location validation or additional signals may ignore it.\n\nCredits: kolbicz provided the GPS spoofer RemoteCall/CLSimulationManager prototype this is based on. ezzuldinSt's LSpoof provided the app-side CLLocationManager spoofing, picker, bookmarks, and route-simulation reference.\n\nSystem-behavior warning: simulated locations can affect more than maps. Features tied to location, including time zone, date/time behavior, weather, automation, reminders, and service checks, may behave unexpectedly. Only use this if you know what you're doing.\n\nLegal and service-use note: simulated locations may violate app terms, platform rules, game rules, ride-share or delivery policies, or local law depending on how they are used. Use only where you have permission. You are responsible for your use and apply or restore this tweak at your own risk."
+                               shortDescription:@"位置模拟"
+                                longDescription:@"定位模拟器可以伪装设备的 GPS 位置。需要先安装并设置好 Apple 地图作为宿主进程。选择一个目标位置即可开始模拟，点击“恢复真实位置”即可停止。仅支持固定点位模拟。部分 App 可能会无视模拟位置，也可能影响时区、天气等系统功能。请自行承担使用风险。"
                                         version:version
                                          author:@"zeroxjf, kolbicz, ezzuldinSt"
                                        category:@"Beta"
@@ -243,12 +243,12 @@ static const NSInteger kSecFastLockXLite    = 24;
                                           isNew:YES];
         locationSim.settingsSection = kSecLocationSim;
         locationSim.experimental = NO;
-        locationSim.unstableWarning = @"Beta: requires Apple Maps installed and set up. Changes CoreLocation's active simulation state — may affect time zone, date/time, and other location-tied behavior. Some apps and services prohibit or detect simulated locations. Only use this if you know what you're doing.";
+        locationSim.unstableWarning = @"Beta：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其他与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
 
         Package *snowboardLite = [[Package alloc] initWithIdentifier:@"com.darksword.snowboardlite"
                                            name:@"SnowBoard Lite"
-                               shortDescription:@"Local SnowBoard-style icon themes"
-                                longDescription:@"Imports SnowBoard/IconBundles themes into a local library and applies the selected theme through Cyanide's icon replacement pipeline. Supports the bundled iOS 6 theme and local folder imports.\n\nSnowBoard Lite is the main icon-theme entry point in Cyanide.\n\nPorted from d1y/cyanide-ios."
+                               shortDescription:@"本地 SnowBoard 风格图标主题"
+                                longDescription:@"将 SnowBoard/IconBundles 主题导入本地库，并通过 Cyanide 的图标替换流水线应用所选主题。支持内置的 iOS 6 主题和本地文件夹导入。"
                                         version:version
                                          author:@"d1y"
                                        category:@"Beta"
@@ -257,12 +257,12 @@ static const NSInteger kSecFastLockXLite    = 24;
                                      enabledKey:kSettingsSnowBoardLiteEnabled
                                           isNew:YES];
         snowboardLite.settingsSection = kSecSnowBoardLite;
-        snowboardLite.unstableWarning = @"Preview: import or select a SnowBoard Lite theme before applying.";
+        snowboardLite.unstableWarning = @"预览：在应用前请先导入或选择一个 SnowBoard Lite 主题。";
 
         Package *liveWP = [[Package alloc] initWithIdentifier:@"com.darksword.livewp"
                                            name:@"LiveWP"
-                               shortDescription:@"Video wallpaper for Home and Lock Screen"
-                                longDescription:@"Plays a selected MP4/MOV/M4V video behind SpringBoard's home and lock screen windows while Cyanide keeps the RemoteCall session alive.\n\nPorted from d1y/cyanide-ios."
+                               shortDescription:@"锁屏和主屏幕动态壁纸"
+                                longDescription:@"可选择 MP4、MOV 或 M4V 格式的视频，设为锁屏及主屏幕的动态壁纸。"
                                         version:version
                                          author:@"d1y"
                                        category:@"Beta"
@@ -273,12 +273,12 @@ static const NSInteger kSecFastLockXLite    = 24;
         liveWP.settingsSection = kSecLiveWP;
 
         Package *layoutExtras = [[Package alloc] initWithIdentifier:@"com.darksword.layoutextras"
-                                           name:@"Home Layout Extras"
-                               shortDescription:@"Extra home/dock padding and per-icon scaling"
-                                longDescription:@"Adds extra padding around the home grid and the dock, and scales icons up or down. Stacks on top of SBCustomizer.\n\nDial in left/right/top/bottom padding for the home screen, horizontal padding for the dock, and home/dock icon scale in the Settings tab. Defaults match stock (zero padding, 100% scale).\n\nApplied at Run; not persisted across respring.\n\niOS 18: mutates the SBIconController layout configuration directly (upstream kolbicz path).\niOS 26: walks the live SBIconListView/SBIconView hierarchy and adjusts frames + iconImageInfo per icon (the iOS 26 layout class is read-only). One-shot at Run on iOS 26 — rotation/page swipe may force iOS 26's auto-layout to re-fit, so re-Run if that happens."
+                                           name:@"主屏幕布局扩展"
+                               shortDescription:@"主屏幕与Dock栏额外边距和图标缩放"
+                                longDescription:@"在主屏幕网格或 Dock 栏周围添加额外间距，并可缩放图标大小。注销后不会保留。"
                                         version:version
                                          author:@"kolbicz"
-                                      category:@"Home Screen Layout"
+                                      category:@"主屏幕布局"
                                      symbolName:@"square.dashed.inset.filled"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsLayoutExtrasEnabled
@@ -287,14 +287,14 @@ static const NSInteger kSecFastLockXLite    = 24;
         NSInteger iosMajor = [[NSProcessInfo processInfo] operatingSystemVersion].majorVersion;
         if (iosMajor >= 26) {
             layoutExtras.knownIssues = @[
-                @"iOS 26: layout may reset after rotation or page swipe. Re-run to reapply.",
+                @"iOS 26：布局可能在旋转屏幕或翻页后重置。请重新运行以重新应用。",
             ];
         }
 
         Package *gravityLite = [[Package alloc] initWithIdentifier:@"com.darksword.gravitylite"
                                            name:@"Gravity Lite"
-                               shortDescription:@"Make home-screen icons fall with physics"
-                                longDescription:@"Core RemoteCall-only port of Julio Verne's classic Gravity tweak for iOS 26. Applies UIDynamicAnimator gravity, collision bounds, bounce, friction, resistance, optional dock physics, accelerometer steering, shake pulses, restore, and an explosion pulse to the currently visible SpringBoard icon views.\n\nThis is not a full Substrate-style port. Activator/Home-button hooks, drag gestures, and preference-daemon notifications are intentionally left out. Use Settings to tune the core physics and the Restore button to reset the layout."
+                               shortDescription:@"主屏幕图标物理重力效果"
+                                longDescription:@"为主屏幕图标引入基于重力的动态物理行为：图标不再固定在网格上，而是像真实物体一样受重力影响，可随设备倾斜自然滑落、相互碰撞并产生弹跳效果。"
                                         version:version
                                          author:@"Julio Verne / zeroxjf"
                                        category:@"Beta"
@@ -303,18 +303,18 @@ static const NSInteger kSecFastLockXLite    = 24;
                                      enabledKey:kSettingsGravityLiteEnabled
                                           isNew:YES];
         gravityLite.settingsSection = kSecGravityLite;
-        gravityLite.unstableWarning = @"Beta: RemoteCall-only physics can be reset by SpringBoard relayouts such as page swipes, rotations, folder transitions, or resprings. Use Restore Icon Layout if icons stay displaced.";
+        gravityLite.unstableWarning = @"Beta：可能会因主屏幕重新布局而重置，例如翻页、旋转屏幕、文件夹切换或注销。如果图标仍偏移未复原，请使用“恢复图标布局”。";
         gravityLite.knownIssues = @[
-            @"To disable, use the App Switcher to return to Cyanide and deactivate Gravity Lite. There is no other way to stop it right now.",
-            @"Touch input does not register on displaced icons yet. Forwarding taps in this environment is a major WIP.",
-            @"Install is slow as hell. WIP. Cyanide has to capture every visible icon and widget before physics start.",
-            @"Page swipes, folder opens, or SpringBoard relayouts may stop the effect. Run Gravity again.",
+            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 Gravity Lite。目前没有其他方法可以停止它。",
+            @"尚不支持触摸已偏移的图标。在此环境中转发触摸是一个重要的开发中功能。",
+            @"安装过程非常缓慢。Cyanide 必须在物理效果开始前捕获每个可见的图标和小部件。",
+            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 Gravity。",
         ];
 
         Package *appSwitcherGrid = [[Package alloc] initWithIdentifier:@"com.darksword.appswitchergrid"
                                            name:@"App Switcher Grid"
-                               shortDescription:@"Grid-style app switcher"
-                                longDescription:@"Applies a runtime SpringBoard method patch that makes the app switcher use grid/deck style.\n\nThis does not write system files. A respring restores the stock app switcher. If you respring after Hide Home Bar, run App Switcher Grid again because respring resets this live SpringBoard patch.\n\nPorted from d1y/cyanide-ios."
+                               shortDescription:@"App 切换器样式"
+                                longDescription:@"给 App 切换器添加网格排布样式。\n这不会写入系统文件。注销即恢复原版 App 切换器。如果你在隐藏主屏幕横条后注销，请重新运行。"
                                         version:version
                                          author:@"rooootdev"
                                        category:@"Beta"
@@ -323,29 +323,29 @@ static const NSInteger kSecFastLockXLite    = 24;
                                      enabledKey:kSettingsAppSwitcherGridEnabled
                                           isNew:YES];
         appSwitcherGrid.settingsSection = kSecAppSwitcherGrid;
-        appSwitcherGrid.unstableWarning = @"Beta: patches SpringBoard runtime methods in memory. Respring restores stock, but unsupported builds may glitch the app switcher or crash SpringBoard. Re-run after any respring.";
+        appSwitcherGrid.unstableWarning = @"Beta：注销即恢复原版，但不受支持的版本可能会导致 App 切换器显示异常或主屏幕崩溃。每次注销后请重新运行。";
 
 #if CYANIDE_PRIVATE_TWEAKS_AVAILABLE
         Package *fastLockXLite = [[Package alloc] initWithIdentifier:@"com.darksword.fastlockx-lite"
                                            name:@"FastLockX Lite"
-                               shortDescription:@"Face ID retry + unlock controls"
+                               shortDescription:@"Face ID 重试 + 解锁控制"
                                 longDescription:@"RemoteCall-only port of the usable FastLockX primitives recovered from the iOS 15 tweak by Artem Kasper.\n\nCredits: original FastLockX by Artem Kasper; Cyanide FastLockX Lite port by zeroxjf.\n\nIt can pulse SpringBoard's biometric retry path, ask the iOS 26 biometric coordinator to start a Mesa/Face ID unlock, and send the original Lock Screen unlock request as a fallback. The Always On button keeps those retry/unlock requests armed with SpringBoard timers so pickup-to-unlock can work after Cyanide's 15-second test window ends.\n\nUse Disable, Clean Up, or a respring to stop the timers."
                                         version:version
                                          author:@"Artem Kasper / zeroxjf"
-                                       category:@"Experimental"
+                                       category:@"实验性"
                                      symbolName:@"lock.open.fill"
                                            kind:PackageInstallKindDirectTool
                                      enabledKey:nil
                                           isNew:YES];
         fastLockXLite.settingsSection = kSecFastLockXLite;
         fastLockXLite.experimental = YES;
-        fastLockXLite.unstableWarning = @"Experimental: sends private SpringBoard lock-screen and biometric-resource messages. Always On runs repeating SpringBoard timers, so disable it or respring if Face ID feels noisy or unstable.";
+        fastLockXLite.unstableWarning = @"实验性：发送私有主屏幕锁屏及生物识别资源消息。“常量模式”会运行重复的主屏幕定时器，如果 Face ID 感觉异常或不稳定，请将其关闭或注销。";
 #endif
 
         Package *nanoRegistry = [[Package alloc] initWithIdentifier:@"com.darksword.nanoregistry"
-                                           name:@"Watch Pairing Override"
-                               shortDescription:@"Pair a newer watch or revive an older one"
-                                longDescription:@"Changes the watchOS pairing range saved on this iPhone.\n\nMost people should use watchOS Range 99/23/10/6 in Settings, then apply the override. These are pairing protocol generations, not Apple Watch model numbers. 99 raises the watchOS pairing ceiling. 23 keeps the generation-23 setup protocol accepted. 10 and 6 leave the legacy chip and multi-watch floors at their normal values.\n\nApple Watch Ultra 3 cannot pair on iOS versions below 26 at this time.\n\nSystem-file warning: this modifies the local NanoRegistry compatibility-index MobileAsset and saves a .cyanide.bak backup beside the original file. Pairing-asset edits can fail, partially apply, require a respring or reboot to settle, or leave pairing state inconsistent. You apply or remove this override at your own risk.\n\nRespring or reboot after installing or removing the override before trying to pair."
+                                           name:@"手表配对"
+                               shortDescription:@"配对较新的手表或恢复旧款手表"
+                                longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围。\n\n大多数人应该在“设置”中使用 watchOS 范围 99/23/10/6，然后应用覆盖设置。这些是配对协议的代数，而不是 Apple Watch 型号。99 会提高 watchOS 配对上限。23 保持第 23 代设置协议被接受。10 和 6 将旧款芯片和多手表切换的下限保持在正常值。\n\nApple Watch Ultra 3 目前无法在低于 26 的 iOS 版本上配对。\n\n系统文件警告：这会修改本地的 NanoRegistry 兼容性索引 MobileAsset，并在原文件旁保存一份 .cyanide.bak 备份。配对资源编辑可能失败、部分应用、需要注销或重启才能生效，或使配对状态不一致。应用或移除此覆盖设置请自行承担风险。\n\n安装或移除覆盖设置后，请注销或重启，然后再尝试配对。"
                                         version:version
                                          author:@"zeroxjf"
                                        category:@"Beta"
@@ -354,12 +354,12 @@ static const NSInteger kSecFastLockXLite    = 24;
                                      enabledKey:nil
                                           isNew:YES];
         nanoRegistry.settingsSection = kSecNanoRegistry;
-        nanoRegistry.unstableWarning = @"Warning: modifies a local NanoRegistry MobileAsset. Cyanide saves a .cyanide.bak backup beside the original, but system-file edits can fail or require a respring/reboot. Apply or remove this override at your own risk.";
+        nanoRegistry.unstableWarning = @"警告：修改本地的 NanoRegistry MobileAsset。Cyanide 会在原文件旁保存一份 .cyanide.bak 备份，但系统文件修改可能会失败，或需要注销/重启才能生效。应用或移除此覆盖设置的风险由你自行承担。";
 
         Package *callRecordingSound = [[Package alloc] initWithIdentifier:@"com.darksword.callrecording-sound"
-                                           name:@"Call Recording Sound"
-                               shortDescription:@"Silence disclosure start/stop sounds"
-                                longDescription:@"Replaces the CallServices StartDisclosureWithTone and StopDisclosure audio files with Cyanide's bundled silent payloads.\n\nCredits: YangJiiii (@duongduong0908) for the EnsWilde and Disable Call Recording BookRestore reference tools. @Little_34306 is credited by the original projects for the Disable Call Recording concept. Cyanide port, KRW-backed implementation, and generated replacement silent audio assets by zeroxjf.\n\nSystem-file warning: this modifies files under /var/mobile/Library/CallServices/Greetings/default. Cyanide backs up the first originals into its app container, but system file replacement can fail, partially apply, or require a respring/reboot to settle.\n\nLegal note: call-recording disclosure sounds may exist to satisfy consent, notification, or privacy-law requirements in some places. You are responsible for understanding and following the laws that apply to you.\n\nThis port does not use the old Books/BookRestore/sparserestore path. Cyanide runs KRW, unlocks local /private/var write access, then writes directly to the CallServices files.\n\nUse Restore Original Sounds to write Cyanide's backups back when present. You apply or restore this tweak at your own risk."
+                                           name:@"通话录音"
+                               shortDescription:@"禁用通话录音提示音"
+                                longDescription:@"将 iOS 通话录音时强制播放的提示音替换为空音频，使录音开始与结束不再发出任何声音。\n启用此功能会自动备份原始音频，可随时恢复。\n请注意：通话录音提示音在某些地区可能属于法律合规要求，请仅在获得许可并了解适用法规的前提下使用。"
                                         version:version
                                          author:@"YangJiiii (@duongduong0908) / zeroxjf"
                                        category:@"Beta"
@@ -368,12 +368,12 @@ static const NSInteger kSecFastLockXLite    = 24;
                                      enabledKey:nil
                                           isNew:YES];
         callRecordingSound.experimental = NO;
-        callRecordingSound.unstableWarning = @"Beta: persistent CallServices system-file replacement. Disclosure sounds may be legally required where you live; you are responsible for your use and apply this at your own risk. Use Restore Original Sounds before removing Cyanide if you want Cyanide's backups written back.";
+        callRecordingSound.unstableWarning = @"Beta：你所在地区可能法律要求保留提示音；你对自己的使用行为负责，应用此功能的风险由你自行承担。如果你希望 Cyanide 的备份被写回，请在移除 Cyanide 之前使用“恢复默认声音”。";
 
         Package *hideHomeBar = [[Package alloc] initWithIdentifier:@"com.darksword.hide-home-bar"
-                                           name:@"Hide Home Bar"
-                               shortDescription:@"Hide the bottom home indicator"
-                                longDescription:@"Zeros the first page of /System/Library/PrivateFrameworks/MaterialKit.framework/Assets.car using a DirtyZero-style file-backed page zero, which hides the bottom home indicator after SpringBoard reloads assets.\n\nRun Hide Home Bar by itself, then respring so SpringBoard refreshes the asset cache. To bring the home indicator back, choose Restore Home Bar and respring again. Other live SpringBoard tweaks, such as App Switcher Grid, should be applied in a separate run after the respring.\n\nCredits: C4ndyF1sh/ZeroCalories for the Home Bar target and jailbreakdotparty/dirtyZero for the page-zeroing idea. Cyanide port by zeroxjf."
+                                           name:@"主屏幕横条"
+                               shortDescription:@"隐藏主屏幕底部横条"
+                                longDescription:@"隐藏主屏幕底部横条，释放全屏显示空间，减少日常使用中的视觉干扰。"
                                         version:version
                                          author:@"C4ndyF1sh / jailbreakdotparty / zeroxjf"
                                        category:@"Beta"
@@ -381,28 +381,28 @@ static const NSInteger kSecFastLockXLite    = 24;
                                            kind:PackageInstallKindHideHomeBar
                                      enabledKey:nil
                                           isNew:YES];
-        hideHomeBar.unstableWarning = @"Beta: DirtyZero-style system asset page zeroing. Run by itself, then respring after hiding. To restore the home indicator, choose Restore Home Bar and respring.";
+        hideHomeBar.unstableWarning = @"Beta：请单独运行，隐藏后注销。要恢复主屏幕横条，请选择“恢复主屏幕横条”并注销。";
 
         Package *otaBlock = [[Package alloc] initWithIdentifier:@"com.darksword.ota-block"
-                                           name:@"OTA Updates"
-                               shortDescription:@"Enable or disable over-the-air system updates"
-                                longDescription:@"Disables or enables the launchd jobs responsible for over-the-air system updates by editing disabled.plist. State persists across reboots.\n\nSystem-file warning: this edits /private/var/db/com.apple.xpc.launchd/disabled.plist. Incorrect or partial writes can affect launchd job state across boot. You disable or re-enable OTA updates at your own risk.\n\nNo Run/Apply step required for this package. Use Disable to block OTA updates, or Enable to restore them."
+                                           name:@"OTA 更新"
+                               shortDescription:@"启用或禁用系统 OTA 更新"
+                                longDescription:@"通过编辑 disabled.plist 来禁用或启用负责系统 OTA 更新的 launchd 任务。状态在重启后仍保留。\n\n系统文件警告：这会修改 /private/var/db/com.apple.xpc.launchd/disabled.plist。不完整或部分写入可能会影响跨启动的 launchd 任务状态。禁用或重新启用 OTA 更新请自行承担风险。\n\n此包无需“运行”操作。使用“禁用”来阻止 OTA 更新，或使用“启用”来恢复更新。"
                                         version:version
                                          author:@"kolbicz"
-                                       category:@"System Updates"
+                                       category:@"系统更新"
                                      symbolName:@"icloud.slash.fill"
                                           kind:PackageInstallKindOTA
                                     enabledKey:nil
                                          isNew:NO];
-        otaBlock.unstableWarning = @"Warning: persistent system-file edit. This package modifies launchd disabled.plist to change OTA job state across reboot. Disable or re-enable OTA updates at your own risk.";
+        otaBlock.unstableWarning = @"警告：持久的系统文件编辑。此包修改 launchd disabled.plist 以更改跨启动的 OTA 任务状态。禁用或重新启用 OTA 更新请自行承担风险。";
 
         Package *disableAppLibrary = [[Package alloc] initWithIdentifier:@"com.darksword.disable-app-library"
-                                           name:@"Disable App Library"
-                               shortDescription:@"Remove the App Library page"
-                                longDescription:@"Removes the App Library page that sits past your last home-screen page. Swiping past the last page becomes a no-op."
+                                           name:@"App 资源库"
+                               shortDescription:@"移除 App 资源库页面"
+                                longDescription:@"移除位于最后一个主屏幕页面右侧的 App 资源库页面。滑过最后一页将无操作。"
                                         version:version
                                          author:@"kolbicz"
-                                       category:@"SpringBoard Tweaks"
+                                       category:@"主屏幕插件"
                                      symbolName:@"square.grid.2x2.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsDSDisableAppLibrary
@@ -420,48 +420,48 @@ static const NSInteger kSecFastLockXLite    = 24;
             disableAppLibrary,
 
             [[Package alloc] initWithIdentifier:@"com.darksword.disable-icon-flyin"
-                                           name:@"Disable Icon Fly-In"
-                               shortDescription:@"Skip the icon spring animation"
-                                longDescription:@"Skips the spring animation that plays when home screen icons appear after unlock or app switch. Icons just appear in their final position."
+                                           name:@"图标弹入动画"
+                               shortDescription:@"禁用图标弹簧动画"
+                                longDescription:@"禁用解锁或切换应用后主屏幕图标出现时的弹簧动画。图标直接出现在最终位置。"
                                         version:version
                                          author:@"kolbicz"
-                                       category:@"SpringBoard Tweaks"
+                                       category:@"主屏幕插件"
                                      symbolName:@"sparkles"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsDSDisableIconFlyIn
                                           isNew:NO],
 
             [[Package alloc] initWithIdentifier:@"com.darksword.zero-wake-animation"
-                                           name:@"Zero Wake Animation"
-                               shortDescription:@"Snap on instantly when waking"
-                                longDescription:@"Removes the fade-in animation when waking the display. The screen pops on at full brightness immediately."
+                                           name:@"亮屏动画"
+                               shortDescription:@"禁用亮屏动画"
+                                longDescription:@"移除唤醒显示屏时的淡入动画。屏幕立即以全亮度亮起。"
                                         version:version
                                          author:@"kolbicz"
-                                       category:@"SpringBoard Tweaks"
+                                       category:@"主屏幕插件"
                                      symbolName:@"moon.zzz.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsDSZeroWakeAnimation
                                           isNew:NO],
 
             [[Package alloc] initWithIdentifier:@"com.darksword.zero-backlight-fade"
-                                           name:@"Zero Backlight Fade"
-                               shortDescription:@"Instant lock/unlock backlight"
-                                longDescription:@"Cuts the backlight fade duration to zero so the display switches on or off instantly on lock and unlock."
+                                           name:@"熄屏动画"
+                               shortDescription:@"禁用熄屏动画"
+                                longDescription:@"将背光淡入淡出持续时间减少到零，锁定和解锁时显示屏立即开关。"
                                         version:version
                                          author:@"kolbicz"
-                                       category:@"SpringBoard Tweaks"
+                                       category:@"主屏幕插件"
                                      symbolName:@"sun.max.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsDSZeroBacklightFade
                                           isNew:NO],
 
             [[Package alloc] initWithIdentifier:@"com.darksword.double-tap-to-lock"
-                                           name:@"Double-Tap to Lock"
-                               shortDescription:@"Lock with a wallpaper double-tap"
-                                longDescription:@"Double-tap an empty area of the wallpaper to lock the device. No more reaching for the side button."
+                                           name:@"双击锁定"
+                               shortDescription:@"双击壁纸空白区域锁定设备"
+                                longDescription:@"双击壁纸空白区域锁定设备。无需再伸手去按侧边按钮。"
                                         version:version
                                          author:@"kolbicz"
-                                       category:@"SpringBoard Tweaks"
+                                       category:@"主屏幕插件"
                                      symbolName:@"hand.tap.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsDSDoubleTapToLock
@@ -469,12 +469,12 @@ static const NSInteger kSecFastLockXLite    = 24;
 
             ({
                 Package *drag = [[Package alloc] initWithIdentifier:@"com.darksword.drag-coefficient"
-                                                               name:@"Drag Coefficient"
-                                                   shortDescription:@"Custom SpringBoard animation speed multiplier"
-                                                    longDescription:@"Overrides _UIAnimationDragCoefficient in SpringBoard to make all UIKit spring animations faster or slower.\n\nSet the coefficient in the Drag Coefficient settings panel. 50% = 0.50× (2× faster), 25% = 0.25× (4× faster), 100% = stock.\n\nImported from kolbicz/DarkSword-Tweaks."
+                                                               name:@"动画倍率"
+                                                   shortDescription:@"自定义主屏幕动画速度倍率"
+                                                    longDescription:@"自定义主屏幕动画速度倍率。数值越大动画越慢，数值越小动画越快。"
                                                             version:version
                                                              author:@"kolbicz"
-                                                           category:@"SpringBoard Tweaks"
+                                                           category:@"主屏幕插件"
                                                          symbolName:@"dial.medium.fill"
                                                                kind:PackageInstallKindToggle
                                                          enabledKey:kSettingsDSDragCoefficientEnabled
@@ -512,16 +512,16 @@ static const NSInteger kSecFastLockXLite    = 24;
 + (NSArray<NSString *> *)categoriesInOrder
 {
     NSArray<NSString *> *preferred = @[
-        @"In Development",
-        @"Experimental",
+        @"开发中",
+        @"实验性",
         @"Beta",
-        @"Status Bar",
-        @"Home Screen Layout",
-        @"Other Tweaks",
-        @"Performance",
-        @"System Updates",
-        @"System",
-        @"SpringBoard Tweaks",
+        @"状态栏",
+        @"主屏幕布局",
+        @"其他插件",
+        @"性能",
+        @"系统更新",
+        @"系统",
+        @"主屏幕插件",
     ];
     NSMutableArray<NSString *> *all = [NSMutableArray array];
     for (Package *p in [self allPackages]) {

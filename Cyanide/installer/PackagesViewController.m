@@ -51,10 +51,10 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     }
 
     UIAlertController *alert =
-        [UIAlertController alertControllerWithTitle:@"Run Hide Home Bar Alone"
-                                            message:reason ?: @"Hide Home Bar must be the only pending queue item."
+        [UIAlertController alertControllerWithTitle:@"隐藏主屏幕横条必须单独运行"
+                                            message:reason ?: @"隐藏主屏幕横条必须是唯一的待处理项。"
                                      preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定"
                                               style:UIAlertActionStyleDefault
                                             handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
@@ -64,8 +64,8 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.title = @"Installer";
-    self.navigationItem.title = @"Installer";
+    self.title = @"安装器";
+    self.navigationItem.title = @"安装器";
 
     NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
     if (![ud objectForKey:kGroupByCategoryDefault]) {
@@ -90,7 +90,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     self.searchCtl = [[UISearchController alloc] initWithSearchResultsController:nil];
     self.searchCtl.searchResultsUpdater = self;
     self.searchCtl.obscuresBackgroundDuringPresentation = NO;
-    self.searchCtl.searchBar.placeholder = @"Search tweaks";
+    self.searchCtl.searchBar.placeholder = @"搜索插件";
     self.navigationItem.searchController = self.searchCtl;
     self.navigationItem.hidesSearchBarWhenScrolling = NO;
 
@@ -150,16 +150,16 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     return @[
         @{ @"icon":  @"wand.and.stars",
            @"color": UIColor.systemPurpleColor,
-           @"title": @"What's new",
-           @"body":  @"• App Switcher Grid adds a grid-style app switcher option\n• LiveWP now supports video picking from Files and Photos\n• Location Simulator is available as a public Beta tool\n• Call Recording Sound is available as a public Beta package" },
+           @"title": @"更新内容",
+           @"body":  @"• App Switcher Grid 新增网格风格应用切换器选项\n• LiveWP 现支持从文件应用和相册中选择视频\n• 位置模拟器现已作为公开 Beta 工具推出\n• 通话录音声音现已作为公开 Beta 包推出" },
         @{ @"icon":  @"exclamationmark.triangle.fill",
            @"color": UIColor.systemOrangeColor,
-           @"title": @"Don't force-quit Cyanide",
-           @"body":  @"From the App Switcher kills live tweaks instantly — StatBar, Axon Lite, and anything else running per session stops the moment the app dies." },
+           @"title": @"请勿强制退出 Cyanide",
+           @"body":  @"从 App 切换器强制退出会立即终止实时插件 — StatBar、Axon Lite 以及任何在会话中运行的内容都会在应用退出的瞬间停止。" },
         @{ @"icon":  @"hand.tap.fill",
            @"color": UIColor.systemTealColor,
-           @"title": @"New Beta tools",
-           @"body":  @"Try exact-coordinate location simulation, App Switcher Grid, LiveWP video wallpapers, and SnowBoard-style local icon themes from the Installer." },
+           @"title": @"新的 Beta 工具",
+           @"body":  @"尝试精确坐标位置模拟、App Switcher Grid、LiveWP 视频壁纸以及来自安装器的 SnowBoard 风格本地图标主题。" },
     ];
 }
 
@@ -285,7 +285,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                         imageWithTintColor:UIColor.systemPurpleColor
                           renderingMode:UIImageRenderingModeAlwaysOriginal];
     [headAS appendAttributedString:[NSAttributedString attributedStringWithAttachment:sparkle]];
-    [headAS appendAttributedString:[[NSAttributedString alloc] initWithString:@"  What's New & Tips" attributes:@{
+    [headAS appendAttributedString:[[NSAttributedString alloc] initWithString:@"  更新与提示" attributes:@{
         NSFontAttributeName: [UIFont systemFontOfSize:16 weight:UIFontWeightSemibold],
         NSForegroundColorAttributeName: UIColor.labelColor,
     }]];
@@ -348,7 +348,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     for (UIView *v in placed) [card addSubview:v];
 
     CGFloat supportWidth = width - horizontalMargin * 2;
-    UIButton *signal = [self buildSupportButtonWithTitle:@"Join Signal Group"
+    UIButton *signal = [self buildSupportButtonWithTitle:@"加入 Signal 群组"
                                                     icon:@"bubble.left.and.bubble.right.fill"
                                              background:UIColor.systemBlueColor
                                                      url:kSignalGroupURL
@@ -398,7 +398,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 
 - (void)installSortBarButton
 {
-    UIAction *flat = [UIAction actionWithTitle:@"Alphabetical"
+    UIAction *flat = [UIAction actionWithTitle:@"按字母排序"
                                          image:[UIImage systemImageNamed:@"list.bullet"]
                                     identifier:nil
                                        handler:^(UIAction *_) {
@@ -406,7 +406,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     }];
     flat.state = self.groupByCategory ? UIMenuElementStateOff : UIMenuElementStateOn;
 
-    UIAction *byCat = [UIAction actionWithTitle:@"By Category"
+    UIAction *byCat = [UIAction actionWithTitle:@"按分类排序"
                                           image:[UIImage systemImageNamed:@"folder"]
                                      identifier:nil
                                         handler:^(UIAction *_) {
@@ -414,7 +414,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     }];
     byCat.state = self.groupByCategory ? UIMenuElementStateOn : UIMenuElementStateOff;
 
-    UIMenu *menu = [UIMenu menuWithTitle:@"Sort" children:@[flat, byCat]];
+    UIMenu *menu = [UIMenu menuWithTitle:@"排序" children:@[flat, byCat]];
     UIBarButtonItem *btn = [[UIBarButtonItem alloc]
         initWithImage:[UIImage systemImageNamed:@"line.3.horizontal.decrease.circle"]
                  menu:menu];
@@ -604,82 +604,82 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 {
     PackageQueueIntent intent = [[PackageQueue sharedQueue] intentForPackage:pkg];
     if (pkg.kind == PackageInstallKindDirectTool) {
-        return [self pillWithText:@"MANUAL"
+        return [self pillWithText:@"手动控制"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
     if (pkg.kind == PackageInstallKindOTA) {
         if (intent != PackageQueueIntentNone) {
-            NSString *text = (intent == PackageQueueIntentInstall) ? @"DISABLE PENDING" : @"ENABLE PENDING";
+            NSString *text = (intent == PackageQueueIntentInstall) ? @"待禁用" : @"待启用";
             UIColor *color = self.view.tintColor;
             return [self pillWithText:text
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"MANUAL"
+        return [self pillWithText:@"手动控制"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
     if (pkg.kind == PackageInstallKindNanoRegistry) {
         if (intent != PackageQueueIntentNone) {
-            NSString *text = (intent == PackageQueueIntentInstall) ? @"APPLY PENDING" : @"REMOVE PENDING";
+            NSString *text = (intent == PackageQueueIntentInstall) ? @"待应用" : @"待移除";
             UIColor *color = self.view.tintColor;
             return [self pillWithText:text
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"MANUAL"
+        return [self pillWithText:@"手动控制"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
     if (pkg.kind == PackageInstallKindCallRecordingSound) {
         if (intent != PackageQueueIntentNone) {
-            NSString *text = (intent == PackageQueueIntentInstall) ? @"SILENCE PENDING" : @"RESTORE PENDING";
+            NSString *text = (intent == PackageQueueIntentInstall) ? @"待静音" : @"待恢复";
             UIColor *color = self.view.tintColor;
             return [self pillWithText:text
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"MANUAL"
+        return [self pillWithText:@"手动控制"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
     if (pkg.kind == PackageInstallKindHideHomeBar) {
         if (intent != PackageQueueIntentNone) {
-            NSString *text = (intent == PackageQueueIntentInstall) ? @"HIDE PENDING" : @"RESTORE PENDING";
+            NSString *text = (intent == PackageQueueIntentInstall) ? @"待隐藏" : @"待恢复";
             UIColor *color = self.view.tintColor;
             return [self pillWithText:text
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"MANUAL"
+        return [self pillWithText:@"手动控制"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
     if (intent != PackageQueueIntentNone) {
-        NSString *text = (intent == PackageQueueIntentInstall) ? @"WILL ACTIVATE" : @"WILL DEACTIVATE";
+        NSString *text = (intent == PackageQueueIntentInstall) ? @"待激活" : @"待停用";
         UIColor *color = self.view.tintColor;
         return [self pillWithText:text
                        background:[color colorWithAlphaComponent:0.18]
                         textColor:color];
     }
     if (pkg.isInstalled) {
-        return [self pillWithText:@"INSTALLED"
+        return [self pillWithText:@"已激活"
                        background:[UIColor colorWithRed:0.16 green:0.55 blue:0.32 alpha:0.18]
                         textColor:[UIColor systemGreenColor]];
     }
     if (pkg.isInstallDisabled) {
-        return [self pillWithText:@"DISABLED"
+        return [self pillWithText:@"已禁用"
                        background:[[UIColor systemRedColor] colorWithAlphaComponent:0.16]
                         textColor:[UIColor systemRedColor]];
     }
     if (pkg.creatorOnly) {
-        return [self pillWithText:@"IN DEV"
+        return [self pillWithText:@"开发中"
                        background:[[UIColor systemPurpleColor] colorWithAlphaComponent:0.16]
                         textColor:[UIColor systemPurpleColor]];
     }
     if (pkg.experimental) {
-        return [self pillWithText:@"EXPERIMENTAL"
+        return [self pillWithText:@"实验性"
                        background:[[UIColor systemRedColor] colorWithAlphaComponent:0.18]
                         textColor:[UIColor systemRedColor]];
     }
@@ -689,7 +689,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                         textColor:[UIColor systemPurpleColor]];
     }
     if (pkg.isNew) {
-        return [self pillWithText:@"NEW"
+        return [self pillWithText:@"新"
                        background:[UIColor colorWithRed:0.95 green:0.55 blue:0.05 alpha:0.18]
                         textColor:[UIColor systemOrangeColor]];
     }
@@ -736,7 +736,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     if (pkg.kind == PackageInstallKindDirectTool) {
         UIContextualAction *open = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleNormal
-                                title:@"Open"
+                                title:@"打开"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             done(YES);
             [self navigateToSettingsSectionForPackage:pkg];
@@ -752,7 +752,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     if (pkg.kind == PackageInstallKindOTA && intent == PackageQueueIntentNone) {
         UIContextualAction *disable = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleDestructive
-                                title:@"Disable"
+                                title:@"禁用"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentInstall]) {
                 done(YES);
@@ -765,7 +765,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 
         UIContextualAction *enable = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleNormal
-                                title:@"Enable"
+                                title:@"启用"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentUninstall]) {
                 done(YES);
@@ -785,7 +785,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     if (pkg.kind == PackageInstallKindNanoRegistry && intent == PackageQueueIntentNone) {
         UIContextualAction *apply = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleNormal
-                                title:@"Apply"
+                                title:@"应用"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentInstall]) {
                 done(YES);
@@ -799,7 +799,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 
         UIContextualAction *remove = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleDestructive
-                                title:@"Remove"
+                                title:@"移除"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentUninstall]) {
                 done(YES);
@@ -818,7 +818,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     if (pkg.kind == PackageInstallKindCallRecordingSound && intent == PackageQueueIntentNone) {
         UIContextualAction *silence = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleDestructive
-                                title:@"Silence"
+                                title:@"静音"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             done(YES);
             [PackageDetailViewController
@@ -832,7 +832,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 
         UIContextualAction *restore = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleNormal
-                                title:@"Restore"
+                                title:@"恢复"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentUninstall]) {
                 done(YES);
@@ -852,7 +852,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     if (pkg.kind == PackageInstallKindHideHomeBar && intent == PackageQueueIntentNone) {
         UIContextualAction *hide = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleDestructive
-                                title:@"Hide"
+                                title:@"隐藏"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentInstall]) {
                 done(YES);
@@ -865,7 +865,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 
         UIContextualAction *restore = [UIContextualAction
             contextualActionWithStyle:UIContextualActionStyleNormal
-                                title:@"Restore"
+                                title:@"恢复"
                               handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
             if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentUninstall]) {
                 done(YES);
@@ -886,23 +886,23 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     UIColor *color;
     NSString *symbol;
     if (intent != PackageQueueIntentNone) {
-        title  = @"Cancel";
+        title  = @"取消";
         color  = [UIColor systemGrayColor];
         symbol = @"xmark.circle";
     } else if (pkg.isInstalled) {
-        title  = @"Deactivate";
+        title  = @"停用";
         color  = [UIColor systemRedColor];
         symbol = @"power";
     } else if ([self packageNeedsThemeBeforeInstall:pkg]) {
-        title  = @"Select Theme";
+        title  = @"选择主题";
         color  = self.view.tintColor;
         symbol = @"paintpalette";
     } else if ([self packageNeedsLiveWPVideoBeforeInstall:pkg]) {
-        title  = @"Select Video";
+        title  = @"选择视频";
         color  = self.view.tintColor;
         symbol = @"photo.badge.plus";
     } else {
-        title  = @"Activate";
+        title  = @"激活";
         color  = self.view.tintColor;
         symbol = @"play.circle";
     }
@@ -949,15 +949,15 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 
 - (void)presentThemeRequiredAlertForPackage:(Package *)pkg
 {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Select a Theme"
-                                                                   message:@"Icon themes need a selected theme before they can be activated. Choose iOS 6 Theme or import a custom theme first."
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"选择一个主题"
+                                                                   message:@"图标主题需要先选择一个主题才能激活。请选择 iOS 6 主题或先导入一个自定义主题。"
                                                             preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Open Theme Settings"
+    [alert addAction:[UIAlertAction actionWithTitle:@"打开主题设置"
                                              style:UIAlertActionStyleDefault
                                            handler:^(UIAlertAction *_) {
         [self navigateToSettingsSectionForPackage:pkg];
     }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel"
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消"
                                              style:UIAlertActionStyleCancel
                                            handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
@@ -970,7 +970,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     UINavigationController *settingsNav = nil;
     for (NSUInteger i = 0; i < tab.viewControllers.count; i++) {
         UIViewController *vc = tab.viewControllers[i];
-        if ([vc.tabBarItem.title isEqualToString:@"Settings"]) {
+        if ([vc.tabBarItem.title isEqualToString:@"设置"]) {
             settingsIndex = i;
             if ([vc isKindOfClass:UINavigationController.class]) {
                 settingsNav = (UINavigationController *)vc;
@@ -991,24 +991,24 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 - (void)presentConfigureAlertForPackage:(Package *)pkg
 {
     NSString *msg = [NSString stringWithFormat:
-        @"%@ has configurable options. Set them up first so the tweak applies with your preferences on the first activation.",
+        @"%@ 有可配置的选项。请先配置好，这样插件就能在首次激活时应用您的偏好设置。",
         pkg.name];
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Customize Before Activating?"
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"激活前先配置？"
                                                                    message:msg
                                                             preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Configure First"
+    [alert addAction:[UIAlertAction actionWithTitle:@"先去配置"
                                              style:UIAlertActionStyleDefault
                                            handler:^(UIAlertAction *_) {
         PackageDetailViewController *detail = [[PackageDetailViewController alloc] initWithPackage:pkg];
         [self.navigationController pushViewController:detail animated:YES];
     }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Activate Anyway"
+    [alert addAction:[UIAlertAction actionWithTitle:@"仍然激活"
                                              style:UIAlertActionStyleDefault
                                            handler:^(UIAlertAction *_) {
         if ([self presentQueueConflictIfNeededForPackage:pkg intent:PackageQueueIntentInstall]) return;
         [[PackageQueue sharedQueue] toggleForPackage:pkg];
     }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel"
+    [alert addAction:[UIAlertAction actionWithTitle:@"取消"
                                              style:UIAlertActionStyleCancel
                                            handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
