@@ -387,7 +387,7 @@ BOOL settings_sbl_import_folder_theme_named(NSURL *url,
         if (error) {
             *error = [NSError errorWithDomain:@"SnowBoardLite"
                                          code:2
-                                     userInfo:@{NSLocalizedDescriptionKey: @"已找到 IconBundles，但未能导入任何 bundle-ID PNG 图标。"}];
+                                     userInfo:@{NSLocalizedDescriptionKey: @"已找到 IconBundles 目录，但未能导入任何 包名-ID PNG 图标。"}];
         }
         return NO;
     }
