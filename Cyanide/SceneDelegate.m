@@ -69,11 +69,11 @@
 
     UIViewController *root = self.window.rootViewController;
     if (!root) return;
-    NSString *msg = @"Created a Signal group as the main place for Cyanide feedback and support.\n\nUse it to report bugs, request features, share test results, ask setup questions, and get notes about new builds.";
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Join the Cyanide Signal Group"
+    NSString *msg = @"创建了一个 Signal 群组，作为 Cyanide 反馈与支持的主要渠道。\n\n可用于报告问题、请求功能、分享测试结果、询问安装问题，以及获取新版本说明。";
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"加入 Cyanide Signal 群组"
                                                                    message:msg
                                                             preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Join Signal" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"加入 Signal" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
         [ud setBool:YES forKey:noticeKey];
         [ud synchronize];
         NSURL *url = [NSURL URLWithString:@"https://signal.group/#CjQKIP0pxjc9V52ddCNk--04DosuoQl-vVOsznJfQ4GwlrlxEhCveFhBS8YdNcILpUFt7IqC"];
@@ -81,7 +81,7 @@
             [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
         }
     }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Not Now" style:UIAlertActionStyleCancel handler:^(UIAlertAction *a) {
+    [alert addAction:[UIAlertAction actionWithTitle:@"暂不加入" style:UIAlertActionStyleCancel handler:^(UIAlertAction *a) {
         [ud setBool:YES forKey:noticeKey];
         [ud synchronize];
     }]];

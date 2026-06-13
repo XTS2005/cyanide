@@ -172,7 +172,7 @@ static int compare_versions(NSString *a, NSString *b)
            self.currentVersion.UTF8String);
 
     UIAlertController *checking = [UIAlertController
-        alertControllerWithTitle:@"Checking for Updates…"
+        alertControllerWithTitle:@"正在检查更新…"
                          message:@"\n\n"
                   preferredStyle:UIAlertControllerStyleAlert];
     UIActivityIndicatorView *spin =
@@ -209,19 +209,19 @@ static int compare_versions(NSString *a, NSString *b)
         NSString *notes = nil;
 
         if (error || !data) {
-            failureReason = error ? error.localizedDescription : @"No response from GitHub.";
+            failureReason = error ? error.localizedDescription : @"GitHub 无响应";
         } else {
             NSError *jsonErr = nil;
             id obj = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonErr];
             if (jsonErr || ![obj isKindOfClass:NSDictionary.class]) {
-                failureReason = @"Could not parse the release feed.";
+                failureReason = @"无法解析发布源。";
             } else {
                 NSDictionary *release = obj;
                 id tagObj  = release[@"tag_name"];
                 id urlObj  = release[@"html_url"];
                 id bodyObj = release[@"body"];
                 if (![tagObj isKindOfClass:NSString.class] || ![urlObj isKindOfClass:NSString.class]) {
-                    failureReason = @"Release feed was missing fields.";
+                    failureReason = @"发布源不完整。";
                 } else {
                     latest  = self_ ? [self_ normalizeTag:tagObj] : tagObj;
                     htmlURL = urlObj;
@@ -235,11 +235,11 @@ static int compare_versions(NSString *a, NSString *b)
                 if (failureReason) {
                     printf("[UPDATE] manual check failed: %s\n", failureReason.UTF8String);
                     UIAlertController *ac = [UIAlertController
-                        alertControllerWithTitle:@"Check Failed"
+                        alertControllerWithTitle:@"检查失败"
                                          message:[NSString stringWithFormat:
-                                                  @"Couldn't reach GitHub.\n\n%@", failureReason]
+                                                  @"无法访问 GitHub。\n\n%@", failureReason]
                                   preferredStyle:UIAlertControllerStyleAlert];
-                    [ac addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+                    [ac addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:nil]];
                     UIViewController *top2 = presenter;
                     while (top2.presentedViewController) top2 = top2.presentedViewController;
                     [top2 presentViewController:ac animated:YES completion:nil];
@@ -250,12 +250,12 @@ static int compare_versions(NSString *a, NSString *b)
                     printf("[UPDATE] manual check: up to date (current=%s latest=%s)\n",
                            current.UTF8String, latest.UTF8String);
                     UIAlertController *ac = [UIAlertController
-                        alertControllerWithTitle:@"Up to Date"
+                        alertControllerWithTitle:@"已是最新版本"
                                          message:[NSString stringWithFormat:
-                                                  @"You're on the latest release.\n\nInstalled: %@\nLatest: %@",
+                                                  @"您已在最新版本。\n\n已安装：%@\n最新版本：%@",
                                                   current, latest]
                                   preferredStyle:UIAlertControllerStyleAlert];
-                    [ac addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+                    [ac addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleCancel handler:nil]];
                     UIViewController *top2 = presenter;
                     while (top2.presentedViewController) top2 = top2.presentedViewController;
                     [top2 presentViewController:ac animated:YES completion:nil];
@@ -287,7 +287,7 @@ static int compare_versions(NSString *a, NSString *b)
     while (top.presentedViewController) top = top.presentedViewController;
 
     NSMutableString *message = [NSMutableString string];
-    [message appendFormat:@"A new release of Cyanide is available.\n\nLatest: %@\nInstalled: %@",
+    [message appendFormat:@"Cyanide 有新版本可用。\n\n最新版本：%@\n已安装：%@",
                           latest, current];
 
     NSString *trimmed = [notes stringByTrimmingCharactersInSet:
@@ -308,16 +308,16 @@ static int compare_versions(NSString *a, NSString *b)
         if (body.length > kMaxNotesChars) {
             body = [[body substringToIndex:kMaxNotesChars - 1] stringByAppendingString:@"…"];
         }
-        [message appendFormat:@"\n\nWhat's new:\n%@", body];
+        [message appendFormat:@"\n\n更新内容：\n%@", body];
     } else {
-        [message appendString:@"\n\nUpdates ship as sideloadable IPAs on GitHub Releases."];
+        [message appendString:@"\n\n更新以可侧载的 IPA 形式发布在 GitHub Releases 上。"];
     }
 
-    UIAlertController *ac = [UIAlertController alertControllerWithTitle:@"Update Available"
+    UIAlertController *ac = [UIAlertController alertControllerWithTitle:@"发现新版本"
                                                                 message:message
                                                          preferredStyle:UIAlertControllerStyleAlert];
 
-    [ac addAction:[UIAlertAction actionWithTitle:@"View Release"
+    [ac addAction:[UIAlertAction actionWithTitle:@"查看发布页面"
                                            style:UIAlertActionStyleDefault
                                          handler:^(UIAlertAction *_) {
         NSURL *u = [NSURL URLWithString:urlString];
@@ -325,14 +325,14 @@ static int compare_versions(NSString *a, NSString *b)
         [[UIApplication sharedApplication] openURL:u options:@{} completionHandler:nil];
     }]];
 
-    [ac addAction:[UIAlertAction actionWithTitle:@"Remind Me Later"
+    [ac addAction:[UIAlertAction actionWithTitle:@"稍后提醒"
                                            style:UIAlertActionStyleDefault
                                          handler:^(UIAlertAction *_) {
         NSDate *until = [[NSDate date] dateByAddingTimeInterval:kSnoozeDuration];
         [[NSUserDefaults standardUserDefaults] setObject:until forKey:kUpdateSnoozeUntilKey];
     }]];
 
-    [ac addAction:[UIAlertAction actionWithTitle:@"Skip This Version"
+    [ac addAction:[UIAlertAction actionWithTitle:@"跳过此版本"
                                            style:UIAlertActionStyleDestructive
                                          handler:^(UIAlertAction *_) {
         [[NSUserDefaults standardUserDefaults] setObject:latest forKey:kUpdateSkippedVersionKey];

@@ -53,7 +53,7 @@ static void sbl_set_error(NSError **error, NSInteger code, NSString *message)
     if (!error) return;
     *error = [NSError errorWithDomain:SBLArchiveErrorDomain
                                  code:code
-                             userInfo:@{NSLocalizedDescriptionKey: message ?: @"Archive extraction failed."}];
+                             userInfo:@{NSLocalizedDescriptionKey: message ?: @"压缩包提取失败。"}];
 }
 
 static uint16_t sbl_le16(const uint8_t *p)
@@ -91,7 +91,7 @@ static NSData *sbl_inflate_data(NSData *input, NSUInteger outputSize, int window
 
     void *libz = dlopen("/usr/lib/libz.1.dylib", RTLD_LAZY);
     if (!libz) {
-        sbl_set_error(error, 10, @"libz is not available on this device.");
+        sbl_set_error(error, 10, @"此设备上没有 libz。");
         return nil;
     }
 
@@ -100,7 +100,7 @@ static NSData *sbl_inflate_data(NSData *input, NSUInteger outputSize, int window
     sbl_inflateEnd pEnd = (sbl_inflateEnd)dlsym(libz, "inflateEnd");
     if (!pInit || !pInflate || !pEnd) {
         dlclose(libz);
-        sbl_set_error(error, 11, @"Could not load zlib inflate symbols.");
+        sbl_set_error(error, 11, @"无法加载 zlib inflate 符号。");
         return nil;
     }
 
@@ -115,7 +115,7 @@ static NSData *sbl_inflate_data(NSData *input, NSUInteger outputSize, int window
     int rc = pInit(&stream, windowBits, ZLIB_VERSION, (int)sizeof(stream));
     if (rc != Z_OK) {
         dlclose(libz);
-        sbl_set_error(error, 12, @"Could not initialize zlib.");
+        sbl_set_error(error, 12, @"无法初始化 zlib。");
         return nil;
     }
     rc = pInflate(&stream, Z_FINISH);
@@ -123,7 +123,7 @@ static NSData *sbl_inflate_data(NSData *input, NSUInteger outputSize, int window
     dlclose(libz);
 
     if (rc != Z_STREAM_END || stream.total_out != outputSize) {
-        sbl_set_error(error, 13, @"Compressed archive data could not be inflated.");
+        sbl_set_error(error, 13, @"无法解压压缩包数据。");
         return nil;
     }
     return out;
@@ -150,7 +150,7 @@ static NSData *sbl_decode_xz_data(NSData *input, NSError **error)
 
     void *lib = sbl_dlopen_liblzma();
     if (!lib) {
-        sbl_set_error(error, 14, @"liblzma is not available on this device, so data.tar.xz cannot be imported.");
+        sbl_set_error(error, 14, @"此设备上没有 liblzma，无法导入 data.tar.xz。");
         return nil;
     }
 
@@ -160,7 +160,7 @@ static NSData *sbl_decode_xz_data(NSData *input, NSError **error)
     sbl_lzma_end pEnd = (sbl_lzma_end)dlsym(lib, "lzma_end");
     if (!pDecoder || !pCode || !pEnd) {
         dlclose(lib);
-        sbl_set_error(error, 15, @"Could not load liblzma decoder symbols.");
+        sbl_set_error(error, 15, @"无法加载 liblzma 解码器符号。");
         return nil;
     }
 
@@ -172,7 +172,7 @@ static NSData *sbl_decode_xz_data(NSData *input, NSError **error)
     sbl_lzma_ret rc = pDecoder(&stream, UINT64_MAX, 0);
     if (rc != SBL_LZMA_OK) {
         dlclose(lib);
-        sbl_set_error(error, 16, @"Could not initialize xz decoder.");
+        sbl_set_error(error, 16, @"无法初始化 xz 解码器。");
         return nil;
     }
 
@@ -192,7 +192,7 @@ static NSData *sbl_decode_xz_data(NSData *input, NSError **error)
     dlclose(lib);
 
     if (rc != SBL_LZMA_STREAM_END) {
-        sbl_set_error(error, 17, @"data.tar.xz could not be decompressed.");
+        sbl_set_error(error, 17, @"无法解压 data.tar.xz。");
         return nil;
     }
     return out;
@@ -215,7 +215,7 @@ static BOOL sbl_extract_zip(NSData *zip, NSString *destination, NSError **error)
     const uint8_t *b = zip.bytes;
     NSUInteger len = zip.length;
     if (len < 22) {
-        sbl_set_error(error, 20, @"ZIP file is too small.");
+        sbl_set_error(error, 20, @"ZIP 文件太小。");
         return NO;
     }
 
@@ -228,7 +228,7 @@ static BOOL sbl_extract_zip(NSData *zip, NSString *destination, NSError **error)
         }
     }
     if (eocd < 0) {
-        sbl_set_error(error, 21, @"ZIP central directory was not found.");
+        sbl_set_error(error, 21, @"未找到 ZIP 中央目录。");
         return NO;
     }
 
@@ -283,7 +283,7 @@ static BOOL sbl_extract_zip(NSData *zip, NSString *destination, NSError **error)
     }
 
     if (extracted == 0) {
-        sbl_set_error(error, 22, @"ZIP did not contain extractable files.");
+        sbl_set_error(error, 22, @"ZIP 中不包含可提取的文件。");
         return NO;
     }
     return YES;
@@ -330,7 +330,7 @@ static BOOL sbl_extract_tar(NSData *tar, NSString *destination, NSError **error)
     }
 
     if (extracted == 0) {
-        sbl_set_error(error, 30, @"TAR did not contain extractable files.");
+        sbl_set_error(error, 30, @"TAR 中不包含可提取的文件。");
         return NO;
     }
     return YES;
@@ -369,7 +369,7 @@ static BOOL sbl_extract_deb(NSData *deb, NSString *destination, NSError **error)
     NSData *dataTarGz = sbl_data_for_ar_member(deb, @"data.tar.gz");
     if (dataTarGz) {
         if (dataTarGz.length < 4) {
-            sbl_set_error(error, 40, @"Invalid gzip payload in deb.");
+            sbl_set_error(error, 40, @"deb 中的 gzip 数据无效。");
             return NO;
         }
         const uint8_t *b = dataTarGz.bytes;
@@ -384,7 +384,7 @@ static BOOL sbl_extract_deb(NSData *deb, NSString *destination, NSError **error)
         return tar ? sbl_extract_tar(tar, destination, error) : NO;
     }
 
-    sbl_set_error(error, 41, @"This deb does not contain data.tar, data.tar.gz, or data.tar.xz. data.tar.zst is not supported yet.");
+    sbl_set_error(error, 41, @"此 deb 不包含 data.tar、data.tar.gz 或 data.tar.xz。暂不支持 data.tar.zst。");
     return NO;
 }
 
@@ -411,6 +411,6 @@ BOOL SBLExtractArchiveToDirectory(NSURL *url, NSString *destination, NSError **e
         return sbl_extract_deb(data, destination, error);
     }
 
-    sbl_set_error(error, 50, @"Unsupported archive type. Choose a folder, .zip, or .deb.");
+    sbl_set_error(error, 50, @"不支持的压缩包类型。请选择文件夹、.zip 或 .deb 文件。");
     return NO;
 }

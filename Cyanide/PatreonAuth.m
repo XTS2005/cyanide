@@ -374,7 +374,7 @@ void cyanide_patreon_authenticate(UIViewController *presenter,
                 if ([err.domain isEqualToString:ASWebAuthenticationSessionErrorDomain] &&
                     err.code == ASWebAuthenticationSessionErrorCodeCanceledLogin) {
                     finish(NO, [NSError errorWithDomain:@"CyanidePatreon" code:NSUserCancelledError
-                                              userInfo:@{NSLocalizedDescriptionKey: @"Cancelled"}]);
+                                              userInfo:@{NSLocalizedDescriptionKey: @"已取消"}]);
                 } else {
                     finish(NO, err);
                 }
@@ -390,7 +390,7 @@ void cyanide_patreon_authenticate(UIViewController *presenter,
             if (code.length == 0) {
                 NSString *desc = errorStr.length > 0
                     ? [@"Patreon: " stringByAppendingString:errorStr]
-                    : @"Patreon redirect missing authorization code";
+                    : @"Patreon 重定向缺少授权码";
                 finish(NO, [NSError errorWithDomain:@"CyanidePatreon" code:-3
                                            userInfo:@{NSLocalizedDescriptionKey: desc}]);
                 return;
@@ -403,7 +403,7 @@ void cyanide_patreon_authenticate(UIViewController *presenter,
                 if (werr) { finish(NO, werr); return; }
                 if (!accept_worker_response(resp)) {
                     finish(NO, [NSError errorWithDomain:@"CyanidePatreon" code:-5
-                                               userInfo:@{NSLocalizedDescriptionKey: @"Invalid Worker response"}]);
+                                               userInfo:@{NSLocalizedDescriptionKey: @"Worker 响应无效"}]);
                     return;
                 }
                 printf("[PATREON] linked; is_patron=%d\n", (int)cyanide_is_patron());
@@ -417,7 +417,7 @@ void cyanide_patreon_authenticate(UIViewController *presenter,
         gPatreonSession = nil;
         gPatreonPresenter = nil;
         finish(NO, [NSError errorWithDomain:@"CyanidePatreon" code:-6
-                                   userInfo:@{NSLocalizedDescriptionKey: @"Could not start authentication session"}]);
+                                   userInfo:@{NSLocalizedDescriptionKey: @"无法启动认证通道"}]);
     }
 }
 
@@ -452,14 +452,14 @@ void cyanide_patreon_refresh(void (^completion)(BOOL, NSError *_Nullable))
     NSString *tok = keychain_get_string(kKeychainToken);
     if (tok.length == 0) {
         finish(NO, [NSError errorWithDomain:@"CyanidePatreon" code:-11
-                                   userInfo:@{NSLocalizedDescriptionKey: @"Not linked"}]);
+                                   userInfo:@{NSLocalizedDescriptionKey: @"未关联"}]);
         return;
     }
     worker_post(@"/patreon/refresh", @{ @"token": tok }, ^(NSDictionary *resp, NSError *werr) {
         if (werr) { finish(NO, werr); return; }
         if (!accept_worker_response(resp)) {
             finish(NO, [NSError errorWithDomain:@"CyanidePatreon" code:-5
-                                       userInfo:@{NSLocalizedDescriptionKey: @"Invalid Worker response"}]);
+                                       userInfo:@{NSLocalizedDescriptionKey: @"Worker 响应无效"}]);
             return;
         }
         finish(YES, nil);
