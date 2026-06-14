@@ -379,11 +379,11 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
                     cell.detailTextLabel.textColor = self.view.tintColor;
                     break;
                 case PackageInstallKindCallRecordingSound:
-                    cell.detailTextLabel.text = @"待声音静默";
+                    cell.detailTextLabel.text = @"待静音通话录音";
                     cell.detailTextLabel.textColor = UIColor.systemOrangeColor;
                     break;
                 case PackageInstallKindHideHomeBar:
-                    cell.detailTextLabel.text = @"单独运行；需要注销";
+                    cell.detailTextLabel.text = @"单独运行；需重启 SpringBoard";
                     cell.detailTextLabel.textColor = UIColor.systemOrangeColor;
                     break;
                 default:
@@ -403,11 +403,11 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
                     cell.detailTextLabel.textColor = UIColor.systemRedColor;
                     break;
                 case PackageInstallKindCallRecordingSound:
-                    cell.detailTextLabel.text = @"待声音恢复";
+                    cell.detailTextLabel.text = @"待恢复通话录音声音";
                     cell.detailTextLabel.textColor = UIColor.systemGreenColor;
                     break;
                 case PackageInstallKindHideHomeBar:
-                    cell.detailTextLabel.text = @"待注销后恢复";
+                    cell.detailTextLabel.text = @"待恢复（需重启 SpringBoard）";
                     cell.detailTextLabel.textColor = UIColor.systemGreenColor;
                     break;
                 default:
@@ -417,7 +417,7 @@ typedef NS_ENUM(NSInteger, QueueReviewSection) {
             }
             break;
         case QueueReviewSectionReApply:
-            cell.detailTextLabel.text = @"已激活；将自动刷新";
+            cell.detailTextLabel.text = @"已激活；将刷新";
             cell.detailTextLabel.textColor = UIColor.secondaryLabelColor;
             break;
         default:
