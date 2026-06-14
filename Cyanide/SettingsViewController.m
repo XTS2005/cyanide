@@ -6868,9 +6868,9 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 
     NSString *level = [d stringForKey:kSettingsPowercuffLevel] ?: @"nominal";
     BOOL alreadyNominal = [level isEqualToString:@"nominal"];
-    NSString *message = @"Powercuff 现在默认为标准档位。\n\n轻度、中度、重度会刻意对 CPU 降频。这意味着可能出现卡顿或 App 启动变慢，老机型尤为明显。卡顿说明 Powercuff 正在生效，但这些档位日常用可能太慢，影响体验。\n\n日常使用请使用标准档位，仅在需要更强限制时再提高档位。";
+    NSString *message = @"降频省电现在默认为标准档位。\n\n轻度、中度、重度会刻意对 CPU 降频。这意味着可能出现卡顿或应用启动变慢，老机型尤为明显。卡顿说明降频省电正在生效，但这些档位日常用可能太慢，影响体验。\n\n日常使用请使用标准档位，仅在需要更强限制时再提高档位。";
 
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Powercuff 档位"
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"使用说明"
                                                                    message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
     __weak typeof(self) weakSelf = self;
@@ -6941,7 +6941,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     [icon setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
 
     UILabel *label = [[UILabel alloc] init];
-    label.text = @"Cyanide 是一个受限的调整环境。本次调整在重启后恢复，少数插件会主动修改本地系统文件，其效果可能会持续到手动恢复。备份仅为尽力而为。请仅在获得许可、理解法律及服务条款影响并接受风险的前提下使用这些工具。实时调整如 StatBar 和 Axon Lite，在从 App 切换器强制退出 Cyanide 后也会随之停止。应用更改时会自动弹出进度日志，轻点“隐藏”即可关闭。";
+    label.text = @"Cyanide 是一个受限的调整环境。本次调整在重启后恢复，少数插件会主动修改本地系统文件，其效果可能会持续到手动恢复。备份仅为尽力而为。请仅在获得许可、理解法律及服务条款影响并接受风险的前提下使用这些工具。实时调整如状态栏监测和通知收纳，在从 App 切换器强制退出 Cyanide 后也会随之停止。应用更改时会自动弹出进度日志，点击“隐藏”即可关闭。";
     label.textColor = UIColor.labelColor;
     label.font = [UIFont systemFontOfSize:13 weight:UIFontWeightRegular];
     label.numberOfLines = 0;
