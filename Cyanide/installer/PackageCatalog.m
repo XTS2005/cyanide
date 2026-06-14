@@ -58,7 +58,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         NSString *version = @"1.0";
 
         Package *statBar = [[Package alloc] initWithIdentifier:@"com.darksword.statbar"
-                                           name:@"StatBar"
+                                           name:@"状态栏监测"
                                shortDescription:@"电池温度 + 可用内存"
                                 longDescription:@"可以在状态栏旁边显示实时电池温度和可用内存等。刷新频率可调，方便您在实时更新和续航之间取舍。"
                                         version:version
@@ -71,7 +71,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         statBar.settingsSection = kSecStatBar;
 
         Package *nsBar = [[Package alloc] initWithIdentifier:@"com.darksword.nsbar"
-                                           name:@"NSBar"
+                                           name:@"状态栏网速"
                                shortDescription:@"实时网速"
                                 longDescription:@"可以在状态栏旁边显示实时下载和上传速度。"
                                         version:version
@@ -84,7 +84,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         nsBar.settingsSection = kSecNSBar;
 
         Package *niceBarLite = [[Package alloc] initWithIdentifier:@"com.darksword.nicebarlite"
-                                           name:@"NiceBar Lite"
+                                           name:@"状态栏定制"
                                shortDescription:@"状态栏标签（NiceBar 风格）"
                                 longDescription:@"可以在状态栏周围添加可配置的文本标签。可显示自定义文本、日期/时间格式以及系统值，如电池、内存、网速、运行时间、IP 地址、磁盘空间、状态和流量计数器。"
                                         version:version
@@ -115,7 +115,7 @@ static const NSInteger kSecFastLockXLite    = 24;
 #endif
 
         Package *sbc = [[Package alloc] initWithIdentifier:@"com.darksword.sbcustomizer"
-                                           name:@"主屏幕定制器"
+                                           name:@"主屏幕定制"
                                shortDescription:@"自定义Dock栏图标数和主屏幕网格"
                                 longDescription:@"自定义Dock栏图标数量以及主屏幕图标的网格（列数和行数）。可选择隐藏图标标签。"
                                         version:version
@@ -128,7 +128,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         sbc.settingsSection = kSecSBC;
 
         Package *powercuff = [[Package alloc] initWithIdentifier:@"com.darksword.powercuff"
-                                           name:@"Powercuff"
+                                           name:@"降频省电"
                                shortDescription:@"通过降低 CPU/GPU 频率来达到省电效果"
                                 longDescription:@"通过模拟热压力驱动温控守护进程（thermalmonitord）来降低 CPU 和 GPU 频率。适用于对散热敏感的工作负载或在负载下延长运行时间。效果持续到重启。"
                                         version:version
@@ -141,7 +141,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         powercuff.settingsSection = kSecPowercuff;
 
         Package *axon = [[Package alloc] initWithIdentifier:@"com.darksword.axonlite"
-                                           name:@"Axon Lite"
+                                           name:@"通知收纳"
                                shortDescription:@"按 App 分组通知中心"
                                 longDescription:@"按应用把你通知中心里的消息分组显示，同时自动过滤掉重复的内容。"
                                         version:version
@@ -187,7 +187,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         notificationIsland.unstableWarning = @"⚠️ 开发中 — 可能会出现漏消息、重复显示或导致主屏幕（SpringBoard）不稳定的情况。";
 
         Package *ipaDecryptor = [[Package alloc] initWithIdentifier:@"com.darksword.ipadecryptor"
-                                           name:@"IPA Decryptor"
+                                           name:@"IPA 解密"
                                shortDescription:@"解密已安装的 App Store 应用安装包"
                                 longDescription:@"开发中的本地 IPA 解密器。选择一个已安装的 App 或粘贴 App Store 链接，解析为包名 ID，登录获取 App Store 下载令牌，将加密 IPA 下载到 Documents 目录，探测 FairPlay 加密元数据，然后运行解密流程。\n\n当前版本已完成：App 发现、App Store 链接解析、登录、加密 IPA 下载及加密探测。SINF/iTunesMetadata 补丁、解密页面转储及 Payload IPA 重建正在同一设置工具中逐步添加。"
                                         version:version
@@ -203,7 +203,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         ipaDecryptor.unstableWarning = @"⚠️ 开发中 — 加密 IPA 下载功能为实验性。SINF/iTunesMetadata 修补、任务端口转储和 IPA 写入器阶段尚未完成。";
 
         Package *stageStrip = [[Package alloc] initWithIdentifier:@"com.darksword.stagestrip"
-                                           name:@"Dynamic Stage Lite"
+                                           name:@"台前调度"
                                shortDescription:@"悬浮应用窗口（iPad 风格）"
                                 longDescription:
             @"在主屏幕上以悬浮、可调整大小的窗口同时运行 App。\n\n"
@@ -246,7 +246,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         locationSim.unstableWarning = @"Beta：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其它与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
 
         Package *snowboardLite = [[Package alloc] initWithIdentifier:@"com.darksword.snowboardlite"
-                                           name:@"SnowBoard Lite"
+                                           name:@"主题图标"
                                shortDescription:@"本地 SnowBoard 风格图标主题"
                                 longDescription:@"将 SnowBoard/IconBundles 主题导入本地库，并通过 Cyanide 的图标替换流水线应用所选主题。支持内置的 iOS 6 主题和本地文件夹导入。"
                                         version:version
@@ -260,7 +260,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         snowboardLite.unstableWarning = @"预览：在应用前请先导入或选择一个 SnowBoard Lite 主题。";
 
         Package *liveWP = [[Package alloc] initWithIdentifier:@"com.darksword.livewp"
-                                           name:@"LiveWP"
+                                           name:@"动态壁纸"
                                shortDescription:@"锁屏和主屏幕动态壁纸"
                                 longDescription:@"可选择 MP4、MOV 或 M4V 格式的视频，设为锁屏及主屏幕的动态壁纸。"
                                         version:version
@@ -292,7 +292,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         }
 
         Package *gravityLite = [[Package alloc] initWithIdentifier:@"com.darksword.gravitylite"
-                                           name:@"Gravity Lite"
+                                           name:@"重力效果"
                                shortDescription:@"主屏幕图标物理重力效果"
                                 longDescription:@"为主屏幕图标引入基于重力的动态物理行为：图标不再固定在网格上，而是像真实物体一样受重力影响，可随设备倾斜自然滑落、相互碰撞并产生弹跳效果。"
                                         version:version
@@ -312,8 +312,8 @@ static const NSInteger kSecFastLockXLite    = 24;
         ];
 
         Package *appSwitcherGrid = [[Package alloc] initWithIdentifier:@"com.darksword.appswitchergrid"
-                                           name:@"App Switcher Grid"
-                               shortDescription:@"App 切换器样式"
+                                           name:@"App 切换器样式"
+                               shortDescription:@"App 切换器排布样式"
                                 longDescription:@"给 App 切换器添加网格排布样式。\n这不会写入系统文件。注销即恢复原版 App 切换器。如果你在隐藏主屏幕横条后注销，请重新运行。"
                                         version:version
                                          author:@"rooootdev"
