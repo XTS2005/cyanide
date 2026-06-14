@@ -151,7 +151,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
         @{ @"icon":  @"wand.and.stars",
            @"color": UIColor.systemPurpleColor,
            @"title": @"更新内容",
-           @"body":  @"• App Switcher Grid 新增网格风格应用切换器选项\n• LiveWP 现支持从文件应用和相册中选择视频\n• 位置模拟器现已作为公开 Beta 工具推出\n• 通话录音声音现已作为公开 Beta 包推出" },
+           @"body":  @"•  App 切换器新增网格风格选项\n• LiveWP 现支持从文件应用和相册中选择视频\n• 位置模拟器现已作为公开 Beta 工具推出\n• 通话录音声音现已作为公开 Beta 包推出" },
         @{ @"icon":  @"exclamationmark.triangle.fill",
            @"color": UIColor.systemOrangeColor,
            @"title": @"请勿强制退出 Cyanide",
@@ -358,7 +358,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
     signalFrame.origin = CGPointMake(horizontalMargin, CGRectGetMaxY(card.frame) + supportGap);
     signal.frame = signalFrame;
 
-    UIButton *issues = [self buildSupportButtonWithTitle:@"GitHub Issues"
+    UIButton *issues = [self buildSupportButtonWithTitle:@"GitHub 问题反馈"
                                                     icon:@"exclamationmark.bubble.fill"
                                              background:UIColor.systemIndigoColor
                                                      url:kGitHubIssuesURL

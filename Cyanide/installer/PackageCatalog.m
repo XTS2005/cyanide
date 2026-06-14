@@ -59,7 +59,7 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *statBar = [[Package alloc] initWithIdentifier:@"com.darksword.statbar"
                                            name:@"StatBar"
-                               shortDescription:@"显示：电池温度 + 可用内存等"
+                               shortDescription:@"电池温度 + 可用内存"
                                 longDescription:@"可以在状态栏旁边显示实时电池温度和可用内存等。刷新频率可调，方便您在实时更新和续航之间取舍。"
                                         version:version
                                          author:@"zeroxjf"
@@ -72,7 +72,7 @@ static const NSInteger kSecFastLockXLite    = 24;
 
         Package *nsBar = [[Package alloc] initWithIdentifier:@"com.darksword.nsbar"
                                            name:@"NSBar"
-                               shortDescription:@"显示：实时网速"
+                               shortDescription:@"实时网速"
                                 longDescription:@"可以在状态栏旁边显示实时下载和上传速度。"
                                         version:version
                                          author:@"d1y"
