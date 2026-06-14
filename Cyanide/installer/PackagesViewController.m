@@ -683,7 +683,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                        background:[[UIColor systemRedColor] colorWithAlphaComponent:0.18]
                         textColor:[UIColor systemRedColor]];
     }
-    if ([pkg.category caseInsensitiveCompare:@"Beta"] == NSOrderedSame) {
+    if ([pkg.category caseInsensitiveCompare:@"测试"] == NSOrderedSame) {
         return [self pillWithText:@"测试"
                        background:[[UIColor systemPurpleColor] colorWithAlphaComponent:0.18]
                         textColor:[UIColor systemPurpleColor]];
