@@ -7403,6 +7403,9 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"button",
            @"title": @"导入主题压缩包 (ZIP/DEB)…",
            @"action": @"sbl-import-archive" },
+        @{ @"kind": @"button",
+           @"title": @"主题格式指南",
+           @"action": @"themer-guide" },
     ]];
     if (hasSelection) {
         [rows addObject:@{ @"kind": @"button",
