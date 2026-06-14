@@ -6496,13 +6496,13 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.textLabel.text = @"包名 ID → PNG 数据";
         cell.detailTextLabel.text =
-            @"创建一个字典 plist。每个键是包名 ID，每个值是原始 PNG 数据。"
+            @"创建一个字典 plist。每个键是包名 ID，每个值是原生 PNG 数据。"
              "Cyanide 导入该 plist 并将其复制到 Documents/Themes 中。";
     } else {
         cell.selectionStyle = UITableViewCellSelectionStyleDefault;
         if (indexPath.row == 0) {
             cell.textLabel.text = @"分享示例主题 Plist";
-            cell.detailTextLabel.text = @"导出包含示例 bundle ID 的小型二进制 plist 模板。";
+            cell.detailTextLabel.text = @"导出包含示例包名 ID 的小型二进制 plist 模板。";
         } else if (indexPath.row == 1) {
             cell.textLabel.text = @"分享 iOS 6 主题 Plist";
             cell.detailTextLabel.text = @"导出 iOS 6 主题 plist。图标来自 zagnut531/iOS-6-Icons。";
