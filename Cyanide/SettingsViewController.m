@@ -5871,7 +5871,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 cyanide_upload_log_milestone(@"sandbox-ext-patched");
             }
             if (runPowercuff) {
-                settings_progress(&step, total, "正在通过温控守护进程（thermalmonitord）应用[降频省电]");
+                settings_progress(&step, total, "正在通过温控守护进程（thermalmonitord）应用降频省电");
                 if (g_springboard_rc_ready || settings_any_registered_live_loop_running()) {
                     settings_request_all_live_loops_stop("Powercuff process switch");
                     settings_wait_live_loops_stopped_for_switch("Powercuff process switch");
@@ -5988,7 +5988,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runThemer) {
-                        settings_progress(&step, total, "正在应用[图标主题]");
+                        settings_progress(&step, total, "正在应用 图标主题");
                         bool ok = settings_apply_themer_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsThemerEnabled, ok);
                         printf("[SETTINGS] Themer result=%d\n", ok);
@@ -6002,7 +6002,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runSnowBoardLite) {
-                        settings_progress(&step, total, "正在应用[图标主题]");
+                        settings_progress(&step, total, "正在应用 图标主题");
                         bool ok = settings_apply_snowboardlite_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsSnowBoardLiteEnabled,
                                                     ok && [d boolForKey:kSettingsSnowBoardLiteEnabled]);
@@ -6017,7 +6017,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runGravityLite) {
-                        settings_progress(&step, total, "正在启动 [重力效果] 图标物理效果");
+                        settings_progress(&step, total, "正在启动 重力效果 图标物理效果");
                         log_user("[GRAVITY] Preparing icon physics state...\n");
                         __sync_lock_test_and_set(&g_gravitylite_background_armed, 0);
                         settings_stop_gravity_motion();
@@ -6038,7 +6038,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                             log_user("[WARN] Gravity Lite did not start cleanly.\n");
                             cyanide_upload_log_milestone(@"gravity-lite-warning");
                             runHadBlockingFailure = YES;
-                            runCompletionMessage = @"[重力效果] 未能正常启动。";
+                            runCompletionMessage = @"重力效果 未能正常启动。";
                         }
                     } else if (!gravityLiteEnabled) {
                         __sync_lock_test_and_set(&g_gravitylite_background_armed, 0);
@@ -6047,7 +6047,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runStatBar) {
-                        settings_progress(&step, total, "正在启动 [状态栏监测]");
+                        settings_progress(&step, total, "正在启动 状态栏监测");
                         bool ok = statbar_apply_in_session([d boolForKey:kSettingsStatBarCelsius],
                                                            [d boolForKey:kSettingsStatBarShowNet],
                                                            [d boolForKey:kSettingsStatBarShowCPU],
@@ -6062,7 +6062,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runNSBar) {
-                        settings_progress(&step, total, "正在启动 [状态栏网速]");
+                        settings_progress(&step, total, "正在启动 状态栏网速");
                         bool ok = nsbar_apply_in_session((NSBarPosition)[d integerForKey:kSettingsNSBarPosition]);
                         settings_mark_tweak_applied(kSettingsNSBarEnabled,
                                                     ok && [d boolForKey:kSettingsNSBarEnabled]);
@@ -6074,7 +6074,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runNiceBarLite) {
-                        settings_progress(&step, total, "正在启动 [状态栏定制]");
+                        settings_progress(&step, total, "正在启动 状态栏定制");
                         settings_nicebar_refresh_weather_if_needed(!settings_nicebar_has_resolved_weather(d), nil);
                         bool ok = settings_apply_nicebarlite_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsNiceBarLiteEnabled,
@@ -6087,7 +6087,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runRSSI) {
-                        settings_progress(&step, total, "正在启动 [信号显示]");
+                        settings_progress(&step, total, "正在启动 信号显示");
                         bool ok = rssidisplay_apply_in_session([d boolForKey:kSettingsRSSIDisplayWifi],
                                                                [d boolForKey:kSettingsRSSIDisplayCell]);
                         settings_mark_tweak_applied(kSettingsRSSIDisplayEnabled,
@@ -6100,7 +6100,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runLiveWP) {
-                        settings_progress(&step, total, "正在启动 [动态壁纸]");
+                        settings_progress(&step, total, "正在启动 动态壁纸");
                         bool ok = livewp_apply_in_session();
                         settings_mark_tweak_applied(kSettingsLiveWPEnabled,
                                                     ok && [d boolForKey:kSettingsLiveWPEnabled]);
@@ -6112,7 +6112,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runAxonLite) {
-                        settings_progress(&step, total, "正在启动 [通知收纳]");
+                        settings_progress(&step, total, "正在启动 通知收纳");
                         bool ok = false;
                         bool deferred = false;
                         if (settings_axonlite_can_poll_springboard()) {
@@ -6135,7 +6135,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runNotificationIsland) {
-                        settings_progress(&step, total, "正在启动 [通知岛]");
+                        settings_progress(&step, total, "正在启动 通知岛");
                         bool ok = notificationisland_apply_in_session();
                         settings_mark_tweak_applied(kSettingsNotificationIslandEnabled,
                                                     ok && [d boolForKey:kSettingsNotificationIslandEnabled]);
@@ -6148,7 +6148,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runAppSwitcherGrid) {
-                        settings_progress(&step, total, "正在启用 [App 切换器样式]");
+                        settings_progress(&step, total, "正在启用 App 切换器样式");
                         bool ok = appswitchergrid_apply_in_session();
                         settings_mark_tweak_applied(kSettingsAppSwitcherGridEnabled,
                                                     ok && [d boolForKey:kSettingsAppSwitcherGridEnabled]);
@@ -6868,14 +6868,14 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 
     NSString *level = [d stringForKey:kSettingsPowercuffLevel] ?: @"nominal";
     BOOL alreadyNominal = [level isEqualToString:@"nominal"];
-    NSString *message = @"[降频省电] 现在默认为[标准]档位。\n\n轻度、中度、重度会刻意对 CPU 降频。这意味着可能出现卡顿或应用启动变慢，老机型尤为明显。卡顿说明 [降频省电] 正在生效，但这些档位日常用可能太慢，影响体验。\n\n日常使用请使用[标准]档位，仅在需要更强限制时再提高档位。";
+    NSString *message = @"降频省电 现在默认为标准档位。\n\n轻度、中度、重度会刻意对 CPU 降频。这意味着可能出现卡顿或应用启动变慢，老机型尤为明显。卡顿说明 降频省电 正在生效，但这些档位日常用可能太慢，影响体验。\n\n日常使用请使用标准档位，仅在需要更强限制时再提高档位。";
 
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"使用说明"
                                                                    message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
     __weak typeof(self) weakSelf = self;
     if (!alreadyNominal) {
-        [alert addAction:[UIAlertAction actionWithTitle:@"使用[标准]档位"
+        [alert addAction:[UIAlertAction actionWithTitle:@"使用“标准”"
                                                   style:UIAlertActionStyleDefault
                                                 handler:^(UIAlertAction *_) {
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -6971,7 +6971,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"自动运行 kexploit" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"沙盒逃逸 (escape_sbx_demo2)" },
         @{ @"key": kSettingsKeepAlive,          @"title": @"保持后台运行",
-           @"subtitle": @"供应用驱动的实时插件在最小化后保持运行所需，包括 [状态栏监测] 持续接收新的实时数据。" },
+           @"subtitle": @"供应用驱动的实时插件在最小化后保持运行所需，包括 状态栏监测 持续接收新的实时数据。" },
     ];
 }
 
@@ -7129,7 +7129,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"nicebar-grid" },
         @{ @"kind": @"info",
            @"title": @"布局",
-           @"subtitle": @"顶部和底部行可单独移动。[状态栏定制] 运行时更改会实时更新。" },
+           @"subtitle": @"顶部和底部行可单独移动。状态栏定制 运行时更改会实时更新。" },
         @{ @"kind": @"slider", @"key": kSettingsNiceBarLiteLayoutTopSideInset,
            @"title": @"顶部侧边距", @"min": @(-80), @"max": @80, @"step": @1, @"unit": @"pt", @"default": @0 },
         @{ @"kind": @"slider", @"key": kSettingsNiceBarLiteLayoutBottomSideInset,
@@ -7362,7 +7362,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     NSMutableArray<NSDictionary *> *rows = [NSMutableArray arrayWithArray:@[
         @{ @"kind": @"info",
            @"title": @"已选主题",
-           @"subtitle": hasSelection ? selected : @"未选择。请在运行[图标主题]之前选择一个主题。" },
+           @"subtitle": hasSelection ? selected : @"未选择。请在运行 图标主题 之前选择一个主题。" },
 
         @{ @"kind": @"button",
            @"title": [selected isEqualToString:@"iOS 6 主题"]
@@ -7393,7 +7393,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     NSMutableArray<NSDictionary *> *rows = [NSMutableArray arrayWithArray:@[
         @{ @"kind": @"info",
            @"title": @"已选主题",
-           @"subtitle": hasSelection ? selected : @"未选择。请在运行[图标主题]之前选择或导入一个主题。" },
+           @"subtitle": hasSelection ? selected : @"未选择。请在运行 图标主题 之前选择或导入一个主题。" },
         @{ @"kind": @"button",
            @"title": [selected isEqualToString:@"iOS 6 主题"] ? @"iOS 6 主题 ✓" : @"使用 iOS 6 主题",
            @"action": @"sbl-select-ios6" },
@@ -7811,7 +7811,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         return @"通过模拟热压力，借助温控守护进程（thermalmonitord）对 CPU/GPU 降频。标准为日常使用默认档。轻度、中度、重度会刻意加大降频幅度，可能使设备变卡，老机型尤为明显。";
     }
     if (s == SectionStatBar) {
-        return @"当 Cyanide 最小化但屏幕仍亮着时，刷新正常生效；锁屏或休眠后 [状态栏监测] 会暂停刷新。";
+        return @"当 Cyanide 最小化但屏幕仍亮着时，刷新正常生效；锁屏或休眠后 状态栏监测 会暂停刷新。";
     }]
     if (s == SectionNSBar) {
         return @"显示实时下载和上传速度，大约每秒刷新一次。";
@@ -7844,8 +7844,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         return @"开发中的本地 IPA 解密工具。当前版本可发现已安装的用户应用、将粘贴的 App Store 链接解析为包名 ID、登录 App Store 获取下载令牌，以及将加密 IPA 下载到 Documents 目录。下载后的 IPA 仍需经过 SINF/iTunesMetadata 修补和 KRW 转储/重建阶段才能成为已解密的 IPA。";
     }
     if (s == SectionThemer) {
-        return @"旧版[图标主题]设置。\n\n"
-               @"在运行[图标主题]之前选择一个主题。\n\n"
+        return @"旧版图标主题设置。\n\n"
+               @"在运行图标主题之前选择一个主题。\n\n"
                @"兼容性：启用 Dynamic Stage Lite 后，实时图标修复会暂停，以避免主屏幕（SpringBoard）注销。所选主题仍会应用一次。\n\n"
                @"自定义主题可以是一个以包名 ID 命名的 PNG 文件夹（如 com.apple.mobilesafari.png），也可以是一个将包名 ID 映射到 PNG 数据的二进制 plist。导入会将主题复制到 Cyanide 的 Documents/Themes 文件夹中。主题格式指南包含示例和 plist 导出功能。";
     }
@@ -8437,8 +8437,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     BOOL liveReady = settings_tweak_is_applied(kSettingsLiveWPEnabled) && g_springboard_rc_ready;
     NSString *name = displayName.length ? displayName : (url.lastPathComponent ?: @"视频");
     NSString *successMessage = liveReady
-        ? [NSString stringWithFormat:@"%@ 已导入，并将切换到正在运行的 [动态视频] 通道中。", name]
-        : [NSString stringWithFormat:@"%@ 已就绪。打开 [动态视频] 并点击运行以应用。", name];
+        ? [NSString stringWithFormat:@"%@ 已导入，并将切换到正在运行的 动态视频 通道中。", name]
+        : [NSString stringWithFormat:@"%@ 已就绪。打开 动态视频 并点击运行以应用。", name];
 
     dispatch_async(dispatch_get_main_queue(), ^{
         if (!ok) {
@@ -8607,9 +8607,9 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls
             successTitle = @"视频已选择";
             BOOL liveReady = settings_tweak_is_applied(kSettingsLiveWPEnabled) && g_springboard_rc_ready;
             successMessage = liveReady
-                ? [NSString stringWithFormat:@"%@ 已导入，并将切换到正在运行的 [动态视频] 通道中。",
+                ? [NSString stringWithFormat:@"%@ 已导入，并将切换到正在运行的 动态视频 通道中。",
                                              url.lastPathComponent ?: @"视频"]
-                : [NSString stringWithFormat:@"%@ 已就绪。打开 [动态视频] 并点击运行以应用。",
+                : [NSString stringWithFormat:@"%@ 已就绪。打开 动态视频 并点击运行以应用。",
                                              url.lastPathComponent ?: @"视频"];
         } else if ([mode isEqualToString:@"snowboardlite"]) {
             if (isDir) {
@@ -8629,12 +8629,12 @@ didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls
             }
             successTitle = @"SnowBoard 主题已导入";
             NSString *name = settings_snowboardlite_selected_theme_display_name();
-            successMessage = [NSString stringWithFormat:@"\"%@\" 已选中。打开 [图标主题] 并点击运行以应用。", name];
+            successMessage = [NSString stringWithFormat:@"\"%@\" 已选中。打开 图标主题 并点击运行以应用。", name];
         } else {
             ok = isDir ? [self importThemerFolderAtURL:url error:&err]
                        : [self importThemerPlistAtURL:url error:&err];
             NSString *name = settings_themer_selected_theme_display_name();
-            successMessage = [NSString stringWithFormat:@"\"%@\" 已选中。打开 [图标主题] 并点击运行以应用。", name];
+            successMessage = [NSString stringWithFormat:@"\"%@\" 已选中。打开 图标主题 并点击运行以应用。", name];
         }
         if (scoped) [url stopAccessingSecurityScopedResource];
 
