@@ -6971,7 +6971,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"自动运行 kexploit" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"沙盒逃逸 (escape_sbx_demo2)" },
         @{ @"key": kSettingsKeepAlive,          @"title": @"保持后台运行",
-           @"subtitle": @"供应用驱动的实时插件在最小化后保持运行所需，包括 StatBar 持续接收新的实时数据。" },
+           @"subtitle": @"供应用驱动的实时插件在最小化后保持运行所需，包括状态栏监测持续接收新的实时数据。" },
     ];
 }
 
@@ -7129,7 +7129,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"kind": @"nicebar-grid" },
         @{ @"kind": @"info",
            @"title": @"布局",
-           @"subtitle": @"顶部和底部行可单独移动。NiceBar Lite 运行时更改会实时更新。" },
+           @"subtitle": @"顶部和底部行可单独移动。状态栏定制运行时更改会实时更新。" },
         @{ @"kind": @"slider", @"key": kSettingsNiceBarLiteLayoutTopSideInset,
            @"title": @"顶部侧边距", @"min": @(-80), @"max": @80, @"step": @1, @"unit": @"pt", @"default": @0 },
         @{ @"kind": @"slider", @"key": kSettingsNiceBarLiteLayoutBottomSideInset,
@@ -7362,7 +7362,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     NSMutableArray<NSDictionary *> *rows = [NSMutableArray arrayWithArray:@[
         @{ @"kind": @"info",
            @"title": @"已选主题",
-           @"subtitle": hasSelection ? selected : @"未选择。请在运行图标主题引擎之前选择一个主题。" },
+           @"subtitle": hasSelection ? selected : @"未选择。请在运行图标主题之前选择一个主题。" },
 
         @{ @"kind": @"button",
            @"title": [selected isEqualToString:@"iOS 6 主题"]
@@ -7393,7 +7393,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     NSMutableArray<NSDictionary *> *rows = [NSMutableArray arrayWithArray:@[
         @{ @"kind": @"info",
            @"title": @"已选主题",
-           @"subtitle": hasSelection ? selected : @"未选择。请在运行 SnowBoard Lite 之前选择或导入一个主题。" },
+           @"subtitle": hasSelection ? selected : @"未选择。请在运行图标主题之前选择或导入一个主题。" },
         @{ @"kind": @"button",
            @"title": [selected isEqualToString:@"iOS 6 主题"] ? @"iOS 6 主题 ✓" : @"使用 iOS 6 主题",
            @"action": @"sbl-select-ios6" },
