@@ -115,7 +115,7 @@ static const NSInteger kSecFastLockXLite    = 24;
 #endif
 
         Package *sbc = [[Package alloc] initWithIdentifier:@"com.darksword.sbcustomizer"
-                                           name:@"主屏幕定制"
+                                           name:@"主屏幕布局定制"
                                shortDescription:@"自定义Dock栏图标数和主屏幕网格"
                                 longDescription:@"自定义Dock栏图标数量以及主屏幕图标的网格（列数和行数）。可选择隐藏图标标签。"
                                         version:version
@@ -246,9 +246,9 @@ static const NSInteger kSecFastLockXLite    = 24;
         locationSim.unstableWarning = @"Beta：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其它与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
 
         Package *snowboardLite = [[Package alloc] initWithIdentifier:@"com.darksword.snowboardlite"
-                                           name:@"主题图标"
-                               shortDescription:@"本地 SnowBoard 风格图标主题"
-                                longDescription:@"将 SnowBoard/IconBundles 主题导入本地库，并通过 Cyanide 的图标替换流水线应用所选主题。支持内置的 iOS 6 主题和本地文件夹导入。"
+                                           name:@"图标主题"
+                               shortDescription:@"自定义主屏幕应用图标"
+                                longDescription:@"自定义主屏幕应用图标，支持内置的 iOS 6 主题和本地文件夹以及压缩包导入。"
                                         version:version
                                          author:@"d1y"
                                        category:@"Beta"
@@ -257,7 +257,7 @@ static const NSInteger kSecFastLockXLite    = 24;
                                      enabledKey:kSettingsSnowBoardLiteEnabled
                                           isNew:YES];
         snowboardLite.settingsSection = kSecSnowBoardLite;
-        snowboardLite.unstableWarning = @"预览：在应用前请先导入或选择一个 SnowBoard Lite 主题。";
+        snowboardLite.unstableWarning = @"预览：在应用前请先导入或选择一个图标主题。";
 
         Package *liveWP = [[Package alloc] initWithIdentifier:@"com.darksword.livewp"
                                            name:@"动态壁纸"
@@ -305,10 +305,10 @@ static const NSInteger kSecFastLockXLite    = 24;
         gravityLite.settingsSection = kSecGravityLite;
         gravityLite.unstableWarning = @"Beta：可能会因主屏幕重新布局而重置，例如翻页、旋转屏幕、文件夹切换或注销。如果图标仍偏移未复原，请使用“恢复图标布局”。";
         gravityLite.knownIssues = @[
-            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 Gravity Lite。目前没有其它方法可以停止它。",
+            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 [重力效果]。目前没有其它方法可以停止它。",
             @"尚不支持触摸已偏移的图标。在此环境中转发触摸是一个重要的开发中功能。",
             @"安装过程非常缓慢。Cyanide 必须在物理效果开始前捕获每个可见的图标和小部件。",
-            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 Gravity。",
+            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 [重力效果]。",
         ];
 
         Package *appSwitcherGrid = [[Package alloc] initWithIdentifier:@"com.darksword.appswitchergrid"
