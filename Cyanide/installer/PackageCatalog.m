@@ -203,7 +203,7 @@ static const NSInteger kSecFastLockXLite    = 24;
         ipaDecryptor.unstableWarning = @"⚠️ 开发中 — 加密 IPA 下载功能为实验性。SINF/iTunesMetadata 修补、任务端口转储和 IPA 写入器阶段尚未完成。";
 
         Package *stageStrip = [[Package alloc] initWithIdentifier:@"com.darksword.stagestrip"
-                                           name:@"台前调度"
+                                           name:@"Dynamic Stage Lite"
                                shortDescription:@"悬浮应用窗口（iPad 风格）"
                                 longDescription:
             @"在主屏幕上以悬浮、可调整大小的窗口同时运行 App。\n\n"
@@ -305,10 +305,10 @@ static const NSInteger kSecFastLockXLite    = 24;
         gravityLite.settingsSection = kSecGravityLite;
         gravityLite.unstableWarning = @"Beta：可能会因主屏幕重新布局而重置，例如翻页、旋转屏幕、文件夹切换或注销。如果图标仍偏移未复原，请使用“恢复图标布局”。";
         gravityLite.knownIssues = @[
-            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 [重力效果]。目前没有其它方法可以停止它。",
+            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 重力效果。目前没有其它方法可以停止它。",
             @"尚不支持触摸已偏移的图标。在此环境中转发触摸是一个重要的开发中功能。",
             @"安装过程非常缓慢。Cyanide 必须在物理效果开始前捕获每个可见的图标和小部件。",
-            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 [重力效果]。",
+            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 重力效果。",
         ];
 
         Package *appSwitcherGrid = [[Package alloc] initWithIdentifier:@"com.darksword.appswitchergrid"
