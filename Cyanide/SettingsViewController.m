@@ -5871,7 +5871,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 cyanide_upload_log_milestone(@"sandbox-ext-patched");
             }
             if (runPowercuff) {
-                settings_progress(&step, total, "正在通过温控守护进程（thermalmonitord）应用 Powercuff");
+                settings_progress(&step, total, "正在通过温控守护进程（thermalmonitord）应用降频省电");
                 if (g_springboard_rc_ready || settings_any_registered_live_loop_running()) {
                     settings_request_all_live_loops_stop("Powercuff process switch");
                     settings_wait_live_loops_stopped_for_switch("Powercuff process switch");
@@ -5988,7 +5988,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runThemer) {
-                        settings_progress(&step, total, "正在应用图标主题引擎");
+                        settings_progress(&step, total, "正在应用图标主题");
                         bool ok = settings_apply_themer_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsThemerEnabled, ok);
                         printf("[SETTINGS] Themer result=%d\n", ok);
@@ -6002,7 +6002,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runSnowBoardLite) {
-                        settings_progress(&step, total, "正在应用 SnowBoard Lite 主题");
+                        settings_progress(&step, total, "正在应用图标主题");
                         bool ok = settings_apply_snowboardlite_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsSnowBoardLiteEnabled,
                                                     ok && [d boolForKey:kSettingsSnowBoardLiteEnabled]);
@@ -6017,7 +6017,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runGravityLite) {
-                        settings_progress(&step, total, "正在启动 Gravity Lite 图标物理效果");
+                        settings_progress(&step, total, "正在启动重力效果");
                         log_user("[GRAVITY] Preparing icon physics state...\n");
                         __sync_lock_test_and_set(&g_gravitylite_background_armed, 0);
                         settings_stop_gravity_motion();
@@ -6038,7 +6038,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                             log_user("[WARN] Gravity Lite did not start cleanly.\n");
                             cyanide_upload_log_milestone(@"gravity-lite-warning");
                             runHadBlockingFailure = YES;
-                            runCompletionMessage = @"Gravity Lite 未能正常启动。";
+                            runCompletionMessage = @"重力效果未能正常启动。";
                         }
                     } else if (!gravityLiteEnabled) {
                         __sync_lock_test_and_set(&g_gravitylite_background_armed, 0);
@@ -6047,7 +6047,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runStatBar) {
-                        settings_progress(&step, total, "正在启动 StatBar 叠加层与实时数据");
+                        settings_progress(&step, total, "正在启动状态栏监测");
                         bool ok = statbar_apply_in_session([d boolForKey:kSettingsStatBarCelsius],
                                                            [d boolForKey:kSettingsStatBarShowNet],
                                                            [d boolForKey:kSettingsStatBarShowCPU],
@@ -6062,7 +6062,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runNSBar) {
-                        settings_progress(&step, total, "正在启动 NSBar 网速叠加层");
+                        settings_progress(&step, total, "正在启动状态栏网速");
                         bool ok = nsbar_apply_in_session((NSBarPosition)[d integerForKey:kSettingsNSBarPosition]);
                         settings_mark_tweak_applied(kSettingsNSBarEnabled,
                                                     ok && [d boolForKey:kSettingsNSBarEnabled]);
@@ -6074,7 +6074,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runNiceBarLite) {
-                        settings_progress(&step, total, "正在启动 NiceBar Lite 标签");
+                        settings_progress(&step, total, "正在启动状态栏定制");
                         settings_nicebar_refresh_weather_if_needed(!settings_nicebar_has_resolved_weather(d), nil);
                         bool ok = settings_apply_nicebarlite_from_defaults_locked(d);
                         settings_mark_tweak_applied(kSettingsNiceBarLiteEnabled,
@@ -6087,7 +6087,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runRSSI) {
-                        settings_progress(&step, total, "正在启动 RSSI dBm 信号叠加层");
+                        settings_progress(&step, total, "正在启动信号显示");
                         bool ok = rssidisplay_apply_in_session([d boolForKey:kSettingsRSSIDisplayWifi],
                                                                [d boolForKey:kSettingsRSSIDisplayCell]);
                         settings_mark_tweak_applied(kSettingsRSSIDisplayEnabled,
@@ -6100,7 +6100,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runLiveWP) {
-                        settings_progress(&step, total, "正在启动 LiveWP 视频壁纸");
+                        settings_progress(&step, total, "正在启动动态壁纸");
                         bool ok = livewp_apply_in_session();
                         settings_mark_tweak_applied(kSettingsLiveWPEnabled,
                                                     ok && [d boolForKey:kSettingsLiveWPEnabled]);
@@ -6112,7 +6112,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runAxonLite) {
-                        settings_progress(&step, total, "正在启动 Axon Lite 通知中心");
+                        settings_progress(&step, total, "正在启动通知收纳");
                         bool ok = false;
                         bool deferred = false;
                         if (settings_axonlite_can_poll_springboard()) {
@@ -6148,7 +6148,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
 
                     if (runAppSwitcherGrid) {
-                        settings_progress(&step, total, "正在启用 App 切换器网格网格排布样式");
+                        settings_progress(&step, total, "正在启用 App 切换器样式");
                         bool ok = appswitchergrid_apply_in_session();
                         settings_mark_tweak_applied(kSettingsAppSwitcherGridEnabled,
                                                     ok && [d boolForKey:kSettingsAppSwitcherGridEnabled]);
@@ -6217,7 +6217,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             }
 
             if (runTypeBanner) {
-                settings_progress(&step, total, "正在启动 TypeBanner 守护进程轮询");
+                settings_progress(&step, total, "正在启动 TypeBanner");
                 settings_mark_tweak_applied(kSettingsTypeBannerEnabled, YES);
                 log_user("[OK] TypeBanner watching imagent for incoming typing indicators.\n");
                 cyanide_upload_log_milestone(@"typebanner-live-starting");
