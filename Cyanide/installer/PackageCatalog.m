@@ -146,7 +146,7 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"按应用把你通知中心里的消息分组显示，同时自动过滤掉重复的内容。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"bell.badge.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsAxonLiteEnabled
@@ -236,14 +236,14 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"定位模拟器可以伪装设备的 GPS 位置。需要先安装并设置好 Apple 地图作为宿主进程。选择一个目标位置即可开始模拟，点击“恢复真实位置”即可停止。仅支持固定点位模拟。部分 App 可能会无视模拟位置，也可能影响时区、天气等系统功能。请自行承担使用风险。"
                                         version:version
                                          author:@"zeroxjf, kolbicz, ezzuldinSt"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"location.fill"
                                            kind:PackageInstallKindDirectTool
                                      enabledKey:nil
                                           isNew:YES];
         locationSim.settingsSection = kSecLocationSim;
         locationSim.experimental = NO;
-        locationSim.unstableWarning = @"Beta：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其它与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
+        locationSim.unstableWarning = @"测试：需要已安装并设置好 Apple 地图。可能影响时区、日期/时间以及其它与位置相关的行为。某些应用和服务禁止或检测模拟位置。只有在您清楚自己在做什么的情况下才使用此功能。";
 
         Package *snowboardLite = [[Package alloc] initWithIdentifier:@"com.darksword.snowboardlite"
                                            name:@"图标主题"
@@ -251,7 +251,7 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"自定义主屏幕应用图标，支持内置的 iOS 6 主题和本地文件夹以及压缩包导入。"
                                         version:version
                                          author:@"d1y"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"square.stack.3d.up.fill"
                                           kind:PackageInstallKindToggle
                                      enabledKey:kSettingsSnowBoardLiteEnabled
@@ -265,7 +265,7 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"可选择 MP4、MOV 或 M4V 格式的视频，设为锁屏及主屏幕的动态壁纸。"
                                         version:version
                                          author:@"d1y"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"play.rectangle.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsLiveWPEnabled
@@ -297,18 +297,18 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"为主屏幕图标引入基于重力的动态物理行为：图标不再固定在网格上，而是像真实物体一样受重力影响，可随设备倾斜自然滑落、相互碰撞并产生弹跳效果。"
                                         version:version
                                          author:@"Julio Verne / zeroxjf"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"arrow.down.circle.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsGravityLiteEnabled
                                           isNew:YES];
         gravityLite.settingsSection = kSecGravityLite;
-        gravityLite.unstableWarning = @"Beta：可能会因主屏幕重新布局而重置，例如翻页、旋转屏幕、文件夹切换或注销。如果图标仍偏移未复原，请使用“恢复图标布局”。";
+        gravityLite.unstableWarning = @"测试：可能会因主屏幕重新布局而重置，例如翻页、旋转屏幕、文件夹切换或注销。如果图标仍偏移未复原，请使用“恢复图标布局”。";
         gravityLite.knownIssues = @[
-            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用 重力效果。目前没有其它方法可以停止它。",
+            @"要禁用此功能，请使用 App 切换器返回 Cyanide 并停用「重力效果」。目前没有其它方法可以停止它。",
             @"尚不支持触摸已偏移的图标。在此环境中转发触摸是一个重要的开发中功能。",
             @"安装过程非常缓慢。Cyanide 必须在物理效果开始前捕获每个可见的图标和小部件。",
-            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行 重力效果。",
+            @"翻页、打开文件夹或主屏幕重新布局可能会导致效果停止。请重新运行「重力效果」。",
         ];
 
         Package *appSwitcherGrid = [[Package alloc] initWithIdentifier:@"com.darksword.appswitchergrid"
@@ -317,13 +317,13 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"给 App 切换器添加网格排布样式。\n这不会写入系统文件。注销即恢复原版 App 切换器。如果你在隐藏主屏幕横条后注销，请重新运行。"
                                         version:version
                                          author:@"rooootdev"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"square.grid.2x2.fill"
                                            kind:PackageInstallKindToggle
                                      enabledKey:kSettingsAppSwitcherGridEnabled
                                           isNew:YES];
         appSwitcherGrid.settingsSection = kSecAppSwitcherGrid;
-        appSwitcherGrid.unstableWarning = @"Beta：注销即恢复原版，但不受支持的版本可能会导致 App 切换器显示异常或主屏幕崩溃。每次注销后请重新运行。";
+        appSwitcherGrid.unstableWarning = @"测试：注销即恢复原版，但不受支持的版本可能会导致 App 切换器显示异常或主屏幕崩溃。每次注销后请重新运行。";
 
 #if CYANIDE_PRIVATE_TWEAKS_AVAILABLE
         Package *fastLockXLite = [[Package alloc] initWithIdentifier:@"com.darksword.fastlockx-lite"
@@ -348,7 +348,7 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"修改保存在这台 iPhone 上的 watchOS 配对范围值，以支持更多的手表。\nApple Watch Ultra 3 目前无法在低于 26 的 iOS 版本上配对。\n应用后先注销或重启，再尝试配对。"
                                         version:version
                                          author:@"zeroxjf"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"applewatch.radiowaves.left.and.right"
                                            kind:PackageInstallKindNanoRegistry
                                      enabledKey:nil
@@ -362,13 +362,13 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"将 iOS 通话录音时强制播放的提示音替换为空音频，使录音开始与结束不再发出任何声音。\n启用此功能会自动备份原生音频，可随时恢复。\n请注意：通话录音提示音在某些地区可能属于法律合规要求，请仅在获得许可并了解适用法规的前提下使用。"
                                         version:version
                                          author:@"YangJiiii (@duongduong0908) / zeroxjf"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"speaker.slash.fill"
                                            kind:PackageInstallKindCallRecordingSound
                                      enabledKey:nil
                                           isNew:YES];
         callRecordingSound.experimental = NO;
-        callRecordingSound.unstableWarning = @"Beta：你所在地区可能法律要求保留提示音；你对自己的使用行为负责，应用此功能的风险由你自行承担。如果你希望 Cyanide 的备份被写回，请在移除 Cyanide 之前使用“恢复默认声音”。";
+        callRecordingSound.unstableWarning = @"测试：你所在地区可能法律要求保留提示音；你对自己的使用行为负责，应用此功能的风险由你自行承担。如果你希望 Cyanide 的备份被写回，请在移除 Cyanide 之前使用“恢复默认声音”。";
 
         Package *hideHomeBar = [[Package alloc] initWithIdentifier:@"com.darksword.hide-home-bar"
                                            name:@"主屏幕横条"
@@ -376,12 +376,12 @@ static const NSInteger kSecFastLockXLite    = 24;
                                 longDescription:@"隐藏主屏幕底部横条，释放全屏显示空间，减少日常使用中的视觉干扰。"
                                         version:version
                                          author:@"C4ndyF1sh / jailbreakdotparty / zeroxjf"
-                                       category:@"Beta"
+                                       category:@"测试"
                                      symbolName:@"line.3.horizontal"
                                            kind:PackageInstallKindHideHomeBar
                                      enabledKey:nil
                                           isNew:YES];
-        hideHomeBar.unstableWarning = @"Beta：请单独运行，隐藏后注销。要恢复主屏幕横条，请选择“恢复主屏幕横条”并注销。";
+        hideHomeBar.unstableWarning = @"测试：请单独运行，隐藏后注销。要恢复主屏幕横条，请选择“恢复主屏幕横条”并注销。";
 
         Package *otaBlock = [[Package alloc] initWithIdentifier:@"com.darksword.ota-block"
                                            name:@"OTA 更新"
@@ -514,7 +514,7 @@ static const NSInteger kSecFastLockXLite    = 24;
     NSArray<NSString *> *preferred = @[
         @"开发中",
         @"实验性",
-        @"Beta",
+        @"测试",
         @"状态栏",
         @"主屏幕布局",
         @"其它插件",

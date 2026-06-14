@@ -151,14 +151,14 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
         @{ @"icon":  @"wand.and.stars",
            @"color": UIColor.systemPurpleColor,
            @"title": @"更新内容",
-           @"body":  @"•  App 切换器样式新增网格风格选项\n• 动态壁纸现支持从文件应用和相册中选择视频\n• 位置模拟器现已作为公开 Beta 工具推出\n• 通话录音现已作为公开 Beta 包推出" },
+           @"body":  @"•  App 切换器样式新增网格风格选项\n• 动态壁纸现支持从文件应用和相册中选择视频\n• 位置模拟器现已作为公开测试工具推出\n• 通话录音现已作为公开测试插件推出" },
         @{ @"icon":  @"exclamationmark.triangle.fill",
            @"color": UIColor.systemOrangeColor,
            @"title": @"请勿强制退出 Cyanide",
            @"body":  @"从 App 切换器强制退出会立即终止实时插件 — 状态栏监测、通知收纳以及任何在会话中运行的内容都会在应用退出的瞬间停止。" },
         @{ @"icon":  @"hand.tap.fill",
            @"color": UIColor.systemTealColor,
-           @"title": @"新的 Beta 工具",
+           @"title": @"新的测试工具",
            @"body":  @"位置模拟器、App 切换器样式、动态壁纸以及图标主题。" },
     ];
 }
@@ -684,7 +684,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                         textColor:[UIColor systemRedColor]];
     }
     if ([pkg.category caseInsensitiveCompare:@"Beta"] == NSOrderedSame) {
-        return [self pillWithText:@"BETA"
+        return [self pillWithText:@"测试"
                        background:[[UIColor systemPurpleColor] colorWithAlphaComponent:0.18]
                         textColor:[UIColor systemPurpleColor]];
     }
