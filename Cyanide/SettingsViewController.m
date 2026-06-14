@@ -6868,7 +6868,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 
     NSString *level = [d stringForKey:kSettingsPowercuffLevel] ?: @"nominal";
     BOOL alreadyNominal = [level isEqualToString:@"nominal"];
-    NSString *message = @"「降频省电」现在默认为“标准”档位。\n\n轻度、中度、重度会刻意对 CPU 降频。这意味着可能出现卡顿或应用启动变慢，老机型尤为明显。卡顿说明「降频省电」正在生效，但这些档位日常用可能太慢，影响体验。\n\n日常使用请使用标准档位，仅在需要更强限制时再提高档位。";
+    NSString *message = @"「降频省电」现在默认为“标准”档位。\n\n轻度、中度、重度会刻意对 CPU 降频。这意味着可能出现卡顿或应用启动变慢，老机型尤为明显。卡顿说明「降频省电」正在生效，但这些档位日常用可能太慢，影响体验。\n\n日常使用请使用“标准”档位，仅在需要更强限制时再提高档位。";
 
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"使用说明"
                                                                    message:message
