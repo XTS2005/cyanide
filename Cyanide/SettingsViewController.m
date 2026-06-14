@@ -12057,7 +12057,7 @@ void cyanide_present_contact(UIViewController *host)
         } else if ([action isEqualToString:@"sbl-clear"]) {
             [self clearSnowBoardLiteTheme];
         } else if ([action isEqualToString:@"themer-guide"]) {
-        [self presentThemerFormatGuide];
+            [self presentThemerFormatGuide];
         }
         return;
     }
