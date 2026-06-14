@@ -604,7 +604,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
 {
     PackageQueueIntent intent = [[PackageQueue sharedQueue] intentForPackage:pkg];
     if (pkg.kind == PackageInstallKindDirectTool) {
-        return [self pillWithText:@"手动控制"
+        return [self pillWithText:@"手动"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
@@ -616,7 +616,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"手动控制"
+        return [self pillWithText:@"手动"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
@@ -628,7 +628,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"手动控制"
+        return [self pillWithText:@"手动"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
@@ -640,7 +640,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"手动控制"
+        return [self pillWithText:@"手动"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }
@@ -652,7 +652,7 @@ static NSString * const kGitHubIssuesURL        = @"https://github.com/zeroxjf/c
                            background:[color colorWithAlphaComponent:0.18]
                             textColor:color];
         }
-        return [self pillWithText:@"手动控制"
+        return [self pillWithText:@"手动"
                        background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.14]
                         textColor:UIColor.secondaryLabelColor];
     }

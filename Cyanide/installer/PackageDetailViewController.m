@@ -430,7 +430,7 @@ typedef NS_ENUM(NSInteger, PackageDetailSection) {
     // Status badge (optional)
     UIView *badge = nil;
     if ([self isDirectToolPackage]) {
-        badge = [self badgeWithText:@"手动控制"
+        badge = [self badgeWithText:@"手动"
                          background:[UIColor.secondaryLabelColor colorWithAlphaComponent:0.16]
                           textColor:UIColor.secondaryLabelColor];
     } else if ([self isManualPackage]) {
