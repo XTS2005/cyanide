@@ -1,10 +1,15 @@
 ## Project status
 
-This repository is a community-maintained fork of
-[`zeroxjf/cyanide`](https://github.com/zeroxjf/cyanide). The original authors
-and upstream projects remain credited below.
+This repository is a fork of
+[`zeroxjf/cyanide`](https://github.com/zeroxjf/cyanide), maintained by
+[Kolbicz](https://github.com/kolbicz). Maintenance is focused primarily on
+Kolbicz-based tweaks. No other changes are planned, and support is not provided
+by the maintainer of this repository for tweaks that are not maintained by
+Kolbicz.
 
-Cyanide is no longer actively maintained by `zeroxjf`.
+The original Cyanide project is no longer maintained by `zeroxjf`. Anyone may
+fork this repository and continue development in accordance with the license.
+The original authors and upstream projects remain credited below.
 
 Patreon integration has been removed, all installable Cyanide tweaks are free,
 and previously unreleased work-in-progress tweak code has been opened under
@@ -15,9 +20,8 @@ This was originally an AI vibe-coded project, so the codebase should be
 approachable for someone who wants to pick it up, clean it up, or continue
 experimenting.
 
-The old README is preserved below for historical context and build details, but
-parts of it may become stale now that this repository is no longer actively
-maintained.
+The old README is preserved below for historical context and build details.
+Some of its information may be outdated.
 
 <details>
 <summary>Archived project README</summary>
