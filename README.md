@@ -4,21 +4,11 @@ This repository is a fork of
 [`zeroxjf/cyanide`](https://github.com/zeroxjf/cyanide), maintained by
 [Kolbicz](https://github.com/kolbicz). Maintenance is focused primarily on
 Kolbicz-based tweaks. No other changes are planned, and support is not provided
-by the maintainer of this repository for tweaks that are not maintained by
-Kolbicz.
+for tweaks that are not maintained by Kolbicz.
 
 The original Cyanide project is no longer maintained by `zeroxjf`. Anyone may
 fork this repository and continue development in accordance with the license.
 The original authors and upstream projects remain credited below.
-
-Patreon integration has been removed, all installable Cyanide tweaks are free,
-and previously unreleased work-in-progress tweak code has been opened under
-AGPL-3.0. Anyone can fork it, study it, continue it, or reuse it under the
-license terms.
-
-This was originally an AI vibe-coded project, so the codebase should be
-approachable for someone who wants to pick it up, clean it up, or continue
-experimenting.
 
 The old README is preserved below for historical context and build details.
 Some of its information may be outdated.
