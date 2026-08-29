@@ -6886,7 +6886,10 @@ void settings_register_defaults(void)
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults registerDefaults:@{
-        kSettingsA18ExploitPath:     @0,
+        // pe_v1 confirmed working on device; pe_v2's OOB race panics repeatedly.
+        // This must be the default: reinstalling a sideloaded build wipes
+        // NSUserDefaults, so an opt-in silently reverts to the broken path.
+        kSettingsA18ExploitPath:     @1,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
