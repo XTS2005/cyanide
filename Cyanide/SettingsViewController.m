@@ -35,6 +35,7 @@
 #import "TaskRop/RemoteCall.h"
 #import "kexploit/kutils.h"
 #import "kexploit/persistence.h"
+#import "tweaks/remote_objc.h"
 #import "installer/CYIconBadge.h"
 #import "installer/InstallProgressViewController.h"
 #import "installer/Package.h"
@@ -845,6 +846,7 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 
 @end
 
+NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
 NSString * const kSettingsRunSandboxEscape   = @"RunSandboxEscape";
 NSString * const kSettingsRunPatchSandboxExt = @"RunPatchSandboxExt";
@@ -2780,6 +2782,7 @@ static BOOL settings_ensure_kexploit_recovery_only(void)
 
 static BOOL settings_ensure_springboard_remote_call_locked(void)
 {
+    r_settle_set_mode((int)[[NSUserDefaults standardUserDefaults] integerForKey:kSettingsRemoteSettleMode]);
     if (g_springboard_rc_ready) {
         printf("[SETTINGS] reusing SpringBoard RemoteCall session\n");
         return YES;
@@ -2969,9 +2972,19 @@ void settings_best_effort_termination_cleanup(const char *reason)
     log_user("[CLEANUP] App exiting (%s) — running last-chance teardown.\n", why);
     printf("[SETTINGS] best-effort termination cleanup requested: %s\n", why);
 
-    if (!settings_has_active_termination_live_tweak()) {
-        printf("[SETTINGS] termination cleanup skipped: no live tweaks active\n");
-        log_user("[CLEANUP] No live tweaks active — nothing to tear down.\n");
+    // A live KRW session must be torn down on exit even with no live tweaks.
+    // This guard used to check only for live tweaks, so the common workflow
+    // — run the chain, apply SpringBoard modifications, close the app —
+    // skipped cleanup entirely. That leaves the two leaked sockets' PCBs on the
+    // raw6 inpcb list with in6p_icmp6filt still pointing at the last kernel
+    // address touched (a SpringBoard thread struct, for SpringBoard work).
+    // icmp6_rip6_input() dereferences that pointer for every inbound ICMPv6
+    // packet, so once the thread dies the kernel reads freed memory: a
+    // use-after-free in the threads zone, hours or days later, with Cyanide
+    // long gone.
+    if (!settings_has_active_termination_live_tweak() && !g_kexploit_done) {
+        printf("[SETTINGS] termination cleanup skipped: no live tweaks and no KRW session\n");
+        log_user("[CLEANUP] No live tweaks and no KRW session — nothing to tear down.\n");
         return;
     }
 
@@ -2988,6 +3001,16 @@ void settings_best_effort_termination_cleanup(const char *reason)
     } @finally {
         __sync_lock_release(&g_settings_actions_running);
     }
+}
+
+// Last-ditch safety net for the kill paths that never reach the cleanup above:
+// jetsam, force-quit, or a crash. Parks the RW PCB's filter at an address that
+// stays mapped, leaving the session otherwise intact and re-armable.
+void settings_park_krw_filter_for_background(void)
+{
+    if (!g_kexploit_done) return;
+    bool parked = kexploit_krw_park_filter_safe();
+    printf("[SETTINGS] background KRW filter park: %d\n", parked);
 }
 
 void settings_destroy_springboard_remote_call_sync(void)
@@ -6846,6 +6869,7 @@ void settings_register_defaults(void)
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults registerDefaults:@{
+        kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
         kSettingsRunPatchSandboxExt: @NO,
@@ -8511,6 +8535,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 - (NSArray<NSDictionary *> *)launchRows
 {
     return @[
+        @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },
         @{ @"key": kSettingsKeepAlive,          @"title": @"Keep app alive in background",
@@ -11459,6 +11484,54 @@ void cyanide_present_contact(UIViewController *host)
         return cell;
     }
 
+    if ([kind isEqualToString:@"settlemode"]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                       reuseIdentifier:nil];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        UILabel *title = [UILabel new];
+        title.text = row[@"title"];
+        title.font = [UIFont systemFontOfSize:17.0];
+        title.translatesAutoresizingMaskIntoConstraints = NO;
+
+        UISegmentedControl *seg =
+            [[UISegmentedControl alloc] initWithItems:@[@"Compatible", @"Fast", @"Fastest"]];
+        seg.translatesAutoresizingMaskIntoConstraints = NO;
+        seg.selectedSegmentIndex = [d integerForKey:kSettingsRemoteSettleMode];
+        [seg addTarget:self
+                action:@selector(settleModeSegChanged:)
+      forControlEvents:UIControlEventValueChanged];
+
+        UILabel *note = [UILabel new];
+        note.numberOfLines = 0;
+        note.font = [UIFont systemFontOfSize:12.0];
+        note.textColor = UIColor.secondaryLabelColor;
+        note.text = @"Cyanide waits after each remote call so SpringBoard can settle. Compatible "
+                     "waits 50 ms, Fast 5 ms, Fastest only after calls that leave work running. "
+                     "Most of a tweak's apply time is this wait — Double Tap to Lock spends about "
+                     "13 waits per Home Screen page. Drop to Fast first; if tweaks still apply "
+                     "correctly, try Fastest. Go back to Compatible if anything misbehaves.";
+        note.translatesAutoresizingMaskIntoConstraints = NO;
+
+        [cell.contentView addSubview:title];
+        [cell.contentView addSubview:seg];
+        [cell.contentView addSubview:note];
+        UILayoutGuide *m = cell.contentView.layoutMarginsGuide;
+        [NSLayoutConstraint activateConstraints:@[
+            [title.leadingAnchor  constraintEqualToAnchor:m.leadingAnchor],
+            [title.trailingAnchor constraintEqualToAnchor:m.trailingAnchor],
+            [title.topAnchor      constraintEqualToAnchor:m.topAnchor],
+            [seg.leadingAnchor    constraintEqualToAnchor:m.leadingAnchor],
+            [seg.trailingAnchor   constraintEqualToAnchor:m.trailingAnchor],
+            [seg.topAnchor        constraintEqualToAnchor:title.bottomAnchor constant:8],
+            [note.leadingAnchor   constraintEqualToAnchor:m.leadingAnchor],
+            [note.trailingAnchor  constraintEqualToAnchor:m.trailingAnchor],
+            [note.topAnchor       constraintEqualToAnchor:seg.bottomAnchor constant:8],
+            [note.bottomAnchor    constraintEqualToAnchor:m.bottomAnchor],
+        ]];
+        return cell;
+    }
+
     if ([kind isEqualToString:@"segmented"]) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"segmented" forIndexPath:dequeuePath];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -12740,6 +12813,17 @@ void cyanide_present_contact(UIViewController *host)
             cell.textLabel.text = combined;
         }
     }
+}
+
+- (void)settleModeSegChanged:(UISegmentedControl *)sender
+{
+    NSInteger mode = sender.selectedSegmentIndex;
+    [[NSUserDefaults standardUserDefaults] setInteger:mode forKey:kSettingsRemoteSettleMode];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    r_settle_set_mode((int)mode);
+    log_user("[TWEAKS] Apply speed set to %s. Watch the log for \"[R_OBJC] ... ms slept\" to see "
+             "the difference on the next apply.\n",
+             mode == 0 ? "Compatible" : mode == 1 ? "Fast" : "Fastest");
 }
 
 - (void)powercuffSegChanged:(UISegmentedControl *)sender

@@ -5,6 +5,9 @@
 
 #import <UIKit/UIKit.h>
 
+void settings_park_krw_filter_for_background(void);
+
+extern NSString * const kSettingsRemoteSettleMode;
 extern NSString * const kSettingsAutoRunKexploit;
 extern NSString * const kSettingsRunSandboxEscape;
 extern NSString * const kSettingsRunPatchSandboxExt;
