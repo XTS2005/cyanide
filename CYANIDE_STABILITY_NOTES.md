@@ -390,3 +390,51 @@ gone — `[KRW] No cached state — running fresh exploit chain.`
 **Process note:** none of this session's work was committed, so no state was ever restorable and
 every rollback had to be reconstructed by hand. Commit each verified-good state (locally) before
 making further changes.
+
+
+## RESOLVED: the A18 aperture panics — use pe_v1, not pe_v2
+
+**Confirmed on device (iPhone 16 Pro Max, iOS 18.5): the pe_v1 A18 path works, and works well.**
+
+Nine "Unexpected fault in kernel physical aperture" panics were logged between 2026-08-28 21:22 and
+2026-08-29 13:39, every one at static PC `0xfffffff0080f4a1c` with `x2 = 0xf00` (`OOB_SIZE`),
+`far == x1`, and an ESR decoding to a level-3 translation fault. The earliest predates every change
+made in this session, so it was never a regression.
+
+Cause: the OOB read deliberately reads the physical page *following* the search mapping's first
+page. When that page is not ours and not valid DRAM, the aperture access faults. It is a dice roll
+on every read, and `pe_v2` performs thousands per run.
+
+`pe_v1` already contained a complete A18 path that had never executed:
+
+* `isA18Device` was declared at file scope and **never assigned true**
+* `kexploit_opa334()` routed A18 devices to `pe_v2()` unconditionally
+
+That path stages **one 3 GB wired mapping behind a single IOSurface**
+(`kexploit_opa334.m:1427-1440`) plus A18-specific search geometry — the same approach ClearSword
+carries as commented-out scaffolding.
+
+| | pe_v2 | pe_v1 A18 path |
+| --- | --- | --- |
+| IOSurfaces requested | 131,072 | **1** |
+| Per-process ceiling | 16,384 (so ~87% fail) | not approached |
+| Wasted syscalls | ~115,000/run | none |
+| Physical coverage | 2 GB | **3 GB** |
+
+More owned physical memory means the adjacent page is far more often ours and valid, which is the
+lever that actually governs the panic rate.
+
+**Why the A18 code was rough in the first place:** Dopamine cannot support A18 at all, because there
+is no SPTM bypass for it — kernel R/W alone gets a jailbreak nowhere on a device with SPTM, TXM and
+ExclaveKit (all three visible in the panic logs, `codeSigningMonitor: 2`). So `pe_v2` is a stub
+upstream not because it was hard, but because it would be pointless. Every A18 path in Cyanide is
+bespoke and was never battle-tested — consistent with what was found: an abort built on a wrong
+premise, `isA18Device` never wired up, a probe cap that truncated staging, and orphaned constants.
+
+Cyanide itself needs no SPTM bypass: it takes kernel R/W and then drives SpringBoard through
+RemoteCall thread hijacking and ObjC message sends — no page-table edits, no code injection.
+
+### Selecting it
+
+`Settings -> Launch -> A18 exploit path`, backed by `kSettingsA18ExploitPath`. Only takes effect on
+a fresh chain run; a parked/recovered session skips the exploit entirely.
