@@ -35,6 +35,7 @@
 #import "TaskRop/RemoteCall.h"
 #import "kexploit/kutils.h"
 #import "kexploit/persistence.h"
+#import "kexploit/machine_info.h"
 #import "tweaks/remote_objc.h"
 #import "installer/CYIconBadge.h"
 #import "installer/InstallProgressViewController.h"
@@ -846,6 +847,7 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 
 @end
 
+NSString * const kSettingsA18ExploitPath   = @"A18ExploitPath";
 NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
 NSString * const kSettingsRunSandboxEscape   = @"RunSandboxEscape";
@@ -2740,6 +2742,21 @@ static BOOL settings_ensure_kexploit(void)
     g_kexploit_done = YES;
     settings_notify_remote_call_state_changed();
     return YES;
+}
+
+static BOOL settings_device_is_a18_above(void)
+{
+    static BOOL result = NO;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        uint32_t cpuFamily = 0;
+        size_t len = sizeof(cpuFamily);
+        if (sysctlbyname("hw.cpufamily", &cpuFamily, &len, NULL, 0) != 0) return;
+        result = (cpuFamily == CPUFAMILY_ARM_TUPAI ||
+                  cpuFamily == CPUFAMILY_ARM_TAHITI ||
+                  cpuFamily == CPUFAMILY_ARM_DONAN);
+    });
+    return result;
 }
 
 static BOOL settings_nano_load_override_enabled(void)
@@ -6869,6 +6886,7 @@ void settings_register_defaults(void)
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults registerDefaults:@{
+        kSettingsA18ExploitPath:     @0,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
@@ -8535,6 +8553,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 - (NSArray<NSDictionary *> *)launchRows
 {
     return @[
+        @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"title": @"A18 exploit path" },
         @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },
@@ -11484,6 +11503,56 @@ void cyanide_present_contact(UIViewController *host)
         return cell;
     }
 
+    if ([kind isEqualToString:@"a18path"]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                       reuseIdentifier:nil];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        UILabel *title = [UILabel new];
+        title.text = row[@"title"];
+        title.font = [UIFont systemFontOfSize:17.0];
+        title.translatesAutoresizingMaskIntoConstraints = NO;
+
+        UISegmentedControl *seg =
+            [[UISegmentedControl alloc] initWithItems:@[@"pe_v2 (default)", @"pe_v1 (experimental)"]];
+        seg.translatesAutoresizingMaskIntoConstraints = NO;
+        seg.selectedSegmentIndex = [d integerForKey:kSettingsA18ExploitPath];
+        seg.enabled = settings_device_is_a18_above();
+        [seg addTarget:self action:@selector(a18PathSegChanged:)
+      forControlEvents:UIControlEventValueChanged];
+
+        UILabel *note = [UILabel new];
+        note.numberOfLines = 0;
+        note.font = [UIFont systemFontOfSize:12.0];
+        note.textColor = UIColor.secondaryLabelColor;
+        note.text = settings_device_is_a18_above()
+            ? @"A18/M4 only. pe_v2 stages 2 GB as 131,072 separate IOSurfaces, but iOS caps a "
+               "process at 16,384 — so most fail and the run can fault in the kernel physical "
+               "aperture. pe_v1 has an A18 path that stages 3 GB behind a single IOSurface: more "
+               "coverage, no wasted work. It has never been tested, so it is opt-in. If a run "
+               "panics or fails, switch back to pe_v2."
+            : @"A18/M4 devices only. This device uses pe_v1 already.";
+        note.translatesAutoresizingMaskIntoConstraints = NO;
+
+        [cell.contentView addSubview:title];
+        [cell.contentView addSubview:seg];
+        [cell.contentView addSubview:note];
+        UILayoutGuide *m = cell.contentView.layoutMarginsGuide;
+        [NSLayoutConstraint activateConstraints:@[
+            [title.leadingAnchor  constraintEqualToAnchor:m.leadingAnchor],
+            [title.trailingAnchor constraintEqualToAnchor:m.trailingAnchor],
+            [title.topAnchor      constraintEqualToAnchor:m.topAnchor],
+            [seg.leadingAnchor    constraintEqualToAnchor:m.leadingAnchor],
+            [seg.trailingAnchor   constraintEqualToAnchor:m.trailingAnchor],
+            [seg.topAnchor        constraintEqualToAnchor:title.bottomAnchor constant:8],
+            [note.leadingAnchor   constraintEqualToAnchor:m.leadingAnchor],
+            [note.trailingAnchor  constraintEqualToAnchor:m.trailingAnchor],
+            [note.topAnchor       constraintEqualToAnchor:seg.bottomAnchor constant:8],
+            [note.bottomAnchor    constraintEqualToAnchor:m.bottomAnchor],
+        ]];
+        return cell;
+    }
+
     if ([kind isEqualToString:@"settlemode"]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                        reuseIdentifier:nil];
@@ -12813,6 +12882,16 @@ void cyanide_present_contact(UIViewController *host)
             cell.textLabel.text = combined;
         }
     }
+}
+
+- (void)a18PathSegChanged:(UISegmentedControl *)sender
+{
+    NSInteger path = sender.selectedSegmentIndex;
+    [[NSUserDefaults standardUserDefaults] setInteger:path forKey:kSettingsA18ExploitPath];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    log_user("[KRW] A18 exploit path set to %s. Takes effect on the next fresh chain run "
+             "(a parked/recovered session skips the exploit entirely).\n",
+             path == 1 ? "pe_v1 (experimental)" : "pe_v2 (default)");
 }
 
 - (void)settleModeSegChanged:(UISegmentedControl *)sender
