@@ -66,3 +66,9 @@ fastlane/test_output
 /kernels
 Cyanide/resident/output/*.dylib
 Cyanide/resident/output/*.thin
+
+# Build output
+build/
+
+# Device panic logs (personal; keep local)
+panic-full-*.ips
