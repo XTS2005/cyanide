@@ -27,9 +27,9 @@ A-series through A18 is handled by the same code.
 Confirmed working on iPhone 16 Pro Max (iOS 18.5), iPhone 15 Pro Max
 (iOS 17.3.1) and M-series iPad.
 
-> **Note:** Cyanide only enforces the iOS version. An A19/M5 device running a
-> version in range will pass that check and then fail to get kernel read/write —
-> the exclusion is a hardware limit, not something the app can detect up front.
+> **Note:** iPhone 17 and newer are refused up front by model identifier. M5
+> iPads are not yet detected, so an M5 iPad on a supported iOS version will pass
+> the check and then fail to get kernel read/write.
 
 ## Project status
 

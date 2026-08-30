@@ -6,6 +6,7 @@
 #import "SettingsViewController.h"
 #import "VPhoneDebug.h"
 #import "kexploit/kexploit_opa334.h"
+#import "kexploit/offsets.h"
 #import "tweaks/sbcustomizer.h"
 #import "tweaks/powercuff.h"
 #import "tweaks/statbar.h"
@@ -2550,6 +2551,11 @@ BOOL settings_device_supported(void)
     return YES;
 #endif
 
+    // iPhone 17 and newer (A19 / A19 Pro): Memory Integrity Enforcement blocks
+    // the exploit, so refuse up front rather than failing later with no
+    // explanation. M5 iPads are equally unsupported but are not identified here.
+    if (is_unsupported_new_iphone()) return NO;
+
     BOOL ios17to18 =
         settings_compare_system_version(@"17.0") != NSOrderedAscending &&
         settings_compare_system_version(@"18.7.1") != NSOrderedDescending;
@@ -2567,6 +2573,10 @@ static NSString *settings_unsupported_message(void)
 #if CYANIDE_VPHONE_DEBUG
     return [NSString stringWithFormat:@"VPhone debug build is bypassing Cyanide's iOS version gate on iOS %@.", version];
 #endif
+    if (is_unsupported_new_iphone()) {
+        return @"Not supported on iPhone 17 or newer: Memory Integrity Enforcement "
+                "blocks the kernel exploit this relies on.";
+    }
     return [NSString stringWithFormat:@"Not supported on iOS %@. Supported: iOS/iPadOS 17.0-18.7.1 or 26.0-26.0.1.", version];
 }
 
