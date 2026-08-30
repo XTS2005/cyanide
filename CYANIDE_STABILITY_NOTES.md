@@ -438,3 +438,77 @@ RemoteCall thread hijacking and ObjC message sends — no page-table edits, no c
 
 `Settings -> Launch -> A18 exploit path`, backed by `kSettingsA18ExploitPath`. Only takes effect on
 a fresh chain run; a parked/recovered session skips the exploit entirely.
+
+## Provenance of the A18 paths, and why pe_v1 works
+
+Traced through every project that shares this exploit.
+
+| | A18 routes to | `isA18Device` set? | `sleep(8)` | On repeated failure |
+| --- | --- | --- | --- | --- |
+| Dopamine DarkSword | `pe_v2()` — a `// TODO: Implement` **stub** | never | yes | n/a |
+| darksword-kexploit-fun | `pe_v2()` | never | **commented out** | loops |
+| Cyanide upstream (0xjohnnydev) | `pe_v2()` | never | yes | **gives up** (~100 lines of bail-outs) |
+| Lara | `pe_a18()` | yes, but `pe_a18` never reads it | yes | loops forever, `sleep(20)` between rounds |
+| **this fork** | **`pe_v1()`** | **yes** | skipped on pe_v1 | bounded |
+
+The technique in `pe_v2` / `pe_a18` is identical everywhere: per-page `surface_mlock`, a fixed
+`MAX_MLOCK 4096` table that silently drops the rest, unchecked `IOSurfaceCreate`, 32 MB search
+mappings. The only real difference between the projects is **how long they keep retrying** — which
+is a plausible explanation for anecdotal "better success rate" reports, since each retry is another
+dice roll rather than a better one.
+
+Cyanide upstream was archived 2026-08-27 (AGPL-3.0) and carries the same termination-cleanup guard
+bug, so any upstream user applying SpringBoard tweaks without live tweaks has the same latent
+use-after-free.
+
+### Why a separate A18 path exists at all
+
+`pe_v1`'s ordinary path is probabilistic: spray ~22,500 sockets and scan a 1 GB search space hoping
+an `inpcb` page lands *physically adjacent* to the mapping. That works when physical memory is
+fairly full. On an 8 GB device there is too much free physical memory, the spray scatters, and
+adjacency collapses — hence 65,528 OOB reads per pass just to brute-force a bad hit rate.
+
+Two different answers to that, both A18-only:
+
+* **`pe_v1`'s A18 path — shape the memory.** Each pass pins and touches a 3 GB mapping, then
+  releases it, deliberately consuming most of RAM so the remaining free pool is small and dense.
+  That forces search mappings and sprayed PCBs back into physical proximity, which is why the A18
+  search geometry shrinks to 4 MB (16 × 256 KB) — **240 OOB reads per pass**.
+* **`pe_v2` / `pe_a18` — target instead.** Stage 2 GB of marker-tagged pages, find which one is
+  physically adjacent, free exactly that page, spray a PCB into it. ~2047 reads per mapping.
+
+Each OOB read is a chance to hit an SPTM/exclave carve-out and panic, so the read count is what
+governs the panic rate. That is why `pe_v1` is the better path here, not elegance.
+
+*(This reading is inferred from what the code does — none of it is documented or commented.)*
+
+### A bug in Dopamine that kexploit-fun fixed
+
+The memory-shaping loop differs between upstreams:
+
+```c
+// Dopamine
+*(uint64_t *)(wiredMapping + s + PAGE_SIZE) = 0;   //  s + PAGE_SIZE
+// kexploit-fun and everything downstream
+*(uint64_t *)(wiredMapping + s * PAGE_SIZE) = 0;   //  s * PAGE_SIZE
+```
+
+Same loop count, different target. Dopamine's touches bytes 16384..212991 — **12 pages, 0.2 MiB**
+— instead of 196,608 pages / 3.0 GiB. Its shaping is a no-op, so `pe_v1`'s A18 path would not work
+on Dopamine's code at all. Nobody would have noticed, because Dopamine cannot use A18 anyway (no
+SPTM bypass). We inherit the fixed version via kexploit-fun.
+
+## Reboot
+
+Cyanide cannot reboot directly: `reboot(2)` needs uid 0, and `ucred` is in the SPTM-protected
+read-only allocator behind `proc_ro`. A developer certificate does not help — reboot needs
+`com.apple.frontboard.*` class entitlements, which AMFI validates against the provisioning profile
+and Apple will not issue for a normal account.
+
+* **With KRW:** the nav-bar Reboot button asks SpringBoard, which does hold those entitlements, so
+  the restart goes through the OS's normal shutdown path. Every selector is feature-detected;
+  `device_reboot_probe()` logs what this iOS version actually exposes.
+* **Without KRW:** falls back to running a user-created Shortcut named `Cyanide Reboot`
+  (Shortcuts has a Restart action). No privileges required.
+* **At a Mac:** `xcrun devicectl device reboot`, or `idevicediagnostics restart`. Simplest option
+  while iterating.
