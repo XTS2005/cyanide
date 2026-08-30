@@ -173,28 +173,31 @@ struct VMShmem vm_create_shmem_with_object(struct VMObject *object)
         return shmem;
     }
     
-    uint64_t size = kread64(object->address + off_vm_object_vo_un1_vou_size);
-    size = mach_vm_round_page(size);
-    uint64_t roundedSize = mach_vm_round_page(size);
+    uint64_t objectSize = mach_vm_round_page(
+        kread64(object->address + off_vm_object_vo_un1_vou_size));
+
+    // The local region is scaffolding, not a copy. All that is ever mapped is a
+    // single page, at object->entryOffset (see the mach_vm_map below) -- the
+    // allocation only has to be long enough for the named entry's range to
+    // contain that page. Sizing it to the whole remote object made mapping a
+    // page of the dyld shared cache ask for an 8 GB local allocation, which
+    // cannot be satisfied; that is why the launchd persistence anchor failed
+    // every time on iOS 17 while SpringBoard, whose objects are small, worked.
+    uint64_t roundedSize = mach_vm_round_page(object->entryOffset + PAGE_SIZE);
+    if (objectSize && roundedSize > objectSize) roundedSize = objectSize;
  
     mach_vm_address_t localAddr = 0;
     kern_return_t ret = mach_vm_allocate(mach_task_self_, &localAddr, roundedSize, VM_FLAGS_ANYWHERE);
     if (ret != KERN_SUCCESS) {
-        // The mirror is allocated at the size of the WHOLE remote VM object,
-        // not the page being mapped. A page inside a very large object -- the
-        // dyld shared cache is the obvious candidate -- therefore asks for a
-        // local allocation of that entire object, which cannot be satisfied.
-        // Log the size so this stops being a guess: the launchd persistence
-        // anchor fails here on every run, and the failing page (0xcd8008000)
-        // is identical across runs and across devices, which is what a shared
-        // mapping looks like.
+        // Should now be rare: the allocation is sized to the mapped page, not
+        // the whole object. Keep the detail in case it ever fails again.
         printf("[%s:%d] mach_vm_allocate failed: %s (vmAddr=%#llx object=%#llx "
-               "size=%#llx = %llu MB, objectOffset=%#llx entryOffset=%#llx)\n",
+               "alloc=%#llx (object=%#llx) objectOffset=%#llx entryOffset=%#llx)\n",
                __FUNCTION__, __LINE__, mach_error_string(ret),
                (unsigned long long)object->vmAddress,
                (unsigned long long)object->address,
                (unsigned long long)roundedSize,
-               (unsigned long long)(roundedSize >> 20),
+               (unsigned long long)objectSize,
                (unsigned long long)object->objectOffset,
                (unsigned long long)object->entryOffset);
         return shmem;
