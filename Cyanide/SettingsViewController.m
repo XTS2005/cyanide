@@ -11570,10 +11570,10 @@ void cyanide_present_contact(UIViewController *host)
         title.translatesAutoresizingMaskIntoConstraints = NO;
 
         UISegmentedControl *seg =
-            [[UISegmentedControl alloc] initWithItems:@[@"2 GB", @"3 GB", @"4 GB"]];
+            [[UISegmentedControl alloc] initWithItems:@[@"2 GB", @"3 GB"]];
         seg.translatesAutoresizingMaskIntoConstraints = NO;
         NSInteger mb = [d integerForKey:kSettingsA18ShapingMB];
-        seg.selectedSegmentIndex = (mb <= 2048) ? 0 : (mb >= 4096 ? 2 : 1);
+        seg.selectedSegmentIndex = (mb <= 2048) ? 0 : 1;
         seg.enabled = settings_device_is_a18_above();
         [seg addTarget:self action:@selector(a18ShapingSegChanged:)
       forControlEvents:UIControlEventValueChanged];
@@ -11585,9 +11585,10 @@ void cyanide_present_contact(UIViewController *host)
         note.text = settings_device_is_a18_above()
             ? @"A18/M4 only, pe_v1 path. Before racing, Cyanide fills this much memory so the "
                "physical page next to its search window is more likely to be its own. That is the "
-               "only thing that affects how often a run ends in a kernel panic. More is better "
-               "odds, but it can fail to allocate and puts other apps under pressure — it falls "
-               "back to a smaller size automatically. 3 GB is the tested default."
+               "only thing that affects how often a run ends in a kernel panic. 3 GB is the tested "
+               "default and the practical ceiling — more than that trips the per-process memory "
+               "limit and the app gets killed. 2 GB is gentler on other apps but gives weaker "
+               "odds. It falls back to a smaller size automatically if allocation fails."
             : @"A18/M4 devices only.";
         note.translatesAutoresizingMaskIntoConstraints = NO;
 
@@ -12943,9 +12944,13 @@ void cyanide_present_contact(UIViewController *host)
 
 - (void)a18ShapingSegChanged:(UISegmentedControl *)sender
 {
-    static const NSInteger mbForIndex[] = { 2048, 3072, 4096 };
+    // 4 GB was offered and removed: when the allocation succeeds the touch loop
+    // trips the per-process memory limit and jetsam kills Cyanide outright
+    // (JetsamEvent-2026-08-30-145526, reason "per-process-limit"); when it fails
+    // the ladder falls back to 3 GB anyway. It is never the size actually used.
+    static const NSInteger mbForIndex[] = { 2048, 3072 };
     NSInteger idx = sender.selectedSegmentIndex;
-    if (idx < 0 || idx > 2) return;
+    if (idx < 0 || idx > 1) return;
     [[NSUserDefaults standardUserDefaults] setInteger:mbForIndex[idx] forKey:kSettingsA18ShapingMB];
     [[NSUserDefaults standardUserDefaults] synchronize];
     log_user("[KRW] A18 memory shaping set to %ld MB. Takes effect on the next fresh chain run.\n",
