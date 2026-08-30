@@ -59,14 +59,9 @@ extern NSString * const kSettingsNSBarPosition;
 
 extern NSString * const kSettingsNiceBarLiteEnabled;
 
-extern NSString * const kSettingsRSSIDisplayEnabled;
-extern NSString * const kSettingsRSSIDisplayWifi;
-extern NSString * const kSettingsRSSIDisplayCell;
 
 extern NSString * const kSettingsAxonLiteEnabled;
 
-extern NSString * const kSettingsTypeBannerEnabled;
-extern NSString * const kSettingsNotificationIslandEnabled;
 extern NSString * const kSettingsAppSwitcherGridEnabled;
 extern NSString * const kSettingsFastLockXLiteEnabled;
 

@@ -470,7 +470,7 @@ static NSString * const kFooterID      = @"DocsFooter";
         @{ @"title": @"How tweaks work",
            @"symbol": @"book.closed.fill",
            @"tint": UIColor.systemPurpleColor,
-           @"footer": @"Read sbcustomizer.m, statbar.m, rssidisplay.m, and axonlite.m in "
+           @"footer": @"Read sbcustomizer.m, statbar.m, and axonlite.m in "
                       @"Cyanide/tweaks/ for shipped patterns at increasing complexity.",
            @"rows": @[
                @{ @"kind": @"prose",
@@ -544,7 +544,7 @@ static NSString * const kFooterID      = @"DocsFooter";
            @"tint": UIColor.systemPinkColor,
            @"footer": @"Shipped templates: sbcustomizer (dock layout), darksword_tweaks "
                       @"(SpringBoard state toggles), powercuff (thermalmonitord one-shot), "
-                      @"statbar (overlay window), rssidisplay (per-icon overlays), "
+                      @"statbar (overlay window), "
                       @"axonlite (cached NC state).",
            @"rows": @[
                @{ @"kind": @"prose",

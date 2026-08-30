@@ -975,14 +975,9 @@ static NSString * const kSettingsNiceBarLiteLayoutTopY = @"NiceBarLiteLayoutTopY
 static NSString * const kSettingsNiceBarLiteLayoutBottomY = @"NiceBarLiteLayoutBottomY";
 static NSString * const kSettingsNiceBarLiteLayoutCenterX = @"NiceBarLiteLayoutCenterX";
 
-NSString * const kSettingsRSSIDisplayEnabled = @"RSSIDisplayEnabled";
-NSString * const kSettingsRSSIDisplayWifi    = @"RSSIDisplayWifi";
-NSString * const kSettingsRSSIDisplayCell    = @"RSSIDisplayCell";
 
 NSString * const kSettingsAxonLiteEnabled = @"AxonLiteEnabled";
 
-NSString * const kSettingsTypeBannerEnabled = @"TypeBannerEnabled";
-NSString * const kSettingsNotificationIslandEnabled = @"NotificationIslandEnabled";
 NSString * const kSettingsAppSwitcherGridEnabled = @"AppSwitcherGridEnabled";
 NSString * const kSettingsFastLockXLiteEnabled = @"FastLockXLiteEnabled";
 static NSString * const kSettingsFastLockXLiteBlockMusic = @"FastLockXLiteBlockMusic";
@@ -1013,14 +1008,6 @@ NSString * const kSettingsLocationSimHorizontalAccuracy = @"LocationSimHorizonta
 NSString * const kSettingsLocationSimHostProcess = @"LocationSimHostProcess";
 static NSString * const kSettingsLocationSimStarted = @"LocationSimStarted";
 
-static NSString * const kSettingsIPADecryptorTargetBundleID = @"IPADecryptorTargetBundleID";
-static NSString * const kSettingsIPADecryptorAppStoreInput = @"IPADecryptorAppStoreInput";
-static NSString * const kSettingsIPADecryptorAppStoreID = @"IPADecryptorAppStoreID";
-static NSString * const kSettingsIPADecryptorAppStoreName = @"IPADecryptorAppStoreName";
-static NSString * const kSettingsIPADecryptorAppStoreVersion = @"IPADecryptorAppStoreVersion";
-static NSString * const kSettingsIPADecryptorAppStoreURL = @"IPADecryptorAppStoreURL";
-static NSString * const kSettingsIPADecryptorDownloadedIPAPath = @"IPADecryptorDownloadedIPAPath";
-static NSString * const kSettingsIPADecryptorDownloadStatus = @"IPADecryptorDownloadStatus";
 
 NSString * const kSettingsThemerEnabled = @"ThemerEnabled";
 NSString * const kSettingsThemerThemeID = @"ThemerThemeID";
@@ -1078,14 +1065,8 @@ static volatile int g_nsbar_live_running = 0;
 static volatile int g_nsbar_live_stop_requested = 0;
 static volatile int g_nicebarlite_live_running = 0;
 static volatile int g_nicebarlite_live_stop_requested = 0;
-static volatile int g_rssi_live_running = 0;
-static volatile int g_rssi_live_stop_requested = 0;
 static volatile int g_axonlite_live_running = 0;
 static volatile int g_axonlite_live_stop_requested = 0;
-static volatile int g_typebanner_live_running = 0;
-static volatile int g_typebanner_live_stop_requested = 0;
-static volatile int g_notificationisland_live_running = 0;
-static volatile int g_notificationisland_live_stop_requested = 0;
 static volatile int g_gravitylite_background_armed = 0;
 static volatile int g_gravitylite_start_worker_running = 0;
 static volatile int g_gravity_motion_stop_requested = 1;
@@ -1196,10 +1177,7 @@ typedef struct {
 static void settings_request_statbar_stop(void) { g_statbar_live_stop_requested = 1; }
 static void settings_request_nsbar_stop(void) { g_nsbar_live_stop_requested = 1; }
 static void settings_request_nicebarlite_stop(void) { g_nicebarlite_live_stop_requested = 1; }
-static void settings_request_rssi_stop(void) { g_rssi_live_stop_requested = 1; }
 static void settings_request_axonlite_stop(void) { g_axonlite_live_stop_requested = 1; }
-static void settings_request_typebanner_stop(void) { g_typebanner_live_stop_requested = 1; }
-static void settings_request_notificationisland_stop(void) { g_notificationisland_live_stop_requested = 1; }
 static void settings_request_themer_stop(void) { g_themer_live_stop_requested = 1; }
 static void settings_request_gravitylite_stop(void)
 {
@@ -1212,10 +1190,7 @@ static void settings_request_livewp_stop(void) { g_livewp_live_stop_requested = 
 static BOOL settings_statbar_running(void) { return g_statbar_live_running != 0; }
 static BOOL settings_nsbar_running(void) { return g_nsbar_live_running != 0; }
 static BOOL settings_nicebarlite_running(void) { return g_nicebarlite_live_running != 0; }
-static BOOL settings_rssi_running(void) { return g_rssi_live_running != 0; }
 static BOOL settings_axonlite_running(void) { return g_axonlite_live_running != 0; }
-static BOOL settings_typebanner_running(void) { return g_typebanner_live_running != 0; }
-static BOOL settings_notificationisland_running(void) { return g_notificationisland_live_running != 0; }
 static BOOL settings_themer_running(void) { return g_themer_live_running != 0 || g_themer_repair_running != 0; }
 static BOOL settings_livewp_running(void) { return g_livewp_live_running != 0; }
 
@@ -1237,31 +1212,10 @@ static bool settings_stop_nicebarlite_registered(BOOL springboardWillDie)
     return nicebarlite_stop_in_session();
 }
 
-static bool settings_stop_rssi_registered(BOOL springboardWillDie)
-{
-    (void)springboardWillDie;
-    return rssidisplay_stop_in_session();
-}
-
 static bool settings_stop_axonlite_registered(BOOL springboardWillDie)
 {
     return springboardWillDie ? axonlite_stop_in_session_fast()
                               : axonlite_stop_in_session();
-}
-
-static bool settings_stop_typebanner_registered(BOOL springboardWillDie)
-{
-    (void)springboardWillDie;
-    bool keepAlive = typebanner_release_mobilesms_keepalive_in_springboard_session();
-    bool hidden = typebanner_hide_in_springboard_session();
-    printf("[TYPEBANNER] cleanup keepAlive=%d hide=%d\n", keepAlive, hidden);
-    return keepAlive && hidden;
-}
-
-static bool settings_stop_notificationisland_registered(BOOL springboardWillDie)
-{
-    (void)springboardWillDie;
-    return notificationisland_stop_in_session();
 }
 
 static bool settings_stop_appswitchergrid_registered(BOOL springboardWillDie)
@@ -1366,10 +1320,7 @@ static void settings_each_springboard_cleanup_entry(void (^block)(const Settings
         { kSettingsStatBarEnabled, "StatBar", settings_request_statbar_stop, settings_stop_statbar_registered, statbar_forget_remote_state, settings_statbar_running, YES, YES },
         { kSettingsNSBarEnabled, "NSBar", settings_request_nsbar_stop, settings_stop_nsbar_registered, nsbar_forget_remote_state, settings_nsbar_running, YES, YES },
         { kSettingsNiceBarLiteEnabled, "NiceBar Lite", settings_request_nicebarlite_stop, settings_stop_nicebarlite_registered, nicebarlite_forget_remote_state, settings_nicebarlite_running, YES, YES },
-        { kSettingsRSSIDisplayEnabled, "RSSI", settings_request_rssi_stop, settings_stop_rssi_registered, rssidisplay_forget_remote_state, settings_rssi_running, YES, YES },
         { kSettingsAxonLiteEnabled, "Axon Lite", settings_request_axonlite_stop, settings_stop_axonlite_registered, axonlite_forget_remote_state, settings_axonlite_running, YES, YES },
-        { kSettingsTypeBannerEnabled, "TypeBanner", settings_request_typebanner_stop, settings_stop_typebanner_registered, typebanner_forget_remote_state, settings_typebanner_running, YES, YES },
-        { kSettingsNotificationIslandEnabled, "Notification Island", settings_request_notificationisland_stop, settings_stop_notificationisland_registered, notificationisland_forget_remote_state, settings_notificationisland_running, YES, YES },
         { kSettingsAppSwitcherGridEnabled, "App Switcher Grid", NULL, settings_stop_appswitchergrid_registered, appswitchergrid_forget_remote_state, NULL, YES, YES },
         { kSettingsGravityLiteEnabled, "Gravity Lite", settings_request_gravitylite_stop, settings_stop_gravitylite_registered, gravitylite_forget_remote_state, NULL, YES, YES },
         { kSettingsThemerEnabled, "Themer", settings_request_themer_stop, settings_stop_themer_registered, themer_forget_remote_state, settings_themer_running, YES, YES },
@@ -1500,22 +1451,10 @@ static const useconds_t kLiveWPLiveIntervalUS = 2000000;
 static const useconds_t kLiveWPLiveBackgroundIntervalUS = 3000000;
 static const NSUInteger kLiveWPLiveMaxTicks = 43200;
 static const int64_t kLiveBackgroundTaskGraceSeconds = 10;
-static const useconds_t kRSSILiveIntervalUS = 250000;
-static const useconds_t kRSSILiveBackgroundIntervalUS = 1000000;
-static const NSUInteger kRSSILiveMaxTicks = 43200;
 static const useconds_t kAxonLiteLiveIntervalUS = 500000;
 static const useconds_t kAxonLiteLiveBackgroundIntervalUS = 1500000;
 static const NSUInteger kAxonLiteLiveMaxTicks = 43200;
 static const int kSettingsSpringBoardRCFirstExceptionTimeoutMS = 3000;
-// TypeBanner polls imagent for typing indicators with original-thread-only
-// RemoteCall probes and opens SpringBoard only when the banner state changes.
-static const useconds_t kTypeBannerLiveIntervalUS = 1000000;
-static const useconds_t kTypeBannerLiveBackgroundIntervalUS = 1000000;
-static const useconds_t kTypeBannerInitialDaemonSettleUS = 250000;
-static const NSUInteger kTypeBannerLiveMaxTicks = 28800;
-static const useconds_t kNotificationIslandLiveIntervalUS = 750000;
-static const useconds_t kNotificationIslandLiveBackgroundIntervalUS = 1500000;
-static const NSUInteger kNotificationIslandLiveMaxTicks = 43200;
 // Only Clock/Calendar need periodic repair; normal icons persist through the
 // model graft and should not be repainted during SpringBoard animations.
 static const useconds_t kThemerLiveIntervalUS = 2000000;
@@ -1746,10 +1685,6 @@ static void settings_apply_nicebarlite_once_async(const char *reason);
 static void settings_start_livewp_live_loop(void);
 static void settings_resume_livewp_after_wake_async(const char *reason);
 static void settings_pause_livewp_for_sleep_async(const char *reason);
-static void settings_apply_rssi_once_async(const char *reason);
-static void settings_start_rssi_live_loop(void);
-static void settings_start_typebanner_live_loop(void);
-static void settings_start_notificationisland_live_loop(void);
 static void settings_start_themer_live_loop(void);
 static void settings_schedule_themer_repair_burst(const char *reason);
 static void settings_schedule_themer_quiet_repair_burst(const char *reason);
@@ -1804,21 +1739,6 @@ static NSUInteger settings_live_failure_limit(NSUInteger foregroundLimit)
 static BOOL settings_experimental_tweaks_enabled(void)
 {
     return [[NSUserDefaults standardUserDefaults] boolForKey:kSettingsExperimentalTweaksEnabled];
-}
-
-static BOOL settings_rssi_install_allowed(void)
-{
-    return cyanide_experimental_tweaks_available() && settings_experimental_tweaks_enabled();
-}
-
-static BOOL settings_typebanner_install_allowed(void)
-{
-    return cyanide_experimental_tweaks_available() && settings_experimental_tweaks_enabled();
-}
-
-static BOOL settings_notificationisland_install_allowed(void)
-{
-    return cyanide_experimental_tweaks_available() && settings_experimental_tweaks_enabled();
 }
 
 static BOOL settings_stagestrip_install_allowed(void)
@@ -2072,20 +1992,6 @@ static BOOL settings_axonlite_can_poll_springboard(void)
 static const char *settings_axonlite_pause_reason(void)
 {
     if (!settings_screen_awake_cached()) return "screen asleep";
-    return "screen unavailable";
-}
-
-static BOOL settings_typebanner_can_poll_messages(void)
-{
-    (void)settings_refresh_screen_awake_state(NULL);
-    (void)settings_refresh_screen_lock_state(NULL);
-    return settings_screen_awake_cached() && !settings_screen_locked_cached();
-}
-
-static const char *settings_typebanner_pause_reason(void)
-{
-    if (!settings_screen_awake_cached()) return "screen asleep";
-    if (settings_screen_locked_cached()) return "device locked";
     return "screen unavailable";
 }
 
@@ -4757,166 +4663,6 @@ static void settings_resume_livewp_after_wake_async(const char *reason)
     });
 }
 
-static void settings_start_rssi_live_loop(void)
-{
-    if (!settings_device_supported()) return;
-    if (settings_cleanup_in_progress()) return;
-
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    if (!settings_rssi_install_allowed()) return;
-    if (![d boolForKey:kSettingsRSSIDisplayEnabled]) return;
-    if (!g_springboard_rc_ready) return;
-
-    if (__sync_lock_test_and_set(&g_rssi_live_running, 1)) {
-        static volatile int loggedAlready = 0;
-        if (__sync_bool_compare_and_swap(&loggedAlready, 0, 1)) {
-            printf("[SETTINGS] RSSI live loop already running\n");
-        }
-        return;
-    }
-
-    if (settings_cleanup_in_progress()) {
-        __sync_lock_release(&g_rssi_live_running);
-        return;
-    }
-
-    g_rssi_live_stop_requested = 0;
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        NSUInteger tick = 0;
-        NSUInteger failures = 0;
-        uint64_t nextTickUS = settings_now_us();
-        BOOL pausedForSleep = NO;
-
-        printf("[SETTINGS] RSSI live loop started interval=%uus background=%uus max=%lu\n",
-               kRSSILiveIntervalUS,
-               kRSSILiveBackgroundIntervalUS,
-               (unsigned long)kRSSILiveMaxTicks);
-        cyanide_upload_log_milestone(@"rssi-live-started");
-
-        @try {
-            while ([d boolForKey:kSettingsRSSIDisplayEnabled] &&
-                   !settings_cleanup_in_progress() &&
-                   !g_rssi_live_stop_requested &&
-                   tick < kRSSILiveMaxTicks) {
-                useconds_t intervalUS = settings_live_interval(kRSSILiveIntervalUS,
-                                                               kRSSILiveBackgroundIntervalUS);
-                if (!settings_statbar_screen_awake()) {
-                    if (!pausedForSleep) {
-                        pausedForSleep = YES;
-                        printf("[SETTINGS] RSSI paused while screen is asleep\n");
-                    }
-                    settings_live_loop_sleep_interruptible(0,
-                                                           intervalUS,
-                                                           &g_rssi_live_stop_requested);
-                    nextTickUS = settings_now_us();
-                    continue;
-                }
-                if (pausedForSleep) {
-                    pausedForSleep = NO;
-                    printf("[SETTINGS] RSSI resumed after screen wake\n");
-                }
-
-                uint64_t tickStartUS = settings_now_us();
-                bool ok = false;
-
-                @synchronized (settings_rc_lock()) {
-                    if (g_rssi_live_stop_requested) break;
-                    if (!g_springboard_rc_ready) {
-                        printf("[SETTINGS] RSSI loop has no SpringBoard RemoteCall session\n");
-                        failures++;
-                        break;
-                    }
-                    ok = rssidisplay_apply_in_session([d boolForKey:kSettingsRSSIDisplayWifi],
-                                                      [d boolForKey:kSettingsRSSIDisplayCell]);
-                }
-
-                uint64_t tickEndUS = settings_now_us();
-                if (tick == 0) {
-                    uint64_t elapsedUS = tickEndUS >= tickStartUS ? tickEndUS - tickStartUS : 0;
-                    printf("[SETTINGS] RSSI first tick result=%d elapsed=%lluus\n",
-                           ok,
-                           (unsigned long long)elapsedUS);
-                    cyanide_upload_log_milestone(ok ? @"rssi-live-first-ok" : @"rssi-live-first-failed");
-                }
-                if (ok) {
-                    failures = 0;
-                } else {
-                    failures++;
-                    printf("[SETTINGS] RSSI tick failed tick=%lu failures=%lu\n",
-                           (unsigned long)tick, (unsigned long)failures);
-                    if (failures >= settings_live_failure_limit(5)) break;
-                }
-
-                tick++;
-                if (![d boolForKey:kSettingsRSSIDisplayEnabled] ||
-                    g_rssi_live_stop_requested ||
-                    tick >= kRSSILiveMaxTicks) break;
-
-                uint64_t nowUS = tickEndUS;
-                if (nextTickUS != 0) {
-                    intervalUS = settings_live_interval(kRSSILiveIntervalUS,
-                                                        kRSSILiveBackgroundIntervalUS);
-                    nextTickUS += intervalUS;
-                    if (nowUS < nextTickUS) {
-                        settings_live_loop_sleep_interruptible(nextTickUS,
-                                                               (useconds_t)(nextTickUS - nowUS),
-                                                               &g_rssi_live_stop_requested);
-                    } else {
-                        nextTickUS = nowUS;
-                    }
-                } else {
-                    settings_live_loop_sleep_interruptible(0,
-                                                           settings_live_interval(kRSSILiveIntervalUS,
-                                                                                  kRSSILiveBackgroundIntervalUS),
-                                                           &g_rssi_live_stop_requested);
-                }
-            }
-        } @finally {
-            printf("[SETTINGS] RSSI live loop exited ticks=%lu enabled=%d failures=%lu stop=%d\n",
-                   (unsigned long)tick,
-                   [d boolForKey:kSettingsRSSIDisplayEnabled],
-                   (unsigned long)failures,
-                   g_rssi_live_stop_requested);
-            if (failures > 0)
-                cyanide_upload_log_milestone(@"rssi-live-exited-failed");
-            __sync_lock_release(&g_rssi_live_running);
-        }
-    });
-}
-
-static void settings_apply_rssi_once_async(const char *reason)
-{
-    if (!settings_device_supported()) return;
-    if (settings_cleanup_in_progress()) return;
-
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    if (!settings_rssi_install_allowed()) return;
-    if (![d boolForKey:kSettingsRSSIDisplayEnabled] || !g_springboard_rc_ready) return;
-    if (g_rssi_live_running) return;
-
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        if (settings_cleanup_in_progress()) return;
-        bool ok = false;
-        (void)settings_refresh_screen_awake_state(reason ?: "rssi apply");
-        if (!settings_screen_awake_cached()) {
-            printf("[SETTINGS] RSSI lifecycle apply%s%s skipped: screen asleep\n",
-                   reason ? ": " : "", reason ?: "");
-            settings_start_rssi_live_loop();
-            return;
-        }
-        @synchronized (settings_rc_lock()) {
-            if (settings_cleanup_in_progress() ||
-                ![d boolForKey:kSettingsRSSIDisplayEnabled] ||
-                !g_springboard_rc_ready) return;
-            ok = rssidisplay_apply_in_session([d boolForKey:kSettingsRSSIDisplayWifi],
-                                              [d boolForKey:kSettingsRSSIDisplayCell]);
-        }
-        printf("[SETTINGS] RSSI lifecycle apply%s%s result=%d\n",
-               reason ? ": " : "", reason ?: "", ok);
-        settings_start_rssi_live_loop();
-    });
-}
-
 static void settings_start_axonlite_live_loop(void)
 {
     if (!settings_device_supported()) return;
@@ -5060,308 +4806,6 @@ static void settings_start_axonlite_live_loop(void)
             if (failures > 0)
                 cyanide_upload_log_milestone(@"axon-lite-live-exited-failed");
             __sync_lock_release(&g_axonlite_live_running);
-        }
-    });
-}
-
-static void settings_start_typebanner_live_loop(void)
-{
-    if (!settings_device_supported()) return;
-    if (settings_cleanup_in_progress()) return;
-
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    if (![d boolForKey:kSettingsTypeBannerEnabled]) return;
-
-    if (__sync_lock_test_and_set(&g_typebanner_live_running, 1)) {
-        static volatile int loggedAlready = 0;
-        if (__sync_bool_compare_and_swap(&loggedAlready, 0, 1)) {
-            printf("[SETTINGS] TypeBanner live loop already running\n");
-        }
-        return;
-    }
-
-    if (settings_cleanup_in_progress()) {
-        __sync_lock_release(&g_typebanner_live_running);
-        return;
-    }
-
-    g_typebanner_live_stop_requested = 0;
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        NSUInteger tick = 0;
-        NSUInteger failures = 0;
-        BOOL deferredLogged = NO;
-        BOOL pausedForMessages = NO;
-        RemoteCallSession *mobileSession = nil;
-        RemoteCallSession *daemonSession = nil;
-
-        printf("[SETTINGS] TypeBanner live loop started interval=%uus background=%uus max=%lu\n",
-               kTypeBannerLiveIntervalUS,
-               kTypeBannerLiveBackgroundIntervalUS,
-               (unsigned long)kTypeBannerLiveMaxTicks);
-
-        @try {
-            while ([d boolForKey:kSettingsTypeBannerEnabled] &&
-                   !settings_cleanup_in_progress() &&
-                   !g_typebanner_live_stop_requested &&
-                   tick < kTypeBannerLiveMaxTicks) {
-                useconds_t intervalUS = settings_live_interval(kTypeBannerLiveIntervalUS,
-                                                               kTypeBannerLiveBackgroundIntervalUS);
-                uint64_t tickStartUS = settings_now_us();
-                bool ok = false;
-
-                if (!g_kexploit_done || g_settings_actions_running) {
-                    if (!deferredLogged) {
-                        printf("[SETTINGS] TypeBanner tick deferred krw=%d actions=%d\n",
-                               g_kexploit_done, g_settings_actions_running);
-                        deferredLogged = YES;
-                    }
-                    settings_live_loop_sleep_interruptible(0,
-                                                           intervalUS,
-                                                           &g_typebanner_live_stop_requested);
-                    continue;
-                }
-                deferredLogged = NO;
-
-                if (!settings_typebanner_can_poll_messages()) {
-                    if (!pausedForMessages) {
-                        pausedForMessages = YES;
-                        printf("[SETTINGS] TypeBanner paused while %s\n",
-                               settings_typebanner_pause_reason());
-                    }
-                    if (mobileSession) {
-                        @synchronized (settings_rc_lock()) {
-                            [mobileSession abandonRemoteCall];
-                            mobileSession = nil;
-                        }
-                    }
-                    if (daemonSession) {
-                        @synchronized (settings_rc_lock()) {
-                            [daemonSession abandonRemoteCall];
-                            daemonSession = nil;
-                        }
-                    }
-                    settings_live_loop_sleep_interruptible(0,
-                                                           intervalUS,
-                                                           &g_typebanner_live_stop_requested);
-                    continue;
-                }
-                if (pausedForMessages) {
-                    pausedForMessages = NO;
-                    printf("[SETTINGS] TypeBanner resumed after screen unlock/wake\n");
-                }
-
-                // TypeBanner now uses imagent original-thread probes for
-                // detection. The MobileSMS session pointer is kept only for
-                // fallback builds where that path is re-enabled.
-                @try {
-                    @synchronized (settings_rc_lock()) {
-                        if (!g_typebanner_live_stop_requested &&
-                            !g_settings_actions_running &&
-                            g_kexploit_done &&
-                            settings_typebanner_can_poll_messages()) {
-                            ok = typebanner_run_once_with_cached_sessions(&mobileSession,
-                                                                          &daemonSession,
-                                                                          g_springboard_rc_ready != 0);
-                        } else {
-                            ok = true;
-                        }
-                    }
-                } @catch (NSException *e) {
-                    printf("[SETTINGS] TypeBanner tick exception: %s\n", e.reason.UTF8String);
-                    ok = false;
-                }
-
-                if (tick == 0) printf("[SETTINGS] TypeBanner result=%d\n", ok);
-                if (ok) {
-                    failures = 0;
-                } else {
-                    failures++;
-                    printf("[SETTINGS] TypeBanner tick failed tick=%lu failures=%lu\n",
-                           (unsigned long)tick, (unsigned long)failures);
-                    if (failures >= settings_live_failure_limit(3)) break;
-                }
-
-                tick++;
-                if (![d boolForKey:kSettingsTypeBannerEnabled] ||
-                    g_typebanner_live_stop_requested ||
-                    tick >= kTypeBannerLiveMaxTicks) break;
-
-                uint64_t nowUS = settings_now_us();
-                uint64_t elapsedUS = tickStartUS != 0 && nowUS >= tickStartUS ? nowUS - tickStartUS : 0;
-                if (elapsedUS < intervalUS) {
-                    settings_live_loop_sleep_interruptible(0,
-                                                           (useconds_t)(intervalUS - elapsedUS),
-                                                           &g_typebanner_live_stop_requested);
-                }
-
-                if (tick == 1) {
-                    printf("[SETTINGS] TypeBanner tick=0 elapsed=%lluus\n", elapsedUS);
-                }
-            }
-        } @finally {
-            if (mobileSession) {
-                @synchronized (settings_rc_lock()) {
-                    [mobileSession destroyRemoteCall];
-                    mobileSession = nil;
-                }
-            }
-            if (daemonSession) {
-                @synchronized (settings_rc_lock()) {
-                    [daemonSession destroyRemoteCall];
-                    daemonSession = nil;
-                }
-            }
-
-            // Best-effort hide the banner before exiting — drops any stale
-            // pill that might persist in SpringBoard's window list.
-            if (typebanner_has_remote_state() &&
-                g_kexploit_done && !g_settings_actions_running && !settings_cleanup_in_progress()) {
-                @synchronized (settings_rc_lock()) {
-                    RemoteCallSession *springboardSession = [[RemoteCallSession alloc] initWithProcess:@"SpringBoard"
-                                                                                     useMigFilterBypass:NO
-                                                                                firstExceptionTimeoutMS:TYPEBANNER_RC_FIRST_EXCEPTION_TIMEOUT_MS];
-                    if (springboardSession) {
-                        @try {
-                            typebanner_release_mobilesms_keepalive_in_springboard_remote_session(springboardSession);
-                            typebanner_hide_in_springboard_remote_session(springboardSession);
-                        } @catch (NSException *e) {
-                            printf("[SETTINGS] TypeBanner final hide exception: %s\n", e.reason.UTF8String);
-                        }
-                        [springboardSession destroyRemoteCall];
-                    }
-                }
-            } else {
-                printf("[SETTINGS] TypeBanner final hide skipped state=%d krw=%d actions=%d cleanup=%d\n",
-                       typebanner_has_remote_state(),
-                       g_kexploit_done, g_settings_actions_running, settings_cleanup_in_progress());
-            }
-            typebanner_forget_remote_state();
-
-            printf("[SETTINGS] TypeBanner live loop exited ticks=%lu enabled=%d failures=%lu stop=%d\n",
-                   (unsigned long)tick,
-                   [d boolForKey:kSettingsTypeBannerEnabled],
-                   (unsigned long)failures,
-                   g_typebanner_live_stop_requested);
-            __sync_lock_release(&g_typebanner_live_running);
-        }
-    });
-}
-
-static void settings_start_notificationisland_live_loop(void)
-{
-    if (!settings_device_supported()) return;
-    if (settings_cleanup_in_progress()) return;
-
-    NSUserDefaults *d = [NSUserDefaults standardUserDefaults];
-    if (!settings_notificationisland_install_allowed()) return;
-    if (![d boolForKey:kSettingsNotificationIslandEnabled]) return;
-    if (!g_springboard_rc_ready) return;
-
-    if (__sync_lock_test_and_set(&g_notificationisland_live_running, 1)) {
-        static volatile int loggedAlready = 0;
-        if (__sync_bool_compare_and_swap(&loggedAlready, 0, 1)) {
-            printf("[SETTINGS] Notification Island live loop already running\n");
-        }
-        return;
-    }
-
-    if (settings_cleanup_in_progress()) {
-        __sync_lock_release(&g_notificationisland_live_running);
-        return;
-    }
-
-    g_notificationisland_live_stop_requested = 0;
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        NSUInteger tick = 0;
-        NSUInteger failures = 0;
-        uint64_t nextTickUS = settings_now_us();
-        BOOL deferredLogged = NO;
-
-        printf("[SETTINGS] Notification Island live loop started interval=%uus background=%uus max=%lu\n",
-               kNotificationIslandLiveIntervalUS,
-               kNotificationIslandLiveBackgroundIntervalUS,
-               (unsigned long)kNotificationIslandLiveMaxTicks);
-        cyanide_upload_log_milestone(@"notification-island-live-started");
-
-        @try {
-            while ([d boolForKey:kSettingsNotificationIslandEnabled] &&
-                   !settings_cleanup_in_progress() &&
-                   !g_notificationisland_live_stop_requested &&
-                   tick < kNotificationIslandLiveMaxTicks) {
-                useconds_t intervalUS = settings_live_interval(kNotificationIslandLiveIntervalUS,
-                                                               kNotificationIslandLiveBackgroundIntervalUS);
-                uint64_t tickStartUS = settings_now_us();
-                bool ok = false;
-
-                if (!g_kexploit_done || g_settings_actions_running) {
-                    if (!deferredLogged) {
-                        printf("[SETTINGS] Notification Island tick deferred krw=%d actions=%d\n",
-                               g_kexploit_done, g_settings_actions_running);
-                        deferredLogged = YES;
-                    }
-                    settings_live_loop_sleep_interruptible(0,
-                                                           intervalUS,
-                                                           &g_notificationisland_live_stop_requested);
-                    nextTickUS = settings_now_us();
-                    continue;
-                }
-                deferredLogged = NO;
-
-                @synchronized (settings_rc_lock()) {
-                    if (g_notificationisland_live_stop_requested) break;
-                    if (!g_springboard_rc_ready) {
-                        printf("[SETTINGS] Notification Island loop has no SpringBoard RemoteCall session\n");
-                        failures++;
-                        break;
-                    }
-                    ok = notificationisland_tick_in_session();
-                }
-
-                if (tick == 0) {
-                    printf("[SETTINGS] Notification Island result=%d\n", ok);
-                    cyanide_upload_log_milestone(ok ? @"notification-island-live-first-ok" :
-                                                     @"notification-island-live-first-failed");
-                }
-                if (ok) {
-                    failures = 0;
-                } else {
-                    failures++;
-                    printf("[SETTINGS] Notification Island tick failed tick=%lu failures=%lu\n",
-                           (unsigned long)tick, (unsigned long)failures);
-                    if (failures >= settings_live_failure_limit(3)) break;
-                }
-
-                tick++;
-                if (![d boolForKey:kSettingsNotificationIslandEnabled] ||
-                    g_notificationisland_live_stop_requested ||
-                    tick >= kNotificationIslandLiveMaxTicks) break;
-
-                uint64_t nowUS = settings_now_us();
-                intervalUS = settings_live_interval(kNotificationIslandLiveIntervalUS,
-                                                    kNotificationIslandLiveBackgroundIntervalUS);
-                nextTickUS += intervalUS;
-                if (nowUS < nextTickUS) {
-                    settings_live_loop_sleep_interruptible(nextTickUS,
-                                                           (useconds_t)(nextTickUS - nowUS),
-                                                           &g_notificationisland_live_stop_requested);
-                } else {
-                    nextTickUS = nowUS;
-                }
-
-                uint64_t elapsedUS = tickStartUS != 0 && nowUS >= tickStartUS ? nowUS - tickStartUS : 0;
-                if (tick == 1) {
-                    printf("[SETTINGS] Notification Island tick=0 elapsed=%lluus\n", elapsedUS);
-                }
-            }
-        } @finally {
-            printf("[SETTINGS] Notification Island live loop exited ticks=%lu enabled=%d failures=%lu stop=%d\n",
-                   (unsigned long)tick,
-                   [d boolForKey:kSettingsNotificationIslandEnabled],
-                   (unsigned long)failures,
-                   g_notificationisland_live_stop_requested);
-            if (failures > 0)
-                cyanide_upload_log_milestone(@"notification-island-live-exited-failed");
-            __sync_lock_release(&g_notificationisland_live_running);
         }
     });
 }
@@ -5607,15 +5051,12 @@ void settings_application_did_enter_background(void)
          (settings_snowboardlite_live_repair_enabled(d) && g_springboard_rc_ready));
     BOOL anyLiveLoopNeeded =
         ([d boolForKey:kSettingsAxonLiteEnabled]    && g_springboard_rc_ready) ||
-        (settings_rssi_install_allowed() && [d boolForKey:kSettingsRSSIDisplayEnabled] && g_springboard_rc_ready) ||
         ([d boolForKey:kSettingsStatBarEnabled]     && g_springboard_rc_ready) ||
         ([d boolForKey:kSettingsNSBarEnabled]       && g_springboard_rc_ready) ||
         ([d boolForKey:kSettingsNiceBarLiteEnabled] && g_springboard_rc_ready) ||
         ([d boolForKey:kSettingsGravityLiteEnabled] && g_springboard_rc_ready) ||
         themerLiveNeeded ||
-        ([d boolForKey:kSettingsLiveWPEnabled]      && g_springboard_rc_ready) ||
-        (settings_notificationisland_install_allowed() && [d boolForKey:kSettingsNotificationIslandEnabled] && g_springboard_rc_ready) ||
-        (settings_typebanner_install_allowed() && [d boolForKey:kSettingsTypeBannerEnabled]);
+        ([d boolForKey:kSettingsLiveWPEnabled]      && g_springboard_rc_ready);
     if (anyLiveLoopNeeded) {
         if ([d boolForKey:kSettingsKeepAlive]) {
             ds_keepalive_apply_enabled(YES);
@@ -5626,11 +5067,6 @@ void settings_application_did_enter_background(void)
     if ([d boolForKey:kSettingsAxonLiteEnabled] && g_springboard_rc_ready) {
         settings_apply_axonlite_once_async("entered background");
     }
-    if (settings_notificationisland_install_allowed() &&
-        [d boolForKey:kSettingsNotificationIslandEnabled] &&
-        g_springboard_rc_ready) {
-        settings_start_notificationisland_live_loop();
-    }
     if ([d boolForKey:kSettingsGravityLiteEnabled] && g_springboard_rc_ready) {
         if (g_gravitylite_background_armed != 0) {
             settings_apply_armed_gravitylite_once_async("entered background");
@@ -5639,9 +5075,6 @@ void settings_application_did_enter_background(void)
     (void)settings_refresh_screen_awake_state("entered background");
     (void)settings_refresh_screen_lock_state("entered background");
     settings_sync_fastlockx_lite_for_screen_state_async("entered background");
-    if (settings_rssi_install_allowed() && [d boolForKey:kSettingsRSSIDisplayEnabled] && g_springboard_rc_ready) {
-        settings_apply_rssi_once_async("entered background");
-    }
     if ([d boolForKey:kSettingsNSBarEnabled] && g_springboard_rc_ready) {
         settings_apply_nsbar_once_async("entered background");
     }
@@ -5668,22 +5101,12 @@ void settings_application_will_enter_foreground(void)
     settings_apply_statbar_once_async("will enter foreground");
     settings_apply_nsbar_once_async("will enter foreground");
     settings_apply_nicebarlite_once_async("will enter foreground");
-    settings_apply_rssi_once_async("will enter foreground");
     settings_apply_axonlite_once_async("will enter foreground");
     (void)settings_refresh_screen_awake_state("will enter foreground");
     (void)settings_refresh_screen_lock_state("will enter foreground");
     settings_sync_fastlockx_lite_for_screen_state_async("will enter foreground");
-    if (settings_notificationisland_install_allowed() &&
-        [[NSUserDefaults standardUserDefaults] boolForKey:kSettingsNotificationIslandEnabled] &&
-        g_springboard_rc_ready) {
-        settings_start_notificationisland_live_loop();
-    }
     settings_start_themer_live_loop();
     settings_resume_livewp_after_wake_async("will enter foreground");
-    if (settings_typebanner_install_allowed() &&
-        [[NSUserDefaults standardUserDefaults] boolForKey:kSettingsTypeBannerEnabled]) {
-        settings_start_typebanner_live_loop();
-    }
 }
 
 void settings_application_did_become_active(void)
@@ -5694,22 +5117,12 @@ void settings_application_did_become_active(void)
     settings_apply_statbar_once_async("became active");
     settings_apply_nsbar_once_async("became active");
     settings_apply_nicebarlite_once_async("became active");
-    settings_apply_rssi_once_async("became active");
     settings_apply_axonlite_once_async("became active");
     (void)settings_refresh_screen_awake_state("became active");
     (void)settings_refresh_screen_lock_state("became active");
     settings_sync_fastlockx_lite_for_screen_state_async("became active");
-    if (settings_notificationisland_install_allowed() &&
-        [[NSUserDefaults standardUserDefaults] boolForKey:kSettingsNotificationIslandEnabled] &&
-        g_springboard_rc_ready) {
-        settings_start_notificationisland_live_loop();
-    }
     settings_start_themer_live_loop();
     settings_resume_livewp_after_wake_async("became active");
-    if (settings_typebanner_install_allowed() &&
-        [[NSUserDefaults standardUserDefaults] boolForKey:kSettingsTypeBannerEnabled]) {
-        settings_start_typebanner_live_loop();
-    }
 }
 
 static BOOL settings_key_is_sbc(NSString *key)
@@ -5800,26 +5213,9 @@ static BOOL settings_key_is_nicebarlite(NSString *key)
     return NO;
 }
 
-static BOOL settings_key_is_rssi(NSString *key)
-{
-    return [key isEqualToString:kSettingsRSSIDisplayEnabled] ||
-           [key isEqualToString:kSettingsRSSIDisplayWifi] ||
-           [key isEqualToString:kSettingsRSSIDisplayCell];
-}
-
 static BOOL settings_key_is_axonlite(NSString *key)
 {
     return [key isEqualToString:kSettingsAxonLiteEnabled];
-}
-
-static BOOL settings_key_is_typebanner(NSString *key)
-{
-    return [key isEqualToString:kSettingsTypeBannerEnabled];
-}
-
-static BOOL settings_key_is_notificationisland(NSString *key)
-{
-    return [key isEqualToString:kSettingsNotificationIslandEnabled];
 }
 
 static BOOL settings_key_is_appswitchergrid(NSString *key)
@@ -6215,33 +5611,6 @@ static NSString *settings_location_sim_mode_summary(NSUserDefaults *d)
             settings_location_sim_target_summary(d)];
 }
 
-static NSString *settings_ipadecryptor_target_summary(NSUserDefaults *d)
-{
-    NSString *bundleID = [d stringForKey:kSettingsIPADecryptorTargetBundleID];
-    if (bundleID.length == 0) {
-        return @"None selected. Choose an installed app first.";
-    }
-    return ipadecryptor_display_name_for_bundle(bundleID);
-}
-
-static NSString *settings_ipadecryptor_app_store_summary(NSUserDefaults *d)
-{
-    NSString *appID = [d stringForKey:kSettingsIPADecryptorAppStoreID];
-    NSString *name = [d stringForKey:kSettingsIPADecryptorAppStoreName];
-    NSString *version = [d stringForKey:kSettingsIPADecryptorAppStoreVersion];
-    NSString *url = [d stringForKey:kSettingsIPADecryptorAppStoreURL];
-    if (appID.length == 0 && url.length == 0) {
-        return @"None. Paste an App Store link or numeric app ID.";
-    }
-    if (name.length > 0) {
-        return [NSString stringWithFormat:@"%@%@%@",
-                name,
-                version.length > 0 ? @" " : @"",
-                version.length > 0 ? version : @""];
-    }
-    return appID.length > 0 ? [NSString stringWithFormat:@"App Store ID %@", appID] : url;
-}
-
 static BOOL settings_apply_location_sim_from_defaults_locked(NSUserDefaults *d)
 {
     NSInteger accuracy = [d integerForKey:kSettingsLocationSimHorizontalAccuracy];
@@ -6387,98 +5756,7 @@ static void settings_schedule_live_apply_for_key(NSString *key)
         return;
     }
 
-    if (settings_key_is_typebanner(key)) {
-        if (!settings_typebanner_install_allowed()) {
-            if ([d boolForKey:kSettingsTypeBannerEnabled]) {
-                [d setBool:NO forKey:kSettingsTypeBannerEnabled];
-                [d synchronize];
-            }
-            g_typebanner_live_stop_requested = 1;
-            settings_mark_tweak_applied(kSettingsTypeBannerEnabled, NO);
-            settings_notify_package_queue_changed_async();
-            typebanner_forget_remote_state();
-            return;
-        }
-        // TypeBanner owns its own daemon + SpringBoard sessions, but its
-        // bootstrap is serialized with the shared RemoteCall lock.
-        if ([d boolForKey:kSettingsTypeBannerEnabled]) {
-            settings_mark_tweak_applied(kSettingsTypeBannerEnabled, YES);
-            settings_notify_package_queue_changed_async();
-            settings_start_typebanner_live_loop();
-        } else {
-            g_typebanner_live_stop_requested = 1;
-            settings_mark_tweak_applied(kSettingsTypeBannerEnabled, NO);
-            settings_notify_package_queue_changed_async();
-            // Best-effort hide if a session is reachable. The live loop will
-            // also hide on its own way out, but doing it here gets the pill
-            // off the screen faster after the user toggles off.
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                if (g_kexploit_done) {
-                    @synchronized (settings_rc_lock()) {
-                        RemoteCallSession *springboardSession = [[RemoteCallSession alloc] initWithProcess:@"SpringBoard"
-                                                                                         useMigFilterBypass:NO
-                                                                                    firstExceptionTimeoutMS:TYPEBANNER_RC_FIRST_EXCEPTION_TIMEOUT_MS];
-                        if (springboardSession) {
-                            @try {
-                                typebanner_release_mobilesms_keepalive_in_springboard_remote_session(springboardSession);
-                                typebanner_hide_in_springboard_remote_session(springboardSession);
-                            } @catch (NSException *e) {
-                                printf("[SETTINGS] TypeBanner toggle-off hide exception: %s\n",
-                                       e.reason.UTF8String);
-                            }
-                            [springboardSession destroyRemoteCall];
-                        }
-                    }
-                }
-                typebanner_forget_remote_state();
-            });
-        }
-        return;
-    }
 
-    if (settings_key_is_notificationisland(key)) {
-        if (!settings_notificationisland_install_allowed()) {
-            if ([d boolForKey:kSettingsNotificationIslandEnabled]) {
-                [d setBool:NO forKey:kSettingsNotificationIslandEnabled];
-                [d synchronize];
-            }
-            g_notificationisland_live_stop_requested = 1;
-            settings_mark_tweak_applied(kSettingsNotificationIslandEnabled, NO);
-            settings_notify_package_queue_changed_async();
-            notificationisland_forget_remote_state();
-            return;
-        }
-        if ([d boolForKey:kSettingsNotificationIslandEnabled] && g_springboard_rc_ready) {
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                bool ok = false;
-                @synchronized (settings_rc_lock()) {
-                    if (settings_cleanup_in_progress() ||
-                        ![d boolForKey:kSettingsNotificationIslandEnabled] ||
-                        !g_springboard_rc_ready) return;
-                    ok = notificationisland_apply_in_session();
-                    settings_mark_tweak_applied(kSettingsNotificationIslandEnabled,
-                                                ok && [d boolForKey:kSettingsNotificationIslandEnabled]);
-                    printf("[SETTINGS] live Notification Island apply result=%d\n", ok);
-                }
-                if (ok) settings_start_notificationisland_live_loop();
-                settings_notify_package_queue_changed_async();
-            });
-        } else if (![d boolForKey:kSettingsNotificationIslandEnabled]) {
-            g_notificationisland_live_stop_requested = 1;
-            settings_mark_tweak_applied(kSettingsNotificationIslandEnabled, NO);
-            settings_notify_package_queue_changed_async();
-            if (g_springboard_rc_ready) {
-                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                    @synchronized (settings_rc_lock()) {
-                        if (g_springboard_rc_ready) notificationisland_stop_in_session();
-                    }
-                });
-            } else {
-                notificationisland_forget_remote_state();
-            }
-        }
-        return;
-    }
 
     if (settings_key_is_appswitchergrid(key)) {
         if ([d boolForKey:kSettingsAppSwitcherGridEnabled] && g_springboard_rc_ready) {
@@ -6688,51 +5966,6 @@ static void settings_schedule_live_apply_for_key(NSString *key)
         }
     }
 
-    if (settings_key_is_rssi(key)) {
-        if (!settings_rssi_install_allowed()) {
-            if ([d boolForKey:kSettingsRSSIDisplayEnabled]) {
-                [d setBool:NO forKey:kSettingsRSSIDisplayEnabled];
-                [d synchronize];
-            }
-            g_rssi_live_stop_requested = 1;
-            settings_mark_tweak_applied(kSettingsRSSIDisplayEnabled, NO);
-            settings_notify_package_queue_changed_async();
-            if (g_springboard_rc_ready) {
-                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                    @synchronized (settings_rc_lock()) {
-                        if (g_springboard_rc_ready) rssidisplay_stop_in_session();
-                    }
-                });
-            }
-            return;
-        }
-        if ([d boolForKey:kSettingsRSSIDisplayEnabled] && g_springboard_rc_ready) {
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                @synchronized (settings_rc_lock()) {
-                    if (settings_cleanup_in_progress() || !g_springboard_rc_ready) return;
-                    bool ok = rssidisplay_apply_in_session([d boolForKey:kSettingsRSSIDisplayWifi],
-                                                           [d boolForKey:kSettingsRSSIDisplayCell]);
-                    settings_mark_tweak_applied(kSettingsRSSIDisplayEnabled,
-                                                ok && [d boolForKey:kSettingsRSSIDisplayEnabled]);
-                    printf("[SETTINGS] live RSSI apply result=%d\n", ok);
-                }
-                settings_start_rssi_live_loop();
-                settings_notify_package_queue_changed_async();
-            });
-        } else if (![d boolForKey:kSettingsRSSIDisplayEnabled]) {
-            g_rssi_live_stop_requested = 1;
-            settings_mark_tweak_applied(kSettingsRSSIDisplayEnabled, NO);
-            settings_notify_package_queue_changed_async();
-            if (g_springboard_rc_ready) {
-                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                    @synchronized (settings_rc_lock()) {
-                        if (g_springboard_rc_ready) rssidisplay_stop_in_session();
-                    }
-                });
-            }
-        }
-        return;
-    }
 
     if (settings_key_is_dark_tweak(key)) {
         if (!g_springboard_rc_ready || ![d boolForKey:key]) return;
@@ -6966,14 +6199,9 @@ void settings_register_defaults(void)
         settings_nicebar_key(kSettingsNiceBarLiteSlotWeatherLanguagePrefix, NiceBarLiteSlotBottomCenter): @"en",
         kSettingsNiceBarLiteWeatherCache: @"Weather --",
 
-        kSettingsRSSIDisplayEnabled: @NO,
-        kSettingsRSSIDisplayWifi:    @YES,
-        kSettingsRSSIDisplayCell:    @YES,
 
         kSettingsAxonLiteEnabled: @NO,
 
-        kSettingsTypeBannerEnabled: @NO,
-        kSettingsNotificationIslandEnabled: @NO,
 
         kSettingsFastLockXLiteEnabled: @NO,
         kSettingsFastLockXLiteBlockMusic: @NO,
@@ -6998,14 +6226,6 @@ void settings_register_defaults(void)
         kSettingsLocationSimHorizontalAccuracy: @(kLocationSimDefaultAccuracy),
         kSettingsLocationSimHostProcess: @"Maps",
         kSettingsLocationSimStarted: @NO,
-        kSettingsIPADecryptorTargetBundleID: @"",
-        kSettingsIPADecryptorAppStoreInput: @"",
-        kSettingsIPADecryptorAppStoreID: @"",
-        kSettingsIPADecryptorAppStoreName: @"",
-        kSettingsIPADecryptorAppStoreVersion: @"",
-        kSettingsIPADecryptorAppStoreURL: @"",
-        kSettingsIPADecryptorDownloadedIPAPath: @"",
-        kSettingsIPADecryptorDownloadStatus: @"Not started.",
 
         kSettingsThemerEnabled: @NO,
         kSettingsThemerThemeID: kThemerThemeNone,
@@ -7044,9 +6264,6 @@ void settings_register_defaults(void)
     if (!cyanide_experimental_tweaks_available()) {
         BOOL changed = NO;
         NSArray<NSString *> *privateKeys = @[
-            kSettingsRSSIDisplayEnabled,
-            kSettingsTypeBannerEnabled,
-            kSettingsNotificationIslandEnabled,
             kSettingsStageStripEnabled,
             kSettingsFastLockXLiteEnabled,
         ];
@@ -7061,9 +6278,6 @@ void settings_register_defaults(void)
     {
         BOOL changed = NO;
         NSArray<NSString *> *inDevKeys = @[
-            kSettingsRSSIDisplayEnabled,
-            kSettingsTypeBannerEnabled,
-            kSettingsNotificationIslandEnabled,
         ];
         if ([defaults boolForKey:kSettingsExperimentalTweaksEnabled]) {
             [defaults setBool:NO forKey:kSettingsExperimentalTweaksEnabled];
@@ -7134,10 +6348,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             BOOL statBarEnabled = [d boolForKey:kSettingsStatBarEnabled];
             BOOL nsBarEnabled = [d boolForKey:kSettingsNSBarEnabled];
             BOOL niceBarLiteEnabled = [d boolForKey:kSettingsNiceBarLiteEnabled];
-            BOOL rssiEnabled = settings_rssi_install_allowed() && [d boolForKey:kSettingsRSSIDisplayEnabled];
             BOOL axonLiteEnabled = [d boolForKey:kSettingsAxonLiteEnabled];
-            BOOL typeBannerEnabled = settings_typebanner_install_allowed() && [d boolForKey:kSettingsTypeBannerEnabled];
-            BOOL notificationIslandEnabled = settings_notificationisland_install_allowed() && [d boolForKey:kSettingsNotificationIslandEnabled];
             BOOL appSwitcherGridEnabled = [d boolForKey:kSettingsAppSwitcherGridEnabled];
             BOOL themerEnabled = [d boolForKey:kSettingsThemerEnabled];
             BOOL snowboardLiteEnabled = [d boolForKey:kSettingsSnowBoardLiteEnabled];
@@ -7150,10 +6361,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             BOOL runStatBar = settings_enabled_tweak_should_run(d, kSettingsStatBarEnabled, springBoardPendingOnly);
             BOOL runNSBar = settings_enabled_tweak_should_run(d, kSettingsNSBarEnabled, springBoardPendingOnly);
             BOOL runNiceBarLite = settings_enabled_tweak_should_run(d, kSettingsNiceBarLiteEnabled, springBoardPendingOnly);
-            BOOL runRSSI = settings_rssi_install_allowed() && settings_enabled_tweak_should_run(d, kSettingsRSSIDisplayEnabled, springBoardPendingOnly);
             BOOL runAxonLite = settings_enabled_tweak_should_run(d, kSettingsAxonLiteEnabled, springBoardPendingOnly);
-            BOOL runTypeBanner = settings_typebanner_install_allowed() && settings_enabled_tweak_should_run(d, kSettingsTypeBannerEnabled, springBoardPendingOnly);
-            BOOL runNotificationIsland = settings_notificationisland_install_allowed() && settings_enabled_tweak_should_run(d, kSettingsNotificationIslandEnabled, springBoardPendingOnly);
             BOOL runAppSwitcherGrid = settings_enabled_tweak_should_run(d, kSettingsAppSwitcherGridEnabled, springBoardPendingOnly);
             BOOL runThemer = settings_enabled_tweak_should_run(d, kSettingsThemerEnabled, springBoardPendingOnly);
             BOOL runSnowBoardLite = settings_enabled_tweak_should_run(d, kSettingsSnowBoardLiteEnabled, springBoardPendingOnly);
@@ -7173,10 +6381,8 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 settings_note_themer_stage_conflict(YES);
             }
             BOOL cleanupDisabledSpringBoardTweaks = settings_disabled_applied_springboard_cleanup_needed(d);
-            BOOL needsSpringBoardWork = runSBC || runDarkTweaks || runStatBar || runNSBar || runNiceBarLite || runRSSI || runAxonLite || runGravityLite || runLayoutExtras || runTypeBanner || runNotificationIsland || runAppSwitcherGrid || runThemer || runSnowBoardLite || runLiveWP || runStageStrip || runFastLockXLite || runQuickLoader || runRepoTweaks || cleanupDisabledSpringBoardTweaks;
+            BOOL needsSpringBoardWork = runSBC || runDarkTweaks || runStatBar || runNSBar || runNiceBarLite || runAxonLite || runGravityLite || runLayoutExtras || runAppSwitcherGrid || runThemer || runSnowBoardLite || runLiveWP || runStageStrip || runFastLockXLite || runQuickLoader || runRepoTweaks || cleanupDisabledSpringBoardTweaks;
             BOOL runSandboxEscape = [d boolForKey:kSettingsRunSandboxEscape] && (!pendingOnly || needsSpringBoardWork);
-            // TypeBanner prewarms its hidden SpringBoard window during Apply
-            // and reuses the open SpringBoard session for text-only updates.
             BOOL needsSpringBoard = runSandboxEscape || needsSpringBoardWork || forceSpringBoardRefresh;
 
             BOOL hasRunWork = patchSandboxExt || runPowercuff || needsSpringBoard;
@@ -7200,11 +6406,8 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             if (runStatBar) total++;
             if (runNSBar) total++;
             if (runNiceBarLite) total++;
-            if (runRSSI) total++;
             if (runAxonLite) total++;
             if (runGravityLite) total++;
-            if (runTypeBanner) total++;
-            if (runNotificationIsland) total++;
             if (runAppSwitcherGrid) total++;
             if (runStageStrip) total++;
             if (runFastLockXLite) total++;
@@ -7221,9 +6424,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             if (runStatBar) [enabledTweaks addObject:@"statbar"];
             if (runNSBar) [enabledTweaks addObject:@"nsbar"];
             if (runNiceBarLite) [enabledTweaks addObject:@"nicebar"];
-            if (runRSSI) [enabledTweaks addObject:@"rssi"];
             if (runAxonLite) [enabledTweaks addObject:@"axon"];
-            if (runNotificationIsland) [enabledTweaks addObject:@"notification-island"];
             if (runAppSwitcherGrid) [enabledTweaks addObject:@"app-switcher-grid"];
             if (runGravityLite) [enabledTweaks addObject:[NSString stringWithFormat:@"gravity(%ld%%)", (long)[d integerForKey:kSettingsGravityLiteMagnitudePct]]];
             if (runPowercuff) [enabledTweaks addObject:[NSString stringWithFormat:@"power(%@)", [d stringForKey:kSettingsPowercuffLevel] ?: @"nominal"]];
@@ -7231,7 +6432,6 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             if (runThemer) [enabledTweaks addObject:@"themer"];
             if (runSnowBoardLite) [enabledTweaks addObject:@"snowboardlite"];
             if (runLiveWP) [enabledTweaks addObject:@"livewp"];
-            if (runTypeBanner) [enabledTweaks addObject:@"typebanner"];
             if (runFastLockXLite) [enabledTweaks addObject:@"fastlockx"];
             if (runStageStrip) [enabledTweaks addObject:@"stagestrip"];
             if (runQuickLoader) [enabledTweaks addObject:@"quickloader"];
@@ -7250,10 +6450,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 if (!statBarEnabled) g_statbar_live_stop_requested = 1;
                 if (!nsBarEnabled) g_nsbar_live_stop_requested = 1;
                 if (!niceBarLiteEnabled) g_nicebarlite_live_stop_requested = 1;
-                if (!rssiEnabled) g_rssi_live_stop_requested = 1;
                 if (!axonLiteEnabled) g_axonlite_live_stop_requested = 1;
-                if (!typeBannerEnabled) g_typebanner_live_stop_requested = 1;
-                if (!notificationIslandEnabled) g_notificationisland_live_stop_requested = 1;
                 if (!themerEnabled && !snowboardLiteEnabled) g_themer_live_stop_requested = 1;
                 if (!liveWPEnabled) g_livewp_live_stop_requested = 1;
                 if (!gravityLiteEnabled) settings_request_gravitylite_stop();
@@ -7340,13 +6537,6 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                         cyanide_upload_log_milestone(@"disabled-springboard-tweaks-stopped");
                     }
 
-                    if (runTypeBanner) {
-                        bool ok = typebanner_prepare_in_springboard_session();
-                        log_user("%s TypeBanner overlay window %s.\n",
-                                 ok ? "[OK]" : "[WARN]",
-                                 ok ? "prewarmed" : "did not prewarm");
-                        cyanide_upload_log_milestone(ok ? @"typebanner-overlay-prewarmed" : @"typebanner-overlay-prewarm-failed");
-                    }
 
                     if (runDarkTweaks) {
                         settings_progress(&step, total, "Applying DarkSword tweaks");
@@ -7478,18 +6668,6 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                         cyanide_upload_log_milestone(ok ? @"nicebar-lite-initial-applied" : @"nicebar-lite-initial-failed");
                     }
 
-                    if (runRSSI) {
-                        settings_progress(&step, total, "Starting RSSI dBm signal overlays");
-                        bool ok = rssidisplay_apply_in_session([d boolForKey:kSettingsRSSIDisplayWifi],
-                                                               [d boolForKey:kSettingsRSSIDisplayCell]);
-                        settings_mark_tweak_applied(kSettingsRSSIDisplayEnabled,
-                                                    ok && [d boolForKey:kSettingsRSSIDisplayEnabled]);
-                        printf("[SETTINGS] RSSI result=%d\n", ok);
-                        log_user("%s RSSI %s.\n",
-                                 ok ? "[OK]" : "[WARN]",
-                                 ok ? "showing live signal strength (dBm)" : "did not start cleanly");
-                        cyanide_upload_log_milestone(ok ? @"rssi-initial-applied" : @"rssi-initial-failed");
-                    }
 
                     if (runLiveWP) {
                         settings_progress(&step, total, "Starting LiveWP video wallpaper");
@@ -7539,18 +6717,6 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                                                      (deferred ? @"axon-lite-initial-deferred" : @"axon-lite-initial-failed"));
                     }
 
-                    if (runNotificationIsland) {
-                        settings_progress(&step, total, "Starting Notification Island");
-                        bool ok = notificationisland_apply_in_session();
-                        settings_mark_tweak_applied(kSettingsNotificationIslandEnabled,
-                                                    ok && [d boolForKey:kSettingsNotificationIslandEnabled]);
-                        printf("[SETTINGS] Notification Island result=%d\n", ok);
-                        log_user("%s Notification Island %s.\n",
-                                 ok ? "[OK]" : "[WARN]",
-                                 ok ? "watching incoming banners" : "did not start cleanly");
-                        cyanide_upload_log_milestone(ok ? @"notification-island-initial-applied" :
-                                                         @"notification-island-initial-failed");
-                    }
 
                     if (runAppSwitcherGrid) {
                         settings_progress(&step, total, "Enabling App Switcher Grid");
@@ -7668,11 +6834,6 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 } else if (!niceBarLiteEnabled) {
                     g_nicebarlite_live_stop_requested = 1;
                 }
-                if (runRSSI) {
-                    settings_start_rssi_live_loop();
-                } else if (!rssiEnabled) {
-                    g_rssi_live_stop_requested = 1;
-                }
                 if (runLiveWP) {
                     settings_start_livewp_live_loop();
                 } else if (!liveWPEnabled) {
@@ -7683,33 +6844,12 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                 } else if (!axonLiteEnabled) {
                     g_axonlite_live_stop_requested = 1;
                 }
-                if (runNotificationIsland) {
-                    settings_start_notificationisland_live_loop();
-                } else if (!notificationIslandEnabled) {
-                    g_notificationisland_live_stop_requested = 1;
-                }
             }
 
-            if (runTypeBanner) {
-                settings_progress(&step, total, "Starting TypeBanner daemon poll");
-                settings_mark_tweak_applied(kSettingsTypeBannerEnabled, YES);
-                log_user("[OK] TypeBanner watching imagent for incoming typing indicators.\n");
-                cyanide_upload_log_milestone(@"typebanner-live-starting");
-                // Daemon-only detection avoids foregrounding Messages and
-                // avoids the MobileSMS synthetic-thread PAC/0x401 crash path.
-                printf("[TYPEBANNER] daemon-only: starting live loop without sms launch\n");
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                                             (int64_t)kTypeBannerInitialDaemonSettleUS * NSEC_PER_USEC),
-                               dispatch_get_global_queue(0, 0), ^{
-                    settings_start_typebanner_live_loop();
-                });
-            } else if (!typeBannerEnabled) {
-                g_typebanner_live_stop_requested = 1;
-            }
             if (startStageStripControlLoopAfterInstall) {
                 stagestrip_start_control_loop();
             }
-            if (runStatBar || runNSBar || runNiceBarLite || runRSSI || runAxonLite || runTypeBanner || runNotificationIsland || runLiveWP || startStageStripControlLoopAfterInstall)
+            if (runStatBar || runNSBar || runNiceBarLite || runAxonLite || runLiveWP || startStageStripControlLoopAfterInstall)
                 cyanide_upload_log_milestone(@"live-tweaks-started");
 
             if (!settings_has_persistent_springboard_remote_call_user()) {
@@ -7792,10 +6932,7 @@ typedef NS_ENUM(NSInteger, SettingsSection) {
     SectionStatBar,
     SectionNSBar,
     SectionNiceBarLite,
-    SectionRSSI,
     SectionAxonLite,
-    SectionTypeBanner,
-    SectionNotificationIsland,
     SectionPowercuff,
     SectionDarkSwordTweaks,
     SectionDragCoefficient,
@@ -7807,7 +6944,6 @@ typedef NS_ENUM(NSInteger, SettingsSection) {
     SectionLocationSim,
     SectionGravityLite,
     SectionAppSwitcherGrid,
-    SectionIPADecryptor,
     SectionFastLockXLite,
     SectionQuickLoader,
     SectionRepoTweaks,
@@ -8749,37 +7885,9 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     ];
 }
 
-- (NSArray<NSDictionary *> *)rssiRows
-{
-    return @[
-        @{ @"kind": @"toggle", @"key": kSettingsRSSIDisplayWifi, @"title": @"WiFi (bar count)" },
-        @{ @"kind": @"toggle", @"key": kSettingsRSSIDisplayCell, @"title": @"Cellular (dBm)" },
-    ];
-}
-
 - (NSArray<NSDictionary *> *)axonLiteRows
 {
     return @[];
-}
-
-- (NSArray<NSDictionary *> *)typebannerRows
-{
-    return @[
-        @{ @"kind": @"button",
-           @"title": @"Test: Poll Daemon & Show Banner",
-           @"subtitle": @"Runs the live imagent detection path once. Banner shows the result; the [TYPEBANNER] log lines explain what was/wasn't found.",
-           @"action": @"typebanner-test" },
-    ];
-}
-
-- (NSArray<NSDictionary *> *)notificationIslandRows
-{
-    return @[
-        @{ @"kind": @"button",
-           @"title": @"Show Sample Island",
-           @"subtitle": @"Starts the same ActivityKit route used for captured incoming notification banners.",
-           @"action": @"notificationisland-sample" },
-    ];
 }
 
 - (NSArray<NSDictionary *> *)gravityLiteRows
@@ -8886,74 +7994,6 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
            @"action": @"locsim-stop",
            @"destructive": @YES },
     ];
-}
-
-- (NSArray<NSDictionary *> *)ipaDecryptorRows
-{
-    NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
-    NSString *bundleID = [d stringForKey:kSettingsIPADecryptorTargetBundleID] ?: @"";
-    NSString *appStoreInput = [d stringForKey:kSettingsIPADecryptorAppStoreInput] ?: @"";
-    NSString *downloadedPath = [d stringForKey:kSettingsIPADecryptorDownloadedIPAPath] ?: @"";
-    NSMutableArray<NSDictionary *> *rows = [NSMutableArray arrayWithArray:@[
-        @{ @"kind": @"info",
-           @"title": @"App Store Account",
-           @"subtitle": ipadecryptor_app_store_account_summary() },
-        @{ @"kind": @"button",
-           @"title": ipadecryptor_has_app_store_account()
-                ? @"Sign In Again…"
-                : @"Sign In to App Store…",
-           @"subtitle": @"Required before Cyanide can request an authenticated IPA download ticket. 2FA is requested after Apple asks for it.",
-           @"action": @"ipadec-signin" },
-        @{ @"kind": @"info",
-           @"title": @"Selected App",
-           @"subtitle": settings_ipadecryptor_target_summary(d) },
-        @{ @"kind": @"info",
-           @"title": @"App Store Link",
-           @"subtitle": settings_ipadecryptor_app_store_summary(d) },
-        @{ @"kind": @"info",
-           @"title": @"Download Status",
-           @"subtitle": [d stringForKey:kSettingsIPADecryptorDownloadStatus] ?: @"Not started." },
-        @{ @"kind": @"info",
-           @"title": @"Output Folder",
-           @"subtitle": ipadecryptor_default_output_directory().length > 0
-                ? ipadecryptor_default_output_directory()
-                : @"Cyanide Documents/DecryptedIPAs" },
-        @{ @"kind": @"button",
-           @"title": @"Choose Installed App…",
-           @"action": @"ipadec-choose" },
-        @{ @"kind": @"button",
-           @"title": @"Paste App Store Link & Download…",
-           @"subtitle": @"Resolves the link, then starts the IPA download path.",
-           @"action": @"ipadec-paste-link" },
-    ]];
-    if (appStoreInput.length > 0) {
-        [rows addObject:@{ @"kind": @"button",
-                           @"title": @"Download IPA from App Store",
-                           @"subtitle": @"Requests an authenticated download ticket, then fetches the encrypted IPA to Documents.",
-                           @"action": @"ipadec-download" }];
-    }
-    if (ipadecryptor_has_app_store_account()) {
-        [rows addObject:@{ @"kind": @"button",
-                           @"title": @"Clear Saved App Store Token",
-                           @"action": @"ipadec-clear-account",
-                           @"destructive": @YES }];
-    }
-    if (downloadedPath.length > 0) {
-        [rows addObject:@{ @"kind": @"info",
-                           @"title": @"Downloaded IPA",
-                           @"subtitle": downloadedPath }];
-    }
-    if (bundleID.length > 0) {
-        [rows addObject:@{ @"kind": @"button",
-                           @"title": @"Probe Target",
-                           @"subtitle": @"Reads the app bundle and reports the main Mach-O FairPlay encryption command.",
-                           @"action": @"ipadec-probe" }];
-        [rows addObject:@{ @"kind": @"button",
-                           @"title": @"Start Decrypt",
-                           @"subtitle": @"Runs the in-dev pipeline. Dump and IPA writer stages are still being wired.",
-                           @"action": @"ipadec-start" }];
-    }
-    return rows;
 }
 
 - (NSArray<NSDictionary *> *)themerRows
@@ -9132,9 +8172,6 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
             [out addObject:@{@"title": settings_nicebar_slot_name(i),
                              @"value": settings_nicebar_kind_name(kind)}];
         }
-    } else if (section == SectionRSSI) {
-        [out addObject:@{@"title": @"WiFi (bar count)", @"value": [d boolForKey:kSettingsRSSIDisplayWifi] ? @"On" : @"Off"}];
-        [out addObject:@{@"title": @"Cellular (dBm)",   @"value": [d boolForKey:kSettingsRSSIDisplayCell] ? @"On" : @"Off"}];
     } else if (section == SectionAppSwitcherGrid) {
         [out addObject:@{@"title": @"Switcher style",
                          @"value": settings_tweak_is_applied(kSettingsAppSwitcherGridEnabled) ? @"Grid" : @"Stock"}];
@@ -9166,9 +8203,6 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         [out addObject:@{@"title": @"Video", @"value": settings_livewp_video_detail()}];
     } else if (section == SectionLocationSim) {
         [out addObject:@{@"title": @"Target", @"value": settings_location_sim_target_summary(d)}];
-    } else if (section == SectionIPADecryptor) {
-        [out addObject:@{@"title": @"Target", @"value": settings_ipadecryptor_target_summary(d)}];
-        [out addObject:@{@"title": @"App Store", @"value": settings_ipadecryptor_app_store_summary(d)}];
     } else if (section == SectionGravityLite) {
         [out addObject:@{@"title": @"Dock",         @"value": [d boolForKey:kSettingsGravityLiteDockEnabled] ? @"Included" : @"Home only"}];
         [out addObject:@{@"title": @"Strength",     @"value": [NSString stringWithFormat:@"%ld%%", (long)[d integerForKey:kSettingsGravityLiteMagnitudePct]]}];
@@ -9195,15 +8229,11 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         case SectionStatBar:   return self.statbarRows;
         case SectionNSBar:     return self.nsbarRows;
         case SectionNiceBarLite: return self.nicebarLiteRows;
-        case SectionRSSI:      return self.rssiRows;
         case SectionAxonLite:  return self.axonLiteRows;
-        case SectionTypeBanner: return self.typebannerRows;
-        case SectionNotificationIsland: return self.notificationIslandRows;
         case SectionAppSwitcherGrid: return self.appSwitcherGridRows;
         case SectionFastLockXLite: return settings_fastlockx_lite_install_allowed() ? self.fastLockXLiteRows : @[];
         case SectionGravityLite: return self.gravityLiteRows;
         case SectionLocationSim: return self.locationSimRows;
-        case SectionIPADecryptor: return self.ipaDecryptorRows;
         case SectionSnowBoardLite: return self.snowboardLiteRows;
         case SectionLiveWP: return self.liveWPRows;
         case SectionQuickLoader: return self.quickLoaderRows;
@@ -9226,14 +8256,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
         @{ @"title": @"StatBar",            @"icon": @"thermometer.medium",                  @"color": [UIColor systemRedColor],    @"section": @(SectionStatBar) },
         @{ @"title": @"NSBar",              @"icon": @"network",                             @"color": [UIColor systemBlueColor],   @"section": @(SectionNSBar) },
         @{ @"title": @"NiceBar Lite",       @"icon": @"textformat.size",                     @"color": [UIColor systemTealColor],   @"section": @(SectionNiceBarLite) },
-#if CYANIDE_EXPERIMENTAL_TWEAKS_AVAILABLE
-        @{ @"title": @"Signal Display",     @"icon": @"antenna.radiowaves.left.and.right",   @"color": [UIColor systemBlueColor],   @"section": @(SectionRSSI), @"indev": @YES },
-#endif
         @{ @"title": @"Axon Lite",          @"icon": @"bell.badge.fill",                     @"color": [UIColor systemRedColor],    @"section": @(SectionAxonLite) },
 #if CYANIDE_EXPERIMENTAL_TWEAKS_AVAILABLE
-        @{ @"title": @"TypeBanner",         @"icon": @"ellipsis.bubble.fill",                @"color": [UIColor systemTealColor],   @"section": @(SectionTypeBanner), @"indev": @YES },
-        @{ @"title": @"Notification Island", @"icon": @"bell.and.waves.left.and.right.fill",  @"color": [UIColor systemOrangeColor], @"section": @(SectionNotificationIsland), @"indev": @YES },
-        @{ @"title": @"IPA Decryptor",      @"icon": @"lock.open.fill",                      @"color": [UIColor systemPurpleColor], @"section": @(SectionIPADecryptor), @"indev": @YES },
         @{ @"title": @"FastLockX Lite",     @"icon": @"lock.open.fill",                      @"color": [UIColor systemGreenColor],  @"section": @(SectionFastLockXLite) },
 #endif
         @{ @"title": @"Gravity Lite",       @"icon": @"arrow.down.circle.fill",              @"color": [UIColor systemGreenColor],  @"section": @(SectionGravityLite) },
@@ -9411,17 +8435,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     if (s == SectionNiceBarLite) {
         return @"Tap a box to choose what it shows. NiceBar Lite places plain text in the configured status-bar slots around the notch or Dynamic Island, including the bottom center position. Weather is fetched from your current location through Open-Meteo and follows the Celsius toggle.";
     }
-    if (s == SectionRSSI) {
-        return @"Adds a UILabel as a sibling of each STUI signal view (no new UIWindow), refreshed every second. Cellular shows live RSRP dBm (sign implicit). WiFi shows the bar count (0-4); the wifid XPC dBm path crashed SpringBoard in prior tests.";
-    }
     if (s == SectionAxonLite) {
         return @"RemoteCall-only Axon port. It uses a live app-side loop rather than substrate hooks, so it lasts for the active Cyanide SpringBoard session.";
-    }
-    if (s == SectionTypeBanner) {
-        return @"Partial TypeMillennium port. Detection runs against imagent using original-thread RemoteCall probes, while SpringBoard renders a prewarmed banner window.";
-    }
-    if (s == SectionNotificationIsland) {
-        return @"Experimental Dynamic Island notification route. Cyanide polls SpringBoard's active banner request through the shared RemoteCall session, then mirrors it through the app's ActivityKit Live Activity.";
     }
     if (s == SectionAppSwitcherGrid) {
         return @"Runtime patch. It changes SpringBoard's app switcher style in memory, writes no system files, and a respring restores stock. Unsupported builds may glitch the app switcher or crash SpringBoard.";
@@ -9431,9 +8446,6 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     }
     if (s == SectionLocationSim) {
         return @"Beta CoreLocation simulation. Requires Apple Maps installed and set up — Maps is the RemoteCall host process that drives the simulation.\n\nThis is a manual tool, not an installable package. Use Simulate Current Target to start; use Restore Real Location to stop simulation and return CoreLocation to the device's real providers. Each run opens the activity log and marks completion when the request returns.\n\nNot all apps respect the simulated location. Apps that use their own location validation or additional signals may ignore it.\n\nCredits: kolbicz for the RemoteCall/CLSimulationManager GPS spoofer prototype, and ezzuldinSt's LSpoof for picker/route references.\n\nWarning: this can affect more than maps. Location-tied system behavior, including time zone and date/time handling, may behave unexpectedly. Only use this if you know what you're doing.";
-    }
-    if (s == SectionIPADecryptor) {
-        return @"In-development local IPA decryptor. Current build discovers installed user apps, resolves pasted App Store links to bundle IDs, signs in for an App Store download token, and fetches the encrypted IPA to Documents. The fetched IPA still needs SINF/iTunesMetadata patching plus the KRW dump/rebuild stage before it becomes a decrypted IPA.";
     }
     if (s == SectionThemer) {
         return @"Legacy icon theme engine settings.\n\n"
@@ -12063,424 +11075,6 @@ void cyanide_present_contact(UIViewController *host)
                                                         object:[PackageQueue sharedQueue]];
 }
 
-- (void)reloadIPADecryptorUI
-{
-    [self reloadSectionOrAll:SectionIPADecryptor];
-    [[NSNotificationCenter defaultCenter] postNotificationName:PackageQueueDidChangeNotification
-                                                        object:[PackageQueue sharedQueue]];
-}
-
-- (void)presentIPADecryptorAppPicker
-{
-    NSArray<NSDictionary<NSString *, NSString *> *> *apps = ipadecryptor_installed_apps();
-    if (apps.count == 0) {
-        UIAlertController *ac = [UIAlertController
-            alertControllerWithTitle:@"No Apps Found"
-                             message:@"Cyanide could not list installed user apps yet. Run the chain once, then try again."
-                      preferredStyle:UIAlertControllerStyleAlert];
-        [ac addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-        settings_present_controller(ac, self);
-        return;
-    }
-
-    UIAlertController *ac = [UIAlertController alertControllerWithTitle:@"Choose App"
-                                                                message:@"Select the installed app to probe/decrypt."
-                                                         preferredStyle:UIAlertControllerStyleActionSheet];
-    __weak typeof(self) weakSelf = self;
-    NSUInteger shown = 0;
-    for (NSDictionary<NSString *, NSString *> *app in apps) {
-        if (shown >= 60) break;
-        NSString *bundleID = app[@"bundleID"];
-        if (bundleID.length == 0) continue;
-        NSString *name = app[@"name"].length > 0 ? app[@"name"] : bundleID;
-        NSString *title = name;
-        if (![name isEqualToString:bundleID]) {
-            title = [NSString stringWithFormat:@"%@ — %@", name, bundleID];
-        }
-        [ac addAction:[UIAlertAction actionWithTitle:title
-                                               style:UIAlertActionStyleDefault
-                                             handler:^(__unused UIAlertAction *action) {
-            __strong typeof(weakSelf) strongSelf = weakSelf;
-            if (!strongSelf) return;
-            NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
-            [d setObject:bundleID forKey:kSettingsIPADecryptorTargetBundleID];
-            [d synchronize];
-            log_user("[IPADEC] Selected %s (%s)\n", name.UTF8String, bundleID.UTF8String);
-            [strongSelf reloadIPADecryptorUI];
-        }]];
-        shown++;
-    }
-    if (apps.count > shown) {
-        [ac addAction:[UIAlertAction actionWithTitle:[NSString stringWithFormat:@"%lu more hidden — refine picker later",
-                                                                             (unsigned long)(apps.count - shown)]
-                                               style:UIAlertActionStyleDefault
-                                             handler:nil]];
-    }
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    ac.popoverPresentationController.sourceView = self.view;
-    ac.popoverPresentationController.sourceRect = self.view.bounds;
-    settings_present_controller(ac, self);
-}
-
-- (void)saveIPADecryptorAppStoreMetadata:(NSDictionary<NSString *, NSString *> *)meta
-                                   input:(NSString *)input
-{
-    if (meta.count == 0) return;
-    NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
-    NSString *bundleID = meta[@"bundleID"] ?: @"";
-    [d setObject:input ?: @"" forKey:kSettingsIPADecryptorAppStoreInput];
-    [d setObject:meta[@"appStoreID"] ?: @"" forKey:kSettingsIPADecryptorAppStoreID];
-    [d setObject:meta[@"name"] ?: @"" forKey:kSettingsIPADecryptorAppStoreName];
-    [d setObject:meta[@"version"] ?: @"" forKey:kSettingsIPADecryptorAppStoreVersion];
-    [d setObject:meta[@"trackURL"] ?: @"" forKey:kSettingsIPADecryptorAppStoreURL];
-    [d setObject:@"" forKey:kSettingsIPADecryptorDownloadedIPAPath];
-    [d setObject:@"Resolved App Store metadata. Download not started yet."
-          forKey:kSettingsIPADecryptorDownloadStatus];
-    if (bundleID.length > 0) {
-        [d setObject:bundleID forKey:kSettingsIPADecryptorTargetBundleID];
-    }
-    [d synchronize];
-}
-
-- (void)saveIPADecryptorDownloadStatus:(NSString *)status
-                         downloadedIPA:(NSString *)downloadedPath
-{
-    NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
-    [d setObject:status.length > 0 ? status : @"Download status unavailable."
-          forKey:kSettingsIPADecryptorDownloadStatus];
-    if (downloadedPath.length > 0) {
-        [d setObject:downloadedPath forKey:kSettingsIPADecryptorDownloadedIPAPath];
-    }
-    [d synchronize];
-}
-
-- (void)presentIPADecryptorSignInPrompt
-{
-    UIAlertController *ac = [UIAlertController
-        alertControllerWithTitle:@"App Store Sign In"
-                         message:@"Sign in with the Apple ID that owns or can download the app. If Apple asks for two-factor authentication, Cyanide will prompt for the code next."
-                  preferredStyle:UIAlertControllerStyleAlert];
-    [ac addTextFieldWithConfigurationHandler:^(UITextField *field) {
-        field.placeholder = @"Apple ID email";
-        field.keyboardType = UIKeyboardTypeEmailAddress;
-        field.autocapitalizationType = UITextAutocapitalizationTypeNone;
-        field.autocorrectionType = UITextAutocorrectionTypeNo;
-        field.clearButtonMode = UITextFieldViewModeWhileEditing;
-    }];
-    [ac addTextFieldWithConfigurationHandler:^(UITextField *field) {
-        field.placeholder = @"Password";
-        field.secureTextEntry = YES;
-        field.autocapitalizationType = UITextAutocapitalizationTypeNone;
-        field.autocorrectionType = UITextAutocorrectionTypeNo;
-        field.clearButtonMode = UITextFieldViewModeWhileEditing;
-    }];
-    __weak typeof(self) weakSelf = self;
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Sign In"
-                                           style:UIAlertActionStyleDefault
-                                         handler:^(__unused UIAlertAction *action) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        [strongSelf runIPADecryptorSignInEmail:ac.textFields[0].text
-                                      password:ac.textFields[1].text
-                                      authCode:nil];
-    }]];
-    settings_present_controller(ac, self);
-}
-
-- (void)presentIPADecryptorTwoFactorPromptForEmail:(NSString *)email
-                                          password:(NSString *)password
-{
-    NSString *trimmedEmail = [email ?: @"" stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    NSString *shownEmail = trimmedEmail.length > 0 ? trimmedEmail : @"this Apple ID";
-    UIAlertController *ac = [UIAlertController
-        alertControllerWithTitle:@"Two-Factor Code"
-                         message:[NSString stringWithFormat:@"Enter the 6-digit code Apple sent for %@.", shownEmail]
-                  preferredStyle:UIAlertControllerStyleAlert];
-    [ac addTextFieldWithConfigurationHandler:^(UITextField *field) {
-        field.placeholder = @"2FA code";
-        field.keyboardType = UIKeyboardTypeNumberPad;
-        field.textContentType = UITextContentTypeOneTimeCode;
-        field.clearButtonMode = UITextFieldViewModeWhileEditing;
-    }];
-    __weak typeof(self) weakSelf = self;
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Verify"
-                                           style:UIAlertActionStyleDefault
-                                         handler:^(__unused UIAlertAction *action) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        NSString *rawCode = ac.textFields.firstObject.text ?: @"";
-        NSMutableString *code = [NSMutableString string];
-        NSCharacterSet *digits = NSCharacterSet.decimalDigitCharacterSet;
-        for (NSUInteger i = 0; i < rawCode.length; i++) {
-            unichar c = [rawCode characterAtIndex:i];
-            if ([digits characterIsMember:c]) [code appendFormat:@"%C", c];
-        }
-        if (code.length == 0) {
-            UIAlertController *retry = [UIAlertController
-                alertControllerWithTitle:@"Code Required"
-                                 message:@"Enter the 6-digit Apple verification code."
-                          preferredStyle:UIAlertControllerStyleAlert];
-            [retry addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *a) {
-                [strongSelf presentIPADecryptorTwoFactorPromptForEmail:email password:password];
-            }]];
-            settings_present_controller(retry, strongSelf);
-            return;
-        }
-        [strongSelf runIPADecryptorSignInEmail:email
-                                      password:password
-                                      authCode:code];
-    }]];
-    settings_present_controller(ac, self);
-}
-
-- (void)runIPADecryptorSignInEmail:(NSString *)email
-                          password:(NSString *)password
-                          authCode:(NSString *)authCode
-{
-    static volatile int sIPADecryptorSignInInFlight = 0;
-    if (__sync_lock_test_and_set(&sIPADecryptorSignInInFlight, 1)) {
-        log_user("[IPADEC] App Store sign-in already running.\n");
-        return;
-    }
-
-    NSString *emailCopy = [email copy] ?: @"";
-    NSString *passwordCopy = [password copy] ?: @"";
-    NSString *authCodeCopy = [authCode copy] ?: @"";
-    __weak typeof(self) weakSelf = self;
-    log_user("[IPADEC] Signing in to App Store as %s%s\n",
-             emailCopy.UTF8String,
-             authCodeCopy.length > 0 ? " with 2FA code" : "");
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        BOOL actionOK = NO;
-        BOOL actionLockAcquired = NO;
-        NSString *completionMessage = nil;
-        @try {
-            actionLockAcquired = settings_try_claim_actions_lock("IPA Decryptor App Store sign-in",
-                                                                 "[IPADEC] Another action is already running.");
-            if (!actionLockAcquired) {
-                completionMessage = @"Sign-in blocked: another action is still running.";
-                return;
-            }
-            NSString *message = nil;
-            actionOK = ipadecryptor_login_app_store(emailCopy, passwordCopy, authCodeCopy, &message);
-            completionMessage = message ?: (actionOK ? @"App Store sign-in complete." : @"App Store sign-in failed.");
-            log_user("[IPADEC] %s\n", completionMessage.UTF8String);
-        } @finally {
-            if (actionLockAcquired) settings_release_actions_lock();
-            __sync_lock_release(&sIPADecryptorSignInInFlight);
-            BOOL messageRequestsTwoFactor =
-                completionMessage.length > 0 &&
-                [completionMessage rangeOfString:@"Two-factor code required"
-                                         options:NSCaseInsensitiveSearch].location != NSNotFound;
-            BOOL needsTwoFactor = (!actionOK &&
-                                   authCodeCopy.length == 0 &&
-                                   messageRequestsTwoFactor);
-            dispatch_async(dispatch_get_main_queue(), ^{
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                [strongSelf reloadIPADecryptorUI];
-                NSDictionary *info = @{
-                    kSettingsActionsDidCompleteSuccessKey: @(actionOK),
-                    kSettingsActionsDidCompleteMessageKey: completionMessage ?: @""
-                };
-                [[NSNotificationCenter defaultCenter]
-                    postNotificationName:kSettingsActionsDidCompleteNotification
-                                  object:nil
-                                userInfo:info];
-                if (needsTwoFactor) {
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(250 * NSEC_PER_MSEC)),
-                                   dispatch_get_main_queue(), ^{
-                        __strong typeof(weakSelf) laterSelf = weakSelf;
-                        [laterSelf presentIPADecryptorTwoFactorPromptForEmail:emailCopy
-                                                                      password:passwordCopy];
-                    });
-                }
-            });
-        }
-    });
-}
-
-- (void)presentIPADecryptorAppStoreLinkPrompt
-{
-    NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
-    UIAlertController *ac = [UIAlertController
-        alertControllerWithTitle:@"App Store Link"
-                         message:@"Paste an App Store URL like https://apps.apple.com/us/app/name/id123456789, or enter the numeric app ID. Cyanide will resolve it, then attempt the IPA download path."
-                  preferredStyle:UIAlertControllerStyleAlert];
-    [ac addTextFieldWithConfigurationHandler:^(UITextField *field) {
-        field.placeholder = @"App Store URL or app ID";
-        field.text = [d stringForKey:kSettingsIPADecryptorAppStoreInput] ?: @"";
-        field.keyboardType = UIKeyboardTypeURL;
-        field.autocapitalizationType = UITextAutocapitalizationTypeNone;
-        field.autocorrectionType = UITextAutocorrectionTypeNo;
-        field.clearButtonMode = UITextFieldViewModeWhileEditing;
-    }];
-    __weak typeof(self) weakSelf = self;
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Resolve"
-                                           style:UIAlertActionStyleDefault
-                                         handler:^(__unused UIAlertAction *action) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        NSString *input = ac.textFields.firstObject.text ?: @"";
-        [strongSelf runIPADecryptorResolveAppStoreInput:input];
-    }]];
-    settings_present_controller(ac, self);
-}
-
-- (void)runIPADecryptorResolveAppStoreInput:(NSString *)input
-{
-    NSString *trimmed = [input stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    if (trimmed.length == 0) {
-        log_user("[IPADEC] Paste an App Store link first.\n");
-        return;
-    }
-
-    __weak typeof(self) weakSelf = self;
-    dispatch_block_t startAction = ^{
-        log_user("[IPADEC] Resolving App Store input: %s\n", trimmed.UTF8String);
-        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            BOOL actionOK = NO;
-            BOOL actionLockAcquired = NO;
-            NSString *completionMessage = nil;
-            NSDictionary<NSString *, NSString *> *meta = nil;
-            BOOL downloadOK = NO;
-            NSString *downloadedPath = nil;
-            NSString *downloadMessage = nil;
-            @try {
-                actionLockAcquired = settings_try_claim_actions_lock("IPA Decryptor App Store lookup",
-                                                                     "[IPADEC] Another action is already running.");
-                if (!actionLockAcquired) {
-                    completionMessage = @"App Store lookup blocked: another action is still running.";
-                    return;
-                }
-
-                NSString *message = nil;
-                meta = ipadecryptor_resolve_app_store_input(trimmed, &message);
-                actionOK = meta != nil;
-                completionMessage = message ?: (actionOK ? @"App Store link resolved." : @"App Store lookup failed.");
-                if (meta) {
-                    log_user("[IPADEC] Resolved target bundle id: %s\n",
-                             (meta[@"bundleID"] ?: @"").UTF8String);
-                    log_user("[IPADEC] Starting IPA download path after resolve.\n");
-                    downloadOK = ipadecryptor_download_app_store_ipa(trimmed,
-                                                                     &downloadedPath,
-                                                                     &downloadMessage);
-                    if (downloadOK) {
-                        completionMessage = downloadMessage ?: @"IPA downloaded.";
-                    } else {
-                        completionMessage = [NSString stringWithFormat:@"Link resolved. %@",
-                                                                       downloadMessage ?: @"IPA download did not start."];
-                    }
-                }
-            } @finally {
-                if (actionLockAcquired) settings_release_actions_lock();
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    __strong typeof(weakSelf) strongSelf = weakSelf;
-                    if (meta) [strongSelf saveIPADecryptorAppStoreMetadata:meta input:trimmed];
-                    if (meta) {
-                        [strongSelf saveIPADecryptorDownloadStatus:downloadMessage ?: (downloadOK ? @"IPA downloaded." : @"IPA download did not start.")
-                                                     downloadedIPA:downloadOK ? downloadedPath : nil];
-                    }
-                    [strongSelf reloadIPADecryptorUI];
-                    NSDictionary *info = @{
-                        kSettingsActionsDidCompleteSuccessKey: @(actionOK && downloadOK),
-                        kSettingsActionsDidCompleteMessageKey: completionMessage ?: @""
-                    };
-                    [[NSNotificationCenter defaultCenter]
-                        postNotificationName:kSettingsActionsDidCompleteNotification
-                                      object:nil
-                                    userInfo:info];
-                });
-            }
-        });
-    };
-    [self presentActivityLogWithCompletion:startAction];
-}
-
-- (void)runIPADecryptorAction:(NSString *)action
-{
-    if (action.length == 0) return;
-    NSUserDefaults *d = NSUserDefaults.standardUserDefaults;
-    BOOL downloadIPA = [action isEqualToString:@"ipadec-download"];
-    NSString *bundleID = [d stringForKey:kSettingsIPADecryptorTargetBundleID];
-    NSString *appStoreInput = [d stringForKey:kSettingsIPADecryptorAppStoreInput];
-    if (!downloadIPA && bundleID.length == 0) {
-        log_user("[IPADEC] Select an installed app first.\n");
-        return;
-    }
-    if (downloadIPA && appStoreInput.length == 0) {
-        log_user("[IPADEC] Paste an App Store link first.\n");
-        return;
-    }
-
-    BOOL startDecrypt = [action isEqualToString:@"ipadec-start"];
-    BOOL probeOnly = [action isEqualToString:@"ipadec-probe"];
-    if (!startDecrypt && !probeOnly && !downloadIPA) return;
-
-    static volatile int sIPADecryptorInFlight = 0;
-    if (__sync_lock_test_and_set(&sIPADecryptorInFlight, 1)) {
-        log_user("[IPADEC] Another IPA Decryptor action is already running.\n");
-        return;
-    }
-
-    __weak typeof(self) weakSelf = self;
-    dispatch_block_t startAction = ^{
-        log_user("[IPADEC] %s %s\n",
-                 downloadIPA ? "Downloading App Store IPA for" : (startDecrypt ? "Starting decrypt pipeline for" : "Probing"),
-                 downloadIPA ? appStoreInput.UTF8String : bundleID.UTF8String);
-        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            BOOL actionOK = NO;
-            BOOL actionLockAcquired = NO;
-            NSString *completionMessage = nil;
-            NSString *downloadedPath = nil;
-            @try {
-                actionLockAcquired = settings_try_claim_actions_lock("IPA Decryptor action",
-                                                                     "[IPADEC] Another action is already running.");
-                if (!actionLockAcquired) {
-                    completionMessage = @"IPA Decryptor blocked: another action is still running.";
-                    return;
-                }
-                if (startDecrypt && !settings_ensure_kexploit()) {
-                    log_user("[IPADEC] Failed: kernel primitives not acquired. Please run the chain again.\n");
-                    completionMessage = @"IPA Decryptor failed: kernel primitives were not acquired.";
-                    return;
-                }
-
-                NSString *message = nil;
-                if (downloadIPA) {
-                    actionOK = ipadecryptor_download_app_store_ipa(appStoreInput,
-                                                                   &downloadedPath,
-                                                                   &message);
-                } else {
-                    actionOK = startDecrypt
-                        ? ipadecryptor_start_decrypt_installed_app(bundleID, &message)
-                        : ipadecryptor_probe_installed_app(bundleID, &message);
-                }
-                completionMessage = message ?: (actionOK ? @"IPA Decryptor action finished." : @"IPA Decryptor action did not complete.");
-            } @finally {
-                if (actionLockAcquired) settings_release_actions_lock();
-                __sync_lock_release(&sIPADecryptorInFlight);
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    __strong typeof(weakSelf) strongSelf = weakSelf;
-                    if (downloadIPA) {
-                        [strongSelf saveIPADecryptorDownloadStatus:completionMessage
-                                                     downloadedIPA:(actionOK ? downloadedPath : nil)];
-                    }
-                    [strongSelf reloadIPADecryptorUI];
-                    NSDictionary *info = @{
-                        kSettingsActionsDidCompleteSuccessKey: @(actionOK),
-                        kSettingsActionsDidCompleteMessageKey: completionMessage ?: @""
-                    };
-                    [[NSNotificationCenter defaultCenter]
-                        postNotificationName:kSettingsActionsDidCompleteNotification
-                                      object:nil
-                                    userInfo:info];
-                });
-            }
-        });
-    };
-    [self presentActivityLogWithCompletion:startAction];
-}
-
 - (void)runGravityLiteAction:(NSString *)action
 {
     if (!settings_device_supported()) return;
@@ -13227,190 +11821,8 @@ void cyanide_present_contact(UIViewController *host)
         return;
     }
 
-    if (indexPath.section == SectionIPADecryptor) {
-        NSDictionary *row = [self rowsForSection:indexPath.section][indexPath.row];
-        if (![row[@"kind"] isEqualToString:@"button"]) return;
-        NSString *action = row[@"action"];
-        if ([action isEqualToString:@"ipadec-choose"]) {
-            [self presentIPADecryptorAppPicker];
-        } else if ([action isEqualToString:@"ipadec-signin"]) {
-            [self presentIPADecryptorSignInPrompt];
-        } else if ([action isEqualToString:@"ipadec-clear-account"]) {
-            ipadecryptor_clear_app_store_account();
-            [self saveIPADecryptorDownloadStatus:@"App Store token cleared. Sign in before downloading."
-                                   downloadedIPA:nil];
-            [self reloadIPADecryptorUI];
-        } else if ([action isEqualToString:@"ipadec-paste-link"]) {
-            [self presentIPADecryptorAppStoreLinkPrompt];
-        } else if ([action isEqualToString:@"ipadec-probe"] ||
-                   [action isEqualToString:@"ipadec-start"] ||
-                   [action isEqualToString:@"ipadec-download"]) {
-            [self runIPADecryptorAction:action];
-        }
-        return;
-    }
 
-    if (indexPath.section == SectionTypeBanner) {
-        NSDictionary *row = [self rowsForSection:indexPath.section][indexPath.row];
-        if (![row[@"kind"] isEqualToString:@"button"]) return;
-        NSString *action = row[@"action"];
-        if ([action isEqualToString:@"typebanner-test"]) {
-            static volatile int sTbTestInFlight = 0;
-            if (__sync_lock_test_and_set(&sTbTestInFlight, 1)) {
-                log_user("[TYPEBANNER] Test already running — wait for the previous one to finish before tapping again.\n");
-                return;
-            }
-            __weak typeof(self) weakSelf = self;
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                BOOL actionLockAcquired = NO;
-                @try {
-                    actionLockAcquired = settings_try_claim_actions_lock("TypeBanner test",
-                                                                         "[TYPEBANNER] Another action is already running.");
-                    if (!actionLockAcquired) {
-                        return;
-                    }
-                    if (!settings_ensure_kexploit()) {
-                        log_user("[TYPEBANNER] Test failed: kernel primitives not acquired. Please try running chain again.\n");
-                        return;
-                    }
 
-                    // Pause the live loop while the test runs so the one-shot
-                    // diagnostics do not race the periodic banner updater.
-                    BOOL liveLoopWasRunning = g_typebanner_live_running != 0;
-                    if (liveLoopWasRunning) {
-                        g_typebanner_live_stop_requested = 1;
-                        int waitMs = 0;
-                        while (g_typebanner_live_running && waitMs < 30000) {
-                            usleep(100000);
-                            waitMs += 100;
-                        }
-                        if (g_typebanner_live_running) {
-                            log_user("[TYPEBANNER] Test aborted: live loop did not yield in 30s.\n");
-                            return;
-                        }
-                    }
-
-                    log_user("[TYPEBANNER] Test: polling imagent for typing indicators…\n");
-                    NSString *detected = nil;
-                    @synchronized (settings_rc_lock()) {
-                        RemoteCallSession *daemonSession = [[RemoteCallSession alloc] initWithProcess:@"imagent"
-                                                                                   useMigFilterBypass:NO
-                                                                              firstExceptionTimeoutMS:TYPEBANNER_RC_MOBILESMS_FIRST_EXCEPTION_TIMEOUT_MS
-                                                                                    originalThreadOnly:YES];
-                        if (!daemonSession) {
-                            RemoteCallInitFailure failure = remote_call_last_init_failure();
-                            uint32_t pid = remote_call_last_init_failure_pid();
-                            if (failure == RemoteCallInitFailureProcessMissing) {
-                                log_user("[TYPEBANNER] imagent is not running.\n");
-                            } else if (failure == RemoteCallInitFailureFirstExceptionTimeout && pid != 0) {
-                                log_user("[TYPEBANNER] imagent pid=%u did not answer the original-thread bootstrap this tick.\n",
-                                         pid);
-                            } else if (pid != 0) {
-                                log_user("[TYPEBANNER] imagent RemoteCall init failed: %s (pid=%u)\n",
-                                         remote_call_init_failure_description(failure), pid);
-                            } else {
-                                log_user("[TYPEBANNER] imagent RemoteCall init failed: %s\n",
-                                         remote_call_init_failure_description(failure));
-                            }
-                        } else {
-                            @try {
-                                detected = typebanner_poll_in_imagent_remote_session(daemonSession);
-                            } @catch (NSException *e) {
-                                log_user("[TYPEBANNER] imagent poll threw: %s\n", e.reason.UTF8String);
-                            }
-                            if (detected.length == 0) {
-                                log_user("[TYPEBANNER] No daemon typing indicator detected on this poll.\n");
-                            }
-                            [daemonSession destroyRemoteCall];
-                        }
-                    }
-
-                    if (detected.length > 0) {
-                        log_user("[TYPEBANNER] Detected typing: %s. Showing banner.\n",
-                                 detected.UTF8String);
-                    } else {
-                        log_user("[TYPEBANNER] Showing a one-shot demo banner so you can confirm the SpringBoard render path.\n");
-                    }
-
-                    @synchronized (settings_rc_lock()) {
-                        RemoteCallSession *springboardSession = [[RemoteCallSession alloc] initWithProcess:@"SpringBoard"
-                                                                                         useMigFilterBypass:NO
-                                                                                    firstExceptionTimeoutMS:TYPEBANNER_RC_FIRST_EXCEPTION_TIMEOUT_MS];
-                        if (!springboardSession) {
-                            log_user("[TYPEBANNER] SpringBoard not reachable; cannot show banner.\n");
-                        } else {
-                            bool ok = false;
-                            @try {
-                                NSString *label = detected.length > 0 ? detected : @"TypeBanner demo";
-                                ok = typebanner_show_in_springboard_remote_session(springboardSession, label);
-                            } @catch (NSException *e) {
-                                log_user("[TYPEBANNER] SpringBoard show threw: %s\n", e.reason.UTF8String);
-                            }
-                            log_user("[TYPEBANNER] show=%d. Banner auto-hides in 5s.\n", ok);
-                            sleep(5);
-                            @try { typebanner_hide_in_springboard_remote_session(springboardSession); } @catch (NSException *e) {}
-                            [springboardSession destroyRemoteCall];
-                        }
-                    }
-
-                    if (liveLoopWasRunning) {
-                        log_user("[TYPEBANNER] Resuming live loop.\n");
-                        g_typebanner_live_stop_requested = 0;
-                        settings_start_typebanner_live_loop();
-                    }
-                } @finally {
-                    if (actionLockAcquired) settings_release_actions_lock();
-                    __sync_lock_release(&sTbTestInFlight);
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [weakSelf.tableView reloadSections:[NSIndexSet indexSetWithIndex:0]
-                                          withRowAnimation:UITableViewRowAnimationNone];
-                    });
-                }
-            });
-        }
-        return;
-    }
-
-    if (indexPath.section == SectionNotificationIsland) {
-        NSDictionary *row = [self rowsForSection:indexPath.section][indexPath.row];
-        if (![row[@"kind"] isEqualToString:@"button"]) return;
-        NSString *action = row[@"action"];
-        if ([action isEqualToString:@"notificationisland-sample"]) {
-            if (!settings_notificationisland_install_allowed()) {
-                log_user("[NISLAND] Notification Island is unavailable in this build.\n");
-                return;
-            }
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                BOOL actionLockAcquired = settings_try_claim_actions_lock("Notification Island sample",
-                                                                         "[NISLAND] Another action is already running.");
-                if (!actionLockAcquired) {
-                    return;
-                }
-                @try {
-                    if (!settings_ensure_kexploit()) {
-                        log_user("[NISLAND] Sample failed: kernel primitives not acquired. Please try running chain again.\n");
-                        return;
-                    }
-                    bool ok = false;
-                    @synchronized (settings_rc_lock()) {
-                        if (!settings_ensure_springboard_remote_call_locked()) {
-                            log_user("[NISLAND] SpringBoard not reachable; cannot show sample.\n");
-                            return;
-                        }
-                        notificationisland_apply_in_session();
-                        ok = notificationisland_show_sample_in_session("Notification Island", "Sample banner route");
-                    }
-                    log_user("%s Notification Island sample %s.\n",
-                             ok ? "[OK]" : "[WARN]",
-                             ok ? "started" : "did not start");
-                    if (ok) settings_start_notificationisland_live_loop();
-                } @finally {
-                    settings_release_actions_lock();
-                }
-            });
-        }
-        return;
-    }
 
     if (indexPath.section == SectionFastLockXLite) {
         if (!settings_fastlockx_lite_install_allowed()) {

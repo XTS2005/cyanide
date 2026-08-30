@@ -110,9 +110,6 @@ static const NSInteger kSecSBC              = 4;
 static const NSInteger kSecStatBar          = 5;
 static const NSInteger kSecNSBar            = 6;
 static const NSInteger kSecNiceBarLite      = 7;
-static const NSInteger kSecRSSI             = 8;
-static const NSInteger kSecTypeBanner       = 10;
-static const NSInteger kSecNotificationIsland = 11;
 static const NSInteger kSecPowercuff        = 12;
 static const NSInteger kSecDragCoefficient  = 14;
 static const NSInteger kSecLayoutExtras     = 15;
@@ -122,7 +119,6 @@ static const NSInteger kSecLiveWP           = 19;
 static const NSInteger kSecLocationSim      = 20;
 static const NSInteger kSecGravityLite      = 21;
 static const NSInteger kSecAppSwitcherGrid  = 22;
-static const NSInteger kSecIPADecryptor     = 23;
 static const NSInteger kSecFastLockXLite    = 24;
 static const NSInteger kSecQuickLoader      = 25;
 static const NSInteger kSecRepoTweaks       = 26;
@@ -148,9 +144,6 @@ static const NSInteger kSecRepoTweaks       = 26;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         NSString *version = @"1.0";
-        NSString *inDevelopmentDisabledReason =
-            @"In development — install is disabled because this tweak does not work yet. The code is left in the app/source tree for anyone who wants to pick it up.";
-
         Package *statBar = [[Package alloc] initWithIdentifier:@"com.darksword.statbar"
                                            name:@"StatBar"
                                shortDescription:@"Battery temperature + free RAM overlay"
@@ -191,20 +184,6 @@ static const NSInteger kSecRepoTweaks       = 26;
         niceBarLite.settingsSection = kSecNiceBarLite;
 
 #if CYANIDE_EXPERIMENTAL_TWEAKS_AVAILABLE
-        Package *signal = [[Package alloc] initWithIdentifier:@"com.darksword.rssidisplay"
-                                           name:@"Signal Readouts"
-                               shortDescription:@"RSRP dBm on cellular, bar count on WiFi"
-                                longDescription:@"Replaces the signal-strength glyphs in the status bar with live numeric readouts: RSRP in dBm for cellular, and the active bar count for WiFi. Updates roughly once per second.\n\nToggle WiFi-only or cellular-only in the Settings tab."
-                                        version:version
-                                         author:@"zeroxjf"
-                                       category:@"In Development"
-                                     symbolName:@"antenna.radiowaves.left.and.right"
-                                           kind:PackageInstallKindToggle
-                                     enabledKey:kSettingsRSSIDisplayEnabled
-                                          isNew:NO];
-        signal.settingsSection = kSecRSSI;
-        signal.installDisabledReason = inDevelopmentDisabledReason;
-        signal.unstableWarning = @"⚠️ In development only — install is disabled because this does not work yet. The live status-bar refresh interferes with other SpringBoard tweaks and can drop readouts entirely.";
 #endif
 
         Package *sbc = [[Package alloc] initWithIdentifier:@"com.darksword.sbcustomizer"
@@ -247,50 +226,8 @@ static const NSInteger kSecRepoTweaks       = 26;
         axon.unstableWarning = @"⚠️ Experimental: work-in-progress. Expect SpringBoard crashes, dropped notifications, layout glitches, and breakage between Cyanide builds. Don't rely on it for anything important.";
 
 #if CYANIDE_EXPERIMENTAL_TWEAKS_AVAILABLE
-        Package *typeBanner = [[Package alloc] initWithIdentifier:@"com.darksword.typebanner"
-                                           name:@"TypeBanner"
-                               shortDescription:@"iMessage typing banner under the Dynamic Island"
-                                longDescription:@"Port of TypeMillennium. Shows a pill banner just below the Dynamic Island when imagent reports an active iMessage typing indicator.\n\nNo extra configuration."
-                                        version:version
-                                         author:@"zeroxjf"
-                                       category:@"In Development"
-                                     symbolName:@"ellipsis.bubble.fill"
-                                           kind:PackageInstallKindToggle
-                                     enabledKey:kSettingsTypeBannerEnabled
-                                          isNew:NO];
-        typeBanner.settingsSection = kSecTypeBanner;
-        typeBanner.installDisabledReason = inDevelopmentDisabledReason;
-        typeBanner.unstableWarning = @"⚠️ In development only — install is disabled because this does not work yet. Keeps an original-thread imagent RemoteCall session for live polling and may miss indicators or destabilize SpringBoard.";
 
-        Package *notificationIsland = [[Package alloc] initWithIdentifier:@"com.darksword.notificationisland"
-                                           name:@"Notification Island"
-                               shortDescription:@"Mirror incoming banners into the Dynamic Island"
-                                longDescription:@"Experimental Dynamic Island notification route. Watches SpringBoard's active banner request over the shared RemoteCall session, then mirrors the title/body into Cyanide's ActivityKit Live Activity.\n\nNo extra configuration."
-                                        version:version
-                                         author:@"zeroxjf"
-                                       category:@"In Development"
-                                     symbolName:@"bell.and.waves.left.and.right.fill"
-                                           kind:PackageInstallKindToggle
-                                     enabledKey:kSettingsNotificationIslandEnabled
-                                          isNew:NO];
-        notificationIsland.settingsSection = kSecNotificationIsland;
-        notificationIsland.installDisabledReason = inDevelopmentDisabledReason;
-        notificationIsland.unstableWarning = @"⚠️ In development only — install is disabled because this does not work yet. Polls SpringBoard notification state over RemoteCall and may miss banners, duplicate activity updates, or destabilize SpringBoard.";
 
-        Package *ipaDecryptor = [[Package alloc] initWithIdentifier:@"com.darksword.ipadecryptor"
-                                           name:@"IPA Decryptor"
-                               shortDescription:@"Decrypt installed App Store app payloads"
-                                longDescription:@"In-development local IPA decryptor. Select an installed user app or paste an App Store link, resolve it to a bundle ID, sign in for an App Store download token, fetch the encrypted IPA to Documents, probe FairPlay encryption metadata, then run the decrypt pipeline.\n\nCurrent build wires app discovery, App Store link resolution, sign-in, encrypted IPA fetching, and encryption probing first. SINF/iTunesMetadata patching, decrypted page dumping, and rebuilding the Payload IPA are being added behind this same settings tool."
-                                        version:version
-                                         author:@"londek / zeroxjf"
-                                       category:@"In Development"
-                                     symbolName:@"lock.open.fill"
-                                           kind:PackageInstallKindDirectTool
-                                     enabledKey:nil
-                                          isNew:NO];
-        ipaDecryptor.settingsSection = kSecIPADecryptor;
-        ipaDecryptor.installDisabledReason = inDevelopmentDisabledReason;
-        ipaDecryptor.unstableWarning = @"⚠️ In development only — install is disabled because this does not work yet. Encrypted IPA download is experimental. SINF/iTunesMetadata patching, task-port dump, and IPA writer stages are not finished yet.";
 
         Package *stageStrip = [[Package alloc] initWithIdentifier:@"com.darksword.stagestrip"
                                            name:@"Dynamic Stage Lite"
@@ -589,16 +526,12 @@ static const NSInteger kSecRepoTweaks       = 26;
 
             // Higher-risk/manual packages last so their warnings sit below core tweaks.
 #if CYANIDE_EXPERIMENTAL_TWEAKS_AVAILABLE
-            signal,
 #endif
             axon,
             nanoRegistry,
             callRecordingSound,
             hideHomeBar,
 #if CYANIDE_EXPERIMENTAL_TWEAKS_AVAILABLE
-            typeBanner,
-            notificationIsland,
-            ipaDecryptor,
             stageStrip,
             fastLockXLite,
 #endif
