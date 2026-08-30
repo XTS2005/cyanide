@@ -216,10 +216,14 @@ static bool ds_set_trailing_controller(uint64_t obj, uint64_t value, const char 
         return true;
     }
 
-    uint64_t cls = ds_object_class(obj);
-    bool ok = ds_poke_pointer_ivar(obj, cls, "_trailingCustomViewController", value);
-    if (ok) printf("[DST:APPLIB] %s via _trailingCustomViewController\n", tag);
-    return ok;
+    // No ivar fallback. Writing _trailingCustomViewController directly skips the
+    // setter's teardown, so it cannot remove a page that has already been built
+    // -- proven on iOS 17, where the poke "succeeded" on both the root folder
+    // controller and its view while the App Library stayed on screen -- and it
+    // overwrites a strong reference without releasing it. The manager's real
+    // setter above is what does the work; the gate hooks handle iOS 17.
+    printf("[DST:APPLIB] %s has no trailing-controller setter; skipped\n", tag);
+    return false;
 }
 
 static bool ds_clear_overlay_library_controller(uint64_t mgr)
@@ -340,12 +344,20 @@ static bool ds_disable_app_library_singular_path(uint64_t mgr,
         printf("[DST:APPLIB] iconManager overscroll-library property unavailable\n");
     }
 
-    flagsOK |= ds_disable_app_library_flags_on_target(iconController, "iconController");
+    // On iOS 17 none of these five setters exists on any class, and the only
+    // ivar that resolves is the manager's _canPresentOverscrollLibraryForPage-
+    // Transition, already handled above. Sweeping the other five targets costs
+    // ~60 remote round trips to learn nothing, so restrict it to the manager
+    // there. Later versions keep the full sweep.
+    bool ios17 = ds_ios_major_version() == 17;
     flagsOK |= ds_disable_app_library_flags_on_target(mgr, "iconManager");
-    flagsOK |= ds_disable_app_library_flags_on_target(iconModel, "iconModel");
-    flagsOK |= ds_disable_app_library_flags_on_target(managerConfig, "iconManager.configuration");
-    flagsOK |= ds_disable_app_library_flags_on_target(rootFC, "rootFolderController");
-    flagsOK |= ds_disable_app_library_flags_on_target(rootView, "rootFolderView");
+    if (!ios17) {
+        flagsOK |= ds_disable_app_library_flags_on_target(iconController, "iconController");
+        flagsOK |= ds_disable_app_library_flags_on_target(iconModel, "iconModel");
+        flagsOK |= ds_disable_app_library_flags_on_target(managerConfig, "iconManager.configuration");
+        flagsOK |= ds_disable_app_library_flags_on_target(rootFC, "rootFolderController");
+        flagsOK |= ds_disable_app_library_flags_on_target(rootView, "rootFolderView");
+    }
 
     // Exact iOS 17 SBHIconManager state from the 17.5 SpringBoardHome
     // headers. Clear an in-flight/visible library before detaching the
@@ -500,10 +512,6 @@ bool darksword_tweak_disable_app_library_in_session(void)
         gateHooks += ds_force_method_zero("SBRootFolderView",
                                           "_trailingCustomViewShouldBeIndicatedInPageControl");
         printf("[DST:APPLIB] iOS 17 gate hooks installed=%d/4\n", gateHooks);
-
-        // -iconController is nil on SBHIconManager here, so the flag pass was
-        // being handed a null target. Use the shared controller we already have.
-        ds_disable_app_library_flags_on_target(ctrl, "SBIconController");
 
         ok = ds_disable_app_library_singular_path(mgr, rootFC, rootView);
         ok = ok || gateHooks > 0;
