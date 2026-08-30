@@ -72,3 +72,6 @@ build/
 
 # Device panic logs (personal; keep local)
 panic-full-*.ips
+
+# Device chain logs (contain kernel addresses; keep local)
+chain-*.log
