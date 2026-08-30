@@ -11,6 +11,7 @@
 
 #import "darksword_drag.h"
 #import "../TaskRop/RemoteCall.h"
+#import "../LogTextView.h"   // mirror printf into the chain log
 
 #import <dlfcn.h>
 #import <stdint.h>

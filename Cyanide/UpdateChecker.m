@@ -4,6 +4,7 @@
 //
 
 #import "UpdateChecker.h"
+#import "LogTextView.h"   // mirror printf into the chain log
 
 static NSString * const kReleasesAPI             = @"https://api.github.com/repos/kolbicz/cyanide/releases/latest";
 static NSString * const kUpdateSkippedVersionKey = @"installer.update.skippedVersion";

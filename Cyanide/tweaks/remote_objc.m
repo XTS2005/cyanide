@@ -3,6 +3,10 @@
 //
 
 #import "remote_objc.h"
+// printf in this TU went to stdout only, so [R_OBJC] never reached the chain
+// log. LogTextView.h mirrors printf into the in-app log; the macro evaluates
+// its arguments twice, and all three printf sites here pass plain reads.
+#import "../LogTextView.h"
 #import "../TaskRop/RemoteCall.h"
 #import <pthread.h>
 #import <stdlib.h>
