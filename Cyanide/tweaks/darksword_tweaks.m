@@ -49,83 +49,6 @@ static void ds_read_class_name(uint64_t obj, char *out, size_t outLen)
     r_free(heap);
 }
 
-// Copy a remote C string via strdup, the same way ds_read_class_name does --
-// selector and ivar names live in the shared cache, and going through the heap
-// is the pattern already proven to read them reliably.
-static bool ds_copy_cstr(uint64_t ptr, char *out, size_t outLen)
-{
-    if (!ptr || !out || outLen == 0) return false;
-    out[0] = '\0';
-    uint64_t heap = r_dlsym_call(R_TIMEOUT, "strdup", ptr, 0, 0, 0, 0, 0, 0, 0);
-    if (!heap) return false;
-    bool ok = remote_read(heap, out, outLen - 1);
-    if (ok) out[outLen - 1] = '\0';
-    r_free(heap);
-    return ok && out[0] != '\0';
-}
-
-// One-shot diagnostic. The iOS 17 path sets everything it knows about and still
-// leaves the page on screen, which means the names it knows are the wrong ones.
-// Rather than keep guessing from newer headers, print what the class actually
-// exposes on this build, filtered to the interesting words.
-static void ds_dump_class_surface(const char *className)
-{
-    static const char *const kNeedles[] = { "ibrary", "railing", "verscroll", NULL };
-    uint64_t cls = r_class(className);
-    if (!r_is_objc_ptr(cls)) {
-        printf("[DST:SURFACE] %s: class not found\n", className);
-        return;
-    }
-    uint64_t countPtr = r_alloc_str("        ");
-    if (!countPtr) return;
-
-    uint64_t methods = r_dlsym_call(R_TIMEOUT, "class_copyMethodList",
-                                    cls, countPtr, 0, 0, 0, 0, 0, 0);
-    uint32_t n = methods ? (uint32_t)(remote_read64(countPtr) & 0xffffffffu) : 0;
-    if (n > 4096) n = 4096;
-    int hits = 0;
-    for (uint32_t i = 0; i < n; i++) {
-        uint64_t m = remote_read64(methods + (uint64_t)i * 8ULL);
-        if (!m) continue;
-        uint64_t sel = r_dlsym_call(R_TIMEOUT, "method_getName", m, 0, 0, 0, 0, 0, 0, 0);
-        if (!sel) continue;
-        uint64_t namePtr = r_dlsym_call(R_TIMEOUT, "sel_getName", sel, 0, 0, 0, 0, 0, 0, 0);
-        char nm[192];
-        if (!ds_copy_cstr(namePtr, nm, sizeof(nm))) continue;
-        for (int k = 0; kNeedles[k]; k++) {
-            if (strstr(nm, kNeedles[k])) {
-                printf("[DST:SURFACE] %s method -%s\n", className, nm);
-                hits++;
-                break;
-            }
-        }
-    }
-    if (methods) r_free(methods);
-
-    uint64_t ivars = r_dlsym_call(R_TIMEOUT, "class_copyIvarList",
-                                  cls, countPtr, 0, 0, 0, 0, 0, 0);
-    uint32_t ni = ivars ? (uint32_t)(remote_read64(countPtr) & 0xffffffffu) : 0;
-    if (ni > 4096) ni = 4096;
-    for (uint32_t i = 0; i < ni; i++) {
-        uint64_t iv = remote_read64(ivars + (uint64_t)i * 8ULL);
-        if (!iv) continue;
-        uint64_t namePtr = r_dlsym_call(R_TIMEOUT, "ivar_getName", iv, 0, 0, 0, 0, 0, 0, 0);
-        char nm[192];
-        if (!ds_copy_cstr(namePtr, nm, sizeof(nm))) continue;
-        for (int k = 0; kNeedles[k]; k++) {
-            if (strstr(nm, kNeedles[k])) {
-                printf("[DST:SURFACE] %s ivar %s\n", className, nm);
-                hits++;
-                break;
-            }
-        }
-    }
-    if (ivars) r_free(ivars);
-    r_free(countPtr);
-    printf("[DST:SURFACE] %s: %u methods, %u ivars, %d interesting\n",
-           className, n, ni, hits);
-}
-
 static void ds_log_target(const char *label, uint64_t obj)
 {
     char cls[96];
@@ -353,6 +276,41 @@ static bool ds_force_object_method_nil(uint64_t obj,
     return oldIMP != 0 && value == 0;
 }
 
+// Replace a zero-argument method with -[NSObject isProxy], which returns NO.
+// For BOOL getters that reads as NO; for an integer count it reads as 0. Used on
+// iOS 17, where the App Library page is not controlled by any writable property
+// -- the class dump showed getters with no matching setters -- so the only way
+// to switch it off is to change what the getters answer.
+static bool ds_force_method_zero(const char *className, const char *selectorName)
+{
+    uint64_t cls = r_class(className);
+    uint64_t selector = r_sel(selectorName);
+    uint64_t NSObject = r_class("NSObject");
+    uint64_t falseSelector = r_sel("isProxy");
+    if (!r_is_objc_ptr(cls) || !selector || !r_is_objc_ptr(NSObject) || !falseSelector) {
+        printf("[DST:APPLIB] hook %s.%s: class/selector unavailable\n",
+               className, selectorName);
+        return false;
+    }
+    uint64_t method = r_dlsym_call(R_TIMEOUT, "class_getInstanceMethod",
+                                   cls, selector, 0, 0, 0, 0, 0, 0);
+    uint64_t falseMethod = r_dlsym_call(R_TIMEOUT, "class_getInstanceMethod",
+                                        NSObject, falseSelector, 0, 0, 0, 0, 0, 0);
+    uint64_t falseIMP = falseMethod
+        ? r_dlsym_call(R_TIMEOUT, "method_getImplementation",
+                       falseMethod, 0, 0, 0, 0, 0, 0, 0)
+        : 0;
+    if (!method || !falseIMP) {
+        printf("[DST:APPLIB] hook %s.%s unavailable (method=0x%llx falseIMP=0x%llx)\n",
+               className, selectorName, method, falseIMP);
+        return false;
+    }
+    uint64_t oldIMP = r_dlsym_call(R_TIMEOUT, "method_setImplementation",
+                                   method, falseIMP, 0, 0, 0, 0, 0, 0);
+    printf("[DST:APPLIB] hooked %s.%s oldIMP=0x%llx\n", className, selectorName, oldIMP);
+    return oldIMP != 0;
+}
+
 static bool ds_disable_app_library_singular_path(uint64_t mgr,
                                                  uint64_t rootFC,
                                                  uint64_t rootView)
@@ -513,21 +471,42 @@ bool darksword_tweak_disable_app_library_in_session(void)
         ds_log_target("rootFolderController", rootFC);
         ds_log_target("rootFolderView", rootView);
 
-        static bool dumped = false;
-        if (!dumped) {
-            dumped = true;
-            ds_dump_class_surface("SBHIconManager");
-            ds_dump_class_surface("SBRootFolderController");
-            ds_dump_class_surface("SBRootFolderView");
-            ds_dump_class_surface("SBIconController");
-        }
-
         // SBIconController is SBHIconManager's delegate on iOS 17. Stop the
-        // manager from sourcing library controllers without changing
-        // -isAppLibraryAllowed, which is also used by dismissal/state logic.
+        // manager from sourcing library controllers.
         bool librarySourceHookOK = ds_force_object_method_nil(
             ctrl, "SBIconController", "libraryViewControllersForIconManager:", mgr);
+
+        // A class dump of this device's SpringBoard (iOS 17.3.1) settled what
+        // the previous approach got wrong. None of setAppLibraryAllowed:,
+        // setAllowsAppLibrary:, setAppLibraryEnabled:, setLibraryEnabled: or
+        // setShowsAppLibrary: exists anywhere on iOS 17, and neither
+        // SBRootFolderController nor SBRootFolderView has a
+        // setTrailingCustomViewController: -- the old code fell back to writing
+        // the ivar directly, which cannot tear down a page already built.
+        //
+        // What does exist are getters with no setters, so the way to switch the
+        // page off is to change the answers:
+        //   SBIconController -isAppLibrarySupported     the master gate
+        //   SBIconController -isAppLibraryAllowed       (on the controller, NOT
+        //                                                the manager, which is
+        //                                                where it was looked for)
+        //   SBRootFolderView -_trailingCustomPageCount  the page itself
+        //   SBRootFolderView -_trailingCustomViewShouldBeIndicatedInPageControl
+        //                                               the page-control dot
+        int gateHooks = 0;
+        gateHooks += ds_force_method_zero("SBIconController", "isAppLibrarySupported");
+        gateHooks += ds_force_method_zero("SBIconController", "isAppLibraryAllowed");
+        gateHooks += ds_force_method_zero("SBRootFolderView", "_trailingCustomPageCount");
+        gateHooks += ds_force_method_zero("SBRootFolderView",
+                                          "_trailingCustomViewShouldBeIndicatedInPageControl");
+        printf("[DST:APPLIB] iOS 17 gate hooks installed=%d/4\n", gateHooks);
+
+        // -iconController is nil on SBHIconManager here, so the flag pass was
+        // being handed a null target. Use the shared controller we already have.
+        ds_disable_app_library_flags_on_target(ctrl, "SBIconController");
+
         ok = ds_disable_app_library_singular_path(mgr, rootFC, rootView);
+        ok = ok || gateHooks > 0;
 
         // The hook is deliberately NOT folded into the result. It is one of
         // three independent things this path attempts, and ANDing it in meant a
@@ -535,8 +514,8 @@ bool darksword_tweak_disable_app_library_in_session(void)
         if (ok || librarySourceHookOK) {
             ds_refresh_root_folder_after_app_library_change(rootFC, rootView);
         }
-        printf("[DST:APPLIB] iOS 17 library source hook=%d singular=%d\n",
-               librarySourceHookOK, ok);
+        printf("[DST:APPLIB] iOS 17 library source hook=%d gates=%d singular=%d\n",
+               librarySourceHookOK, gateHooks, ok);
         ok = ok || librarySourceHookOK;
         printf("[DST:APPLIB] result=%d\n", ok);
         return ok;
