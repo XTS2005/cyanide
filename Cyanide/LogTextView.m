@@ -30,9 +30,11 @@ static pthread_mutex_t log_mutex    = PTHREAD_MUTEX_INITIALIZER;
 // every completed line is also written here with a wall-clock timestamp.
 // Both fields are guarded by log_mutex.
 static FILE *log_file                = NULL;
-// At most one fsync per 200 ms; bounds both the cost and how much output a
-// kernel panic can swallow.
-#define LOG_FSYNC_INTERVAL_NS 200000000ULL
+// 50 ms. The first captured panic log lost the line identifying which search
+// mapping was being scanned, because it fell inside a 200 ms window. The whole
+// exploit phase is only a couple of seconds, so a tighter interval costs little
+// and buys resolution exactly where it matters.
+#define LOG_FSYNC_INTERVAL_NS 50000000ULL
 static uint64_t log_last_fsync_ns = 0;
 static char  log_file_path_c[1024]   = {0};
 

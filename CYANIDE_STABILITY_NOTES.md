@@ -518,3 +518,35 @@ Use instead:
 
 The removed implementation is at commits `6980dfe` (SpringBoard route) and `14ada77` (Shortcuts
 fallback) if it is ever wanted back.
+
+## Settled: A18 panics happen on the first pass
+
+The first chain log ever captured from a panicking run (`chain-20260830-143427.log`,
+saved only because `F_FULLFSYNC` replaced `fsync`) ends at:
+
+```
+[14:34:27.437] # session start
+[14:34:27.443] [KRW] A18 shaping mapping: 3072 MB at 0x300000000
+[14:34:28.104] [i] socketPortsCount: 22528
+```
+
+The panic log is stamped 14:34:52 — 25 seconds later — which initially looked like
+a 24-second stall. It is not: iOS writes the panic log on the *next boot*, and the
+gap is consistent across every pair we have (25 s, 29 s, 25 s). So the panic
+occurred roughly 0.7 s in, immediately after the socket spray, during the **first
+search mapping of the first pass**.
+
+That closes the last open question about the aperture panics:
+
+* successful runs take 1–2 passes (240–480 OOB reads)
+* panicking runs die on pass 1
+
+So the risk is concentrated in the first ~240 reads, not accumulated over many
+passes. Reducing pass count would achieve nothing — there is no grinding to
+eliminate. 240 reads is already one full sweep of 16 mappings x 15 offsets, i.e.
+the floor for the technique.
+
+**Conclusion: `pe_v1` on an SPTM A18 device is at its practical floor.** Each run
+is a fixed ~240-roll gamble against physical pages that may be carved out and
+unmapped, and no amount of tuning changes the odds per roll. The mitigation is
+parked state: win once, and later launches skip the exploit entirely.
