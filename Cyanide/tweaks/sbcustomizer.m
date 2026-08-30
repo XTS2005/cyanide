@@ -624,6 +624,9 @@ static int rebalance_page_models(uint64_t rootFolder, uint64_t count,
 {
     int moved = 0;
     bool failed = false;
+    // Donor cursor, carried across pages -- see the fill loop below.
+    uint64_t donorPage = 0;
+    uint64_t donorCount = UINT64_MAX;
     for (uint64_t page = 0; page + 1 < count; page++) {
         uint64_t model = page_model_at(rootFolder, page);
         if (!r_is_objc_ptr(model)) continue;
@@ -638,12 +641,19 @@ static int rebalance_page_models(uint64_t rootFolder, uint64_t count,
 
         // Push overflow forward. Taking the last icon and inserting it at
         // index zero preserves the original order of the overflow block.
+        //
+        // destinationCount is carried across iterations: every successful move
+        // inserts exactly one icon into page+1, so re-reading it costs four
+        // remote round trips to learn a number we already know.
+        uint64_t destinationCount = UINT64_MAX;
         while (current > desired) {
             model = page_model_at(rootFolder, page);
             uint64_t iconIndex = current - 1;
             uint64_t icon = icon_at_index_transient(model, iconIndex);
-            uint64_t destinationCount = icon_array_count_transient(
-                page_model_at(rootFolder, page + 1));
+            if (destinationCount == UINT64_MAX) {
+                destinationCount = icon_array_count_transient(
+                    page_model_at(rootFolder, page + 1));
+            }
             bool didMove = r_is_objc_ptr(icon) &&
                 move_icon_between_pages(rootFolder, page, iconIndex,
                                         page + 1, 0, current, destinationCount,
@@ -653,18 +663,33 @@ static int rebalance_page_models(uint64_t rootFolder, uint64_t count,
             }
             moved++;
             current--;
+            destinationCount++;
         }
 
         // Fill a short page from the first non-empty later page. This also
         // closes gaps when SpringBoard has left an empty intermediate page.
+        //
+        // donorPage/donorCount persist across both this loop and the outer page
+        // loop. The scan used to restart at page+1 for every single icon, so
+        // filling a 25-icon page whose donor sat four pages away re-walked those
+        // four pages 25 times over -- and each step of that walk is four remote
+        // round trips. Nothing in this function ever puts icons back into a page
+        // between `page` and `donorPage`, so once the scan has passed a page it
+        // cannot become non-empty again and rescanning it can only confirm what
+        // is already known.
         while (current < desired) {
-            uint64_t donorPage = page + 1;
-            uint64_t donorCount = UINT64_MAX;
+            if (donorPage <= page) {
+                donorPage = page + 1;
+                donorCount = UINT64_MAX;
+            }
             while (donorPage < count) {
-                uint64_t donorModel = page_model_at(rootFolder, donorPage);
-                donorCount = icon_array_count_transient(donorModel);
+                if (donorCount == UINT64_MAX) {
+                    donorCount = icon_array_count_transient(
+                        page_model_at(rootFolder, donorPage));
+                }
                 if (donorCount != UINT64_MAX && donorCount > 0) break;
                 donorPage++;
+                donorCount = UINT64_MAX;
             }
             if (donorPage >= count) break;
             model = page_model_at(rootFolder, page);
@@ -679,6 +704,7 @@ static int rebalance_page_models(uint64_t rootFolder, uint64_t count,
             }
             moved++;
             current++;
+            donorCount--;
         }
         printf("[SBC:ARRANGE] page[%llu] icons %llu -> %llu target=%llu\n",
                page, before, current == UINT64_MAX ? 0 : current, desired);
@@ -721,8 +747,13 @@ static bool arrange_homescreen_pages(uint64_t iconCtrl, int preferredCols,
     }
     count = r_msg2_main(rootFolder, "iconListViewCount", 0, 0, 0, 0);
     limit = count < 64 ? count : 64;
+    // The rebalance is by far the most expensive part of an SBC apply -- each
+    // icon move is a sequence of synchronous main-thread RemoteCalls. Report the
+    // real cost rather than leaving it to be guessed at.
+    r_perf_reset();
     int moved = rebalance_page_models(rootFolder, limit,
                                       firstPageIcons, otherPageIcons);
+    r_perf_report("SBC arrange rebalance");
 
     // Trigger visual refresh only after all reads and mutations are finished.
     // Running this inside the capacity loop can asynchronously replace the

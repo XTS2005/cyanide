@@ -150,6 +150,12 @@ static bool r_selector_is_pure_query(const char *selName)
         "isKindOfClass:",
         "respondsToSelector:",
         "isDock",
+        // Property getters on SBIconListView / SBIconListModel. These are the
+        // hottest selectors in the SBC arrange path -- every page_model_at() is
+        // a "model" and every icon count is an "icons" -- and neither mutates
+        // anything, so settling after them was pure loss.
+        "model",
+        "icons",
         "iconListViewCount",
         "iconListViewAtIndex:",
         "visibleIconListViews",
