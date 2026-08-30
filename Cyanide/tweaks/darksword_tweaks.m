@@ -49,6 +49,83 @@ static void ds_read_class_name(uint64_t obj, char *out, size_t outLen)
     r_free(heap);
 }
 
+// Copy a remote C string via strdup, the same way ds_read_class_name does --
+// selector and ivar names live in the shared cache, and going through the heap
+// is the pattern already proven to read them reliably.
+static bool ds_copy_cstr(uint64_t ptr, char *out, size_t outLen)
+{
+    if (!ptr || !out || outLen == 0) return false;
+    out[0] = '\0';
+    uint64_t heap = r_dlsym_call(R_TIMEOUT, "strdup", ptr, 0, 0, 0, 0, 0, 0, 0);
+    if (!heap) return false;
+    bool ok = remote_read(heap, out, outLen - 1);
+    if (ok) out[outLen - 1] = '\0';
+    r_free(heap);
+    return ok && out[0] != '\0';
+}
+
+// One-shot diagnostic. The iOS 17 path sets everything it knows about and still
+// leaves the page on screen, which means the names it knows are the wrong ones.
+// Rather than keep guessing from newer headers, print what the class actually
+// exposes on this build, filtered to the interesting words.
+static void ds_dump_class_surface(const char *className)
+{
+    static const char *const kNeedles[] = { "ibrary", "railing", "verscroll", NULL };
+    uint64_t cls = r_class(className);
+    if (!r_is_objc_ptr(cls)) {
+        printf("[DST:SURFACE] %s: class not found\n", className);
+        return;
+    }
+    uint64_t countPtr = r_alloc_str("        ");
+    if (!countPtr) return;
+
+    uint64_t methods = r_dlsym_call(R_TIMEOUT, "class_copyMethodList",
+                                    cls, countPtr, 0, 0, 0, 0, 0, 0);
+    uint32_t n = methods ? (uint32_t)(remote_read64(countPtr) & 0xffffffffu) : 0;
+    if (n > 4096) n = 4096;
+    int hits = 0;
+    for (uint32_t i = 0; i < n; i++) {
+        uint64_t m = remote_read64(methods + (uint64_t)i * 8ULL);
+        if (!m) continue;
+        uint64_t sel = r_dlsym_call(R_TIMEOUT, "method_getName", m, 0, 0, 0, 0, 0, 0, 0);
+        if (!sel) continue;
+        uint64_t namePtr = r_dlsym_call(R_TIMEOUT, "sel_getName", sel, 0, 0, 0, 0, 0, 0, 0);
+        char nm[192];
+        if (!ds_copy_cstr(namePtr, nm, sizeof(nm))) continue;
+        for (int k = 0; kNeedles[k]; k++) {
+            if (strstr(nm, kNeedles[k])) {
+                printf("[DST:SURFACE] %s method -%s\n", className, nm);
+                hits++;
+                break;
+            }
+        }
+    }
+    if (methods) r_free(methods);
+
+    uint64_t ivars = r_dlsym_call(R_TIMEOUT, "class_copyIvarList",
+                                  cls, countPtr, 0, 0, 0, 0, 0, 0);
+    uint32_t ni = ivars ? (uint32_t)(remote_read64(countPtr) & 0xffffffffu) : 0;
+    if (ni > 4096) ni = 4096;
+    for (uint32_t i = 0; i < ni; i++) {
+        uint64_t iv = remote_read64(ivars + (uint64_t)i * 8ULL);
+        if (!iv) continue;
+        uint64_t namePtr = r_dlsym_call(R_TIMEOUT, "ivar_getName", iv, 0, 0, 0, 0, 0, 0, 0);
+        char nm[192];
+        if (!ds_copy_cstr(namePtr, nm, sizeof(nm))) continue;
+        for (int k = 0; kNeedles[k]; k++) {
+            if (strstr(nm, kNeedles[k])) {
+                printf("[DST:SURFACE] %s ivar %s\n", className, nm);
+                hits++;
+                break;
+            }
+        }
+    }
+    if (ivars) r_free(ivars);
+    r_free(countPtr);
+    printf("[DST:SURFACE] %s: %u methods, %u ivars, %d interesting\n",
+           className, n, ni, hits);
+}
+
 static void ds_log_target(const char *label, uint64_t obj)
 {
     char cls[96];
@@ -435,6 +512,15 @@ bool darksword_tweak_disable_app_library_in_session(void)
         ds_log_target("iconManager.configuration", ds_try_msg0(mgr, "configuration"));
         ds_log_target("rootFolderController", rootFC);
         ds_log_target("rootFolderView", rootView);
+
+        static bool dumped = false;
+        if (!dumped) {
+            dumped = true;
+            ds_dump_class_surface("SBHIconManager");
+            ds_dump_class_surface("SBRootFolderController");
+            ds_dump_class_surface("SBRootFolderView");
+            ds_dump_class_surface("SBIconController");
+        }
 
         // SBIconController is SBHIconManager's delegate on iOS 17. Stop the
         // manager from sourcing library controllers without changing
