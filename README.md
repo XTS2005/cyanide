@@ -9,10 +9,15 @@
 | ❌ Not supported | iOS 16.x and earlier, **18.7.2 – 25.x**, **26.1 and later** |
 | ❌ Not supported | **iPhone 17 family (A19 / A19 Pro)** and **M5** — Memory Integrity Enforcement blocks the exploit |
 
-**iOS 15 and 16 are out of scope by choice, not by limitation.** The technique
-would likely work there, but those versions are covered by
-[Dopamine](https://github.com/opa334/Dopamine), a full jailbreak — so Cyanide
-has nothing to add. Use that instead.
+**iOS 15 and 16 are out of scope by choice, not by limitation.** Every device on
+those versions is jailbreakable with
+[Dopamine](https://github.com/opa334/Dopamine), so Cyanide has nothing to add —
+use that instead.
+
+iOS 17 is deliberately supported in full, including versions a jailbreak already
+covers. Coverage there depends on the device, and Cyanide does not jailbreak the
+device at all: tweaks are applied in memory for the current boot, so apps that
+refuse to run on a jailbroken device are unaffected.
 
 Any iPhone or iPad on a supported version should work, including A-series and
 M-series iPads. There is no separate device whitelist: Cyanide checks the
