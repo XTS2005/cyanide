@@ -1,3 +1,26 @@
+## Supported devices
+
+**iPhone and iPad running iOS/iPadOS 17.0 – 18.7.1, or 26.0 – 26.0.1.**
+
+| | |
+| --- | --- |
+| ✅ Supported | iOS/iPadOS **17.0 – 18.7.1** |
+| ✅ Supported | iOS/iPadOS **26.0 – 26.0.1** |
+| ❌ Not supported | iOS 16.x and earlier, **18.7.2 – 25.x**, **26.1 and later** |
+| ❌ Not supported | **iPhone 17 family (A19 / A19 Pro)** and **M5** — Memory Integrity Enforcement blocks the exploit |
+
+Any iPhone or iPad on a supported version should work, including A-series and
+M-series iPads. There is no separate device whitelist: Cyanide checks the
+iOS version and finds its kernel offsets by scanning, so hardware from older
+A-series through A18 is handled by the same code.
+
+Confirmed working on iPhone 16 Pro Max (iOS 18.5), iPhone 15 Pro Max
+(iOS 17.3.1) and M-series iPad.
+
+> **Note:** Cyanide only enforces the iOS version. An A19/M5 device running a
+> version in range will pass that check and then fail to get kernel read/write —
+> the exclusion is a hardware limit, not something the app can detect up front.
+
 ## Project status
 
 This repository is a fork of

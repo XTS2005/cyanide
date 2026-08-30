@@ -1,3 +1,10 @@
+> ### Supported devices
+> **iPhone / iPad on iOS/iPadOS `17.0 – 18.7.1` or `26.0 – 26.0.1`.**
+> Not supported: iOS `18.7.2 – 25.x`, `26.1+`, anything older than 17.0 — and the
+> **iPhone 17 family (A19 / A19 Pro)** and **M5**, where Memory Integrity
+> Enforcement blocks the exploit. Any other iPhone or iPad on a supported
+> version should work; there is no device whitelist.
+
 # Cyanide 1.5.4
 
 ## Fixed
