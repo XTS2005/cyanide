@@ -12944,10 +12944,16 @@ void cyanide_present_contact(UIViewController *host)
 
 - (void)a18ShapingSegChanged:(UISegmentedControl *)sender
 {
-    // 4 GB was offered and removed: when the allocation succeeds the touch loop
-    // trips the per-process memory limit and jetsam kills Cyanide outright
-    // (JetsamEvent-2026-08-30-145526, reason "per-process-limit"); when it fails
-    // the ladder falls back to 3 GB anyway. It is never the size actually used.
+    // The jetsam per-process limit for this app is ~3.10 GiB, measured: in
+    // JetsamEvent-2026-08-30-145526 Cyanide died at rpages=216064 (3.30 GiB)
+    // with reason "per-process-limit" and killDelta=12728 pages, so the limit
+    // sits at 216064-12728 = 203336 pages = 3.10 GiB.
+    //
+    // That is a hard cap on RESIDENT pages, and resident pages are exactly what
+    // the shaping is. Asking for more than ~3100 MB therefore cannot hold more
+    // than ~3.10 GiB anyway -- it only adds churn and a real chance of the kill.
+    // 3072 MB is the largest round size that still fits underneath, which is why
+    // it is the top option and the default. 4 GB was offered and removed.
     static const NSInteger mbForIndex[] = { 2048, 3072 };
     NSInteger idx = sender.selectedSegmentIndex;
     if (idx < 0 || idx > 1) return;

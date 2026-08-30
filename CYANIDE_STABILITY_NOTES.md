@@ -587,9 +587,14 @@ a 2 GB run captured, the picture is different.
 So panic risk scales with **how long the search takes**, and search length depends
 on **shaping quality**. It is not a fixed per-run gamble.
 
-* **4 GB** — when the allocation succeeds the touch loop trips the per-process
-  memory limit and jetsam kills Cyanide. When it fails, the ladder silently falls
-  back to 3 GB. It is never the size actually used. Option removed.
+* **4 GB** — two distinct failure modes, which I initially conflated:
+  * `Cyanide-2026-08-29-1426*.ips` are **SIGSEGV, KERN_INVALID_ADDRESS at 0x0**,
+    faulting inside `pe_v1`. That is the old NULL-deref: `mach_vm_allocate`
+    returned `KERN_NO_SPACE`, `wiredMapping` stayed 0, and the touch loop wrote
+    to address 0. Already fixed by the return-value check and fallback ladder.
+  * `JetsamEvent-2026-08-30-145526.ips` is the real limit: killed at
+    rpages=216064 (**3.30 GiB**), `reason: per-process-limit`, `killDelta=12728`.
+  Option removed on the strength of the second.
 * **3 GB** — finds a target in 1-2 passes. Reclaim runs 0.6-0.8 GB, i.e. the system
   is already clawing some back, which places 3 GB right at the ceiling.
 * **2 GB** — reclaim is essentially zero (0.01 GB, plenty of headroom), but the
@@ -606,3 +611,28 @@ exactly in the testing hours, on a device that uses no widgets at all). The like
 mechanism is the shaping evicting clean executable pages, which then fail hash
 validation when faulted back in. Inference from correlation plus one sample, not
 established -- but another reason not to raise the shaping size.
+
+
+## The jetsam per-process limit is ~3.10 GiB, and that is what fixes 3 GB
+
+From `JetsamEvent-2026-08-30-145526.ips`: killed at rpages=216064 with
+killDelta=12728, so the limit is 216064 - 12728 = 203336 pages = **3.10 GiB**.
+
+This settles the "why not 3.2 or 3.4 GB?" question. The limit caps **resident**
+pages, and resident pages are precisely what the shaping is -- a page that has
+been reclaimed is no longer shaping anything. So no request above ~3100 MB can
+hold more than ~3.10 GiB resident. The observed resident maximum across all 12
+Cyanide aperture panics is 3.05 GiB, which sits right against that ceiling and
+confirms it independently.
+
+    requested   max resident possible   gain over 3072 MB   risk
+    2048 MB     2.00 GiB                -1.00 GiB           none, but 3-5x search
+    3072 MB     3.00 GiB                --                  none observed
+    3277 MB     ~3.10 GiB (capped)      +0.10 GiB (~3%)     above the limit
+    3482 MB     ~3.10 GiB (capped)      +0.10 GiB (~3%)     above the limit
+    4096 MB     ~3.10 GiB (capped)      +0.10 GiB (~3%)     jetsam observed
+
+3072 MB is the largest round size that fits underneath the limit. Everything
+above it buys at most ~3% more shaping -- entirely from reclaim racing the touch
+loop -- while moving the process above the threshold that already killed it once.
+Not a good trade, and not worth an option.
