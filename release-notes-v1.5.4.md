@@ -4,8 +4,8 @@
 > **iPhone 17 family (A19 / A19 Pro)** and **M5**, where Memory Integrity
 > Enforcement blocks the exploit. Any other iPhone or iPad on a supported
 > version should work; there is no device whitelist.
-> iOS 15 and 16 are out of scope by choice — those versions already have full
-> jailbreaks, so Cyanide has nothing to add there.
+> iOS 15 and 16 are out of scope by choice — they are covered by
+> [Dopamine](https://github.com/opa334/Dopamine), so Cyanide has nothing to add there.
 
 # Cyanide 1.5.4
 
@@ -30,6 +30,7 @@
 - Several parts of Cyanide were writing diagnostics that never reached the log,
   including the Drag Coefficient tweak. Logs are more complete — and noticeably
   chattier — when something needs investigating.
+
 
 
 
