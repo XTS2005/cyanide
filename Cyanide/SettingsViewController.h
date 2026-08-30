@@ -8,7 +8,6 @@
 void settings_park_krw_filter_for_background(void);
 
 extern NSString * const kSettingsA18ExploitPath;
-extern NSString * const kSettingsA18ShapingMB;
 extern NSString * const kSettingsRemoteSettleMode;
 extern NSString * const kSettingsAutoRunKexploit;
 extern NSString * const kSettingsRunSandboxEscape;

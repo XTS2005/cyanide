@@ -848,7 +848,6 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 @end
 
 NSString * const kSettingsA18ExploitPath   = @"A18ExploitPath";
-NSString * const kSettingsA18ShapingMB     = @"A18ShapingMB";
 NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
 NSString * const kSettingsRunSandboxEscape   = @"RunSandboxEscape";
@@ -6891,7 +6890,6 @@ void settings_register_defaults(void)
         // This must be the default: reinstalling a sideloaded build wipes
         // NSUserDefaults, so an opt-in silently reverts to the broken path.
         kSettingsA18ExploitPath:     @1,
-        kSettingsA18ShapingMB:       @3072,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
@@ -8559,7 +8557,6 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 {
     return @[
         @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"title": @"A18 exploit path" },
-        @{ @"kind": @"a18shaping", @"key": kSettingsA18ShapingMB, @"title": @"A18 memory shaping" },
         @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },
@@ -11520,9 +11517,11 @@ void cyanide_present_contact(UIViewController *host)
         title.translatesAutoresizingMaskIntoConstraints = NO;
 
         UISegmentedControl *seg =
-            [[UISegmentedControl alloc] initWithItems:@[@"pe_v2 (default)", @"pe_v1 (experimental)"]];
+            [[UISegmentedControl alloc] initWithItems:@[@"pe_v1 (default)", @"pe_v2 (fallback)"]];
         seg.translatesAutoresizingMaskIntoConstraints = NO;
-        seg.selectedSegmentIndex = [d integerForKey:kSettingsA18ExploitPath];
+        // Display order is pe_v1 first, but the stored value is unchanged
+        // (1 = pe_v1, 0 = pe_v2) so existing preferences keep their meaning.
+        seg.selectedSegmentIndex = ([d integerForKey:kSettingsA18ExploitPath] == 1) ? 0 : 1;
         seg.enabled = settings_device_is_a18_above();
         [seg addTarget:self action:@selector(a18PathSegChanged:)
       forControlEvents:UIControlEventValueChanged];
@@ -11532,64 +11531,12 @@ void cyanide_present_contact(UIViewController *host)
         note.font = [UIFont systemFontOfSize:12.0];
         note.textColor = UIColor.secondaryLabelColor;
         note.text = settings_device_is_a18_above()
-            ? @"A18/M4 only. pe_v2 stages 2 GB as 131,072 separate IOSurfaces, but iOS caps a "
-               "process at 16,384 — so most fail and the run can fault in the kernel physical "
-               "aperture. pe_v1 has an A18 path that stages 3 GB behind a single IOSurface: more "
-               "coverage, no wasted work. It has never been tested, so it is opt-in. If a run "
-               "panics or fails, switch back to pe_v2."
+            ? @"A18/M4 only. pe_v1 stages 3 GB behind a single IOSurface and normally wins in "
+               "one or two passes. pe_v2 stages 2 GB as 131,072 separate IOSurfaces, but iOS caps "
+               "a process at 16,384 — so most fail, the search runs far longer, and the run is "
+               "more likely to fault in the kernel physical aperture. Leave this on pe_v1; the "
+               "fallback is here only in case pe_v1 stops working on a future build."
             : @"A18/M4 devices only. This device uses pe_v1 already.";
-        note.translatesAutoresizingMaskIntoConstraints = NO;
-
-        [cell.contentView addSubview:title];
-        [cell.contentView addSubview:seg];
-        [cell.contentView addSubview:note];
-        UILayoutGuide *m = cell.contentView.layoutMarginsGuide;
-        [NSLayoutConstraint activateConstraints:@[
-            [title.leadingAnchor  constraintEqualToAnchor:m.leadingAnchor],
-            [title.trailingAnchor constraintEqualToAnchor:m.trailingAnchor],
-            [title.topAnchor      constraintEqualToAnchor:m.topAnchor],
-            [seg.leadingAnchor    constraintEqualToAnchor:m.leadingAnchor],
-            [seg.trailingAnchor   constraintEqualToAnchor:m.trailingAnchor],
-            [seg.topAnchor        constraintEqualToAnchor:title.bottomAnchor constant:8],
-            [note.leadingAnchor   constraintEqualToAnchor:m.leadingAnchor],
-            [note.trailingAnchor  constraintEqualToAnchor:m.trailingAnchor],
-            [note.topAnchor       constraintEqualToAnchor:seg.bottomAnchor constant:8],
-            [note.bottomAnchor    constraintEqualToAnchor:m.bottomAnchor],
-        ]];
-        return cell;
-    }
-
-    if ([kind isEqualToString:@"a18shaping"]) {
-        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
-                                                       reuseIdentifier:nil];
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-
-        UILabel *title = [UILabel new];
-        title.text = row[@"title"];
-        title.font = [UIFont systemFontOfSize:17.0];
-        title.translatesAutoresizingMaskIntoConstraints = NO;
-
-        UISegmentedControl *seg =
-            [[UISegmentedControl alloc] initWithItems:@[@"2 GB", @"3 GB"]];
-        seg.translatesAutoresizingMaskIntoConstraints = NO;
-        NSInteger mb = [d integerForKey:kSettingsA18ShapingMB];
-        seg.selectedSegmentIndex = (mb <= 2048) ? 0 : 1;
-        seg.enabled = settings_device_is_a18_above();
-        [seg addTarget:self action:@selector(a18ShapingSegChanged:)
-      forControlEvents:UIControlEventValueChanged];
-
-        UILabel *note = [UILabel new];
-        note.numberOfLines = 0;
-        note.font = [UIFont systemFontOfSize:12.0];
-        note.textColor = UIColor.secondaryLabelColor;
-        note.text = settings_device_is_a18_above()
-            ? @"A18/M4 only, pe_v1 path. Before racing, Cyanide fills this much memory so the "
-               "physical page next to its search window is more likely to be its own. That is the "
-               "only thing that affects how often a run ends in a kernel panic. 3 GB is the tested "
-               "default and the practical ceiling — more than that trips the per-process memory "
-               "limit and the app gets killed. 2 GB is gentler on other apps but gives weaker "
-               "odds. It falls back to a smaller size automatically if allocation fails."
-            : @"A18/M4 devices only.";
         note.translatesAutoresizingMaskIntoConstraints = NO;
 
         [cell.contentView addSubview:title];
@@ -12942,35 +12889,15 @@ void cyanide_present_contact(UIViewController *host)
     }
 }
 
-- (void)a18ShapingSegChanged:(UISegmentedControl *)sender
-{
-    // The jetsam per-process limit for this app is ~3.10 GiB, measured: in
-    // JetsamEvent-2026-08-30-145526 Cyanide died at rpages=216064 (3.30 GiB)
-    // with reason "per-process-limit" and killDelta=12728 pages, so the limit
-    // sits at 216064-12728 = 203336 pages = 3.10 GiB.
-    //
-    // That is a hard cap on RESIDENT pages, and resident pages are exactly what
-    // the shaping is. Asking for more than ~3100 MB therefore cannot hold more
-    // than ~3.10 GiB anyway -- it only adds churn and a real chance of the kill.
-    // 3072 MB is the largest round size that still fits underneath, which is why
-    // it is the top option and the default. 4 GB was offered and removed.
-    static const NSInteger mbForIndex[] = { 2048, 3072 };
-    NSInteger idx = sender.selectedSegmentIndex;
-    if (idx < 0 || idx > 1) return;
-    [[NSUserDefaults standardUserDefaults] setInteger:mbForIndex[idx] forKey:kSettingsA18ShapingMB];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    log_user("[KRW] A18 memory shaping set to %ld MB. Takes effect on the next fresh chain run.\n",
-             (long)mbForIndex[idx]);
-}
-
 - (void)a18PathSegChanged:(UISegmentedControl *)sender
 {
-    NSInteger path = sender.selectedSegmentIndex;
+    // Segment 0 is pe_v1, which is stored as 1 -- see the control's comment.
+    NSInteger path = (sender.selectedSegmentIndex == 0) ? 1 : 0;
     [[NSUserDefaults standardUserDefaults] setInteger:path forKey:kSettingsA18ExploitPath];
     [[NSUserDefaults standardUserDefaults] synchronize];
     log_user("[KRW] A18 exploit path set to %s. Takes effect on the next fresh chain run "
              "(a parked/recovered session skips the exploit entirely).\n",
-             path == 1 ? "pe_v1 (experimental)" : "pe_v2 (default)");
+             path == 1 ? "pe_v1 (default)" : "pe_v2 (fallback)");
 }
 
 - (void)settleModeSegChanged:(UISegmentedControl *)sender

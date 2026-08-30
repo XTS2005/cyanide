@@ -636,3 +636,26 @@ confirms it independently.
 above it buys at most ~3% more shaping -- entirely from reclaim racing the touch
 loop -- while moving the process above the threshold that already killed it once.
 Not a good trade, and not worth an option.
+
+
+## Settled: shaping is fixed at 3072 MB, pe_v1 is the default
+
+The shaping-size setting is removed. It existed to let the panic-rate hypothesis
+be tested on the device, and the test is done -- there is no value worth offering:
+
+* above ~3100 MB the jetsam per-process limit caps resident pages anyway, so a
+  larger request cannot hold more shaping, only add churn and risk the kill;
+* below 3072 MB the search gets measurably longer (2 GB took 6+ passes and ~1275
+  OOB reads against 3 GB's 1-2 passes and 240-480), which is more exposure, not
+  less;
+* 3072 MB is the largest round size under the limit.
+
+A setting whose every alternative is worse is not a setting. The fallback ladder
+stays, since `mach_vm_allocate` can still fail on a quick relaunch, and a smaller
+mapping beats no run at all.
+
+`pe_v1` is now labelled the default and `pe_v2` the fallback, in the UI and in the
+chain log. This is a naming change only -- pe_v1 has been the default since the
+setting was added; it was still described as "experimental" from when it had never
+been run. The stored preference keeps its original encoding (1 = pe_v1, 0 = pe_v2)
+even though pe_v1 is now shown first, so upgrading does not silently switch paths.
