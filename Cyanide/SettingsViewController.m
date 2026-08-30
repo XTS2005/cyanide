@@ -2551,10 +2551,10 @@ BOOL settings_device_supported(void)
     return YES;
 #endif
 
-    // iPhone 17 and newer (A19 / A19 Pro): Memory Integrity Enforcement blocks
-    // the exploit, so refuse up front rather than failing later with no
-    // explanation. M5 iPads are equally unsupported but are not identified here.
-    if (is_unsupported_new_iphone()) return NO;
+    // iPhone 17 and newer (A19 / A19 Pro) and the M5 iPad Pro: Memory Integrity
+    // Enforcement blocks the exploit, so refuse up front rather than failing
+    // later with no explanation.
+    if (is_unsupported_new_device()) return NO;
 
     BOOL ios17to18 =
         settings_compare_system_version(@"17.0") != NSOrderedAscending &&
@@ -2573,9 +2573,10 @@ static NSString *settings_unsupported_message(void)
 #if CYANIDE_VPHONE_DEBUG
     return [NSString stringWithFormat:@"VPhone debug build is bypassing Cyanide's iOS version gate on iOS %@.", version];
 #endif
-    if (is_unsupported_new_iphone()) {
-        return @"Not supported on iPhone 17 or newer: Memory Integrity Enforcement "
-                "blocks the kernel exploit this relies on.";
+    if (is_unsupported_new_device()) {
+        return @"Not supported on this device: Memory Integrity Enforcement "
+                "(iPhone 17 and newer, M5 iPad Pro) blocks the kernel exploit "
+                "this relies on.";
     }
     return [NSString stringWithFormat:@"Not supported on iOS %@. Supported: iOS/iPadOS 17.0-18.7.1 or 26.0-26.0.1.", version];
 }

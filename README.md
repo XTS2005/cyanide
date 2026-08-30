@@ -27,9 +27,9 @@ A-series through A18 is handled by the same code.
 Confirmed working on iPhone 16 Pro Max (iOS 18.5), iPhone 15 Pro Max
 (iOS 17.3.1) and M-series iPad.
 
-> **Note:** iPhone 17 and newer are refused up front by model identifier. M5
-> iPads are not yet detected, so an M5 iPad on a supported iOS version will pass
-> the check and then fail to get kernel read/write.
+> **Note:** these devices are refused up front by model identifier
+> (`iPhone18,x` and above, `iPad17,x` and above), so you get a clear message
+> rather than a failed exploit.
 
 ## Project status
 
