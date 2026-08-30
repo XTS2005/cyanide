@@ -37,7 +37,6 @@
 #import "kexploit/persistence.h"
 #import "kexploit/machine_info.h"
 #import "tweaks/remote_objc.h"
-#import "tweaks/device_reboot.h"
 #import "installer/CYIconBadge.h"
 #import "installer/InstallProgressViewController.h"
 #import "installer/Package.h"
@@ -8333,85 +8332,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
                                                                          target:self
                                                                          action:@selector(navRespringTapped)];
         respringItem.accessibilityLabel = @"Respring";
-
-        UIImage *rebootIcon = [UIImage systemImageNamed:@"power.circle"];
-        UIBarButtonItem *rebootItem = [[UIBarButtonItem alloc] initWithImage:rebootIcon
-                                                                      style:UIBarButtonItemStylePlain
-                                                                     target:self
-                                                                     action:@selector(navRebootTapped)];
-        rebootItem.accessibilityLabel = @"Reboot";
-        self.navigationItem.rightBarButtonItems = @[respringItem, rebootItem];
+        self.navigationItem.rightBarButtonItem = respringItem;
     }
-}
-
-// No-KRW fallback. Nothing a sideloaded app can do reboots the device on its
-// own: reboot(2) needs uid 0 (ucred is in the SPTM-protected read-only
-// allocator), and the private restart APIs are only reachable inside
-// SpringBoard, which needs KRW. Shortcuts can do it with no privileges at all,
-// at the cost of a one-time user-created shortcut.
-- (void)presentRebootShortcutFallback
-{
-    UIAlertController *ac = [UIAlertController
-        alertControllerWithTitle:@"No kernel session"
-                         message:@"Cyanide can only reboot through SpringBoard, which needs a live "
-                                  "kernel session — so this cannot work before the chain has run.\n\n"
-                                  "As a fallback you can use a Shortcut, which needs no privileges:\n"
-                                  "1. Shortcuts app → new shortcut → add the Restart action\n"
-                                  "2. Name it exactly \u201c" @CY_REBOOT_SHORTCUT_NAME @"\u201d\n\n"
-                                  "Then this button will run it."
-                  preferredStyle:UIAlertControllerStyleAlert];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel"
-                                           style:UIAlertActionStyleCancel handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Run Shortcut"
-                                           style:UIAlertActionStyleDefault
-                                         handler:^(UIAlertAction *_) {
-        NSString *name = [@CY_REBOOT_SHORTCUT_NAME
-            stringByAddingPercentEncodingWithAllowedCharacters:NSCharacterSet.URLQueryAllowedCharacterSet];
-        NSURL *url = [NSURL URLWithString:
-            [NSString stringWithFormat:@"shortcuts://run-shortcut?name=%@", name]];
-        if (url) [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-    }]];
-    [self presentViewController:ac animated:YES completion:nil];
-}
-
-- (void)navRebootTapped
-{
-    if (!device_reboot_available()) {
-        [self presentRebootShortcutFallback];
-        return;
-    }
-
-    UIAlertController *ac = [UIAlertController
-        alertControllerWithTitle:@"Reboot device?"
-                         message:@"Cyanide asks SpringBoard to restart the device, so it goes "
-                                  "through the normal shutdown path. Live tweaks are torn down "
-                                  "first. Needs a live kernel session."
-                  preferredStyle:UIAlertControllerStyleAlert];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel"
-                                           style:UIAlertActionStyleCancel
-                                         handler:nil]];
-    [ac addAction:[UIAlertAction actionWithTitle:@"Reboot"
-                                           style:UIAlertActionStyleDestructive
-                                         handler:^(UIAlertAction *_) {
-        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            if (__sync_lock_test_and_set(&g_settings_actions_running, 1)) {
-                printf("[REBOOT] blocked: actions already running\n");
-                return;
-            }
-            @try {
-                // A reboot clears all kernel state anyway, but tear the live
-                // tweaks and RemoteCall sessions down cleanly first so nothing
-                // is mid-operation when SpringBoard goes away.
-                settings_prepare_for_respring_sync();
-                if (!device_reboot_now()) {
-                    log_user("[REBOOT] Reboot could not be dispatched.\n");
-                }
-            } @finally {
-                __sync_lock_release(&g_settings_actions_running);
-            }
-        });
-    }]];
-    [self presentViewController:ac animated:YES completion:nil];
 }
 
 - (void)navRespringTapped

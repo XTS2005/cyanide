@@ -505,10 +505,16 @@ read-only allocator behind `proc_ro`. A developer certificate does not help — 
 `com.apple.frontboard.*` class entitlements, which AMFI validates against the provisioning profile
 and Apple will not issue for a normal account.
 
-* **With KRW:** the nav-bar Reboot button asks SpringBoard, which does hold those entitlements, so
-  the restart goes through the OS's normal shutdown path. Every selector is feature-detected;
-  `device_reboot_probe()` logs what this iOS version actually exposes.
-* **Without KRW:** falls back to running a user-created Shortcut named `Cyanide Reboot`
-  (Shortcuts has a Restart action). No privileges required.
-* **At a Mac:** `xcrun devicectl device reboot`, or `idevicediagnostics restart`. Simplest option
-  while iterating.
+An in-app reboot button was built and then **removed** — a Shortcuts Restart action placed on the
+Home Screen supersedes it entirely: one tap, works with or without KRW, and no dependence on
+feature-detecting private SpringBoard selectors that were never verified. Recorded here so it is
+not rebuilt.
+
+Use instead:
+
+* **On device:** a Home Screen shortcut running the Shortcuts *Restart* action.
+* **At a Mac:** `xcrun devicectl device reboot`, or `idevicediagnostics restart`. Simplest while
+  iterating.
+
+The removed implementation is at commits `6980dfe` (SpringBoard route) and `14ada77` (Shortcuts
+fallback) if it is ever wanted back.
