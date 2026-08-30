@@ -30,7 +30,6 @@ extern NSString * const kSettingsPowercuffLevel;
 
 extern NSString * const kSettingsDSDisableAppLibrary;
 extern NSString * const kSettingsDSDisableIconFlyIn;
-extern NSString * const kSettingsDSHomeAfterSpotlight;
 extern NSString * const kSettingsDSZeroWakeAnimation;
 extern NSString * const kSettingsDSZeroBacklightFade;
 extern NSString * const kSettingsDSDoubleTapToLock;

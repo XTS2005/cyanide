@@ -871,7 +871,6 @@ static NSString * const kSettingsPowercuffNominalNoticeShown = @"cyanide.powercu
 
 NSString * const kSettingsDSDisableAppLibrary = @"DSDisableAppLibrary";
 NSString * const kSettingsDSDisableIconFlyIn  = @"DSDisableIconFlyIn";
-NSString * const kSettingsDSHomeAfterSpotlight = @"DSHomeAfterSpotlight";
 NSString * const kSettingsDSZeroWakeAnimation = @"DSZeroWakeAnimation";
 NSString * const kSettingsDSZeroBacklightFade = @"DSZeroBacklightFade";
 NSString * const kSettingsDSDoubleTapToLock   = @"DSDoubleTapToLock";
@@ -1685,7 +1684,6 @@ static NSArray<NSString *> *settings_rc_backed_tweak_keys(void)
             kSettingsPowercuffEnabled,
             kSettingsDSDisableAppLibrary,
             kSettingsDSDisableIconFlyIn,
-            kSettingsDSHomeAfterSpotlight,
             kSettingsDSZeroWakeAnimation,
             kSettingsDSZeroBacklightFade,
             kSettingsDSDoubleTapToLock,
@@ -3338,7 +3336,6 @@ static void settings_nicebar_refresh_weather_if_needed(BOOL force,
 static BOOL settings_dark_tweaks_any_enabled(NSUserDefaults *d)
 {
     return [d boolForKey:kSettingsDSDisableAppLibrary] ||
-           [d boolForKey:kSettingsDSHomeAfterSpotlight] ||
            [d boolForKey:kSettingsDSDisableIconFlyIn] ||
            [d boolForKey:kSettingsDSZeroWakeAnimation] ||
            [d boolForKey:kSettingsDSZeroBacklightFade] ||
@@ -3505,7 +3502,6 @@ static BOOL settings_dark_tweaks_should_run(NSUserDefaults *d, BOOL pendingOnly)
     NSArray<NSString *> *keys = @[
         kSettingsDSDisableAppLibrary,
         kSettingsDSDisableIconFlyIn,
-        kSettingsDSHomeAfterSpotlight,
         kSettingsDSZeroWakeAnimation,
         kSettingsDSZeroBacklightFade,
         kSettingsDSDoubleTapToLock,
@@ -3520,7 +3516,6 @@ static BOOL settings_dark_tweaks_should_run(NSUserDefaults *d, BOOL pendingOnly)
 typedef struct {
     bool any;
     bool disableAppLibrary;
-    bool homeAfterSpotlight;
     bool disableIconFlyIn;
     bool zeroWakeAnimation;
     bool zeroBacklightFade;
@@ -3532,7 +3527,6 @@ static bool settings_dark_tweaks_result_all_ok(SettingsDarkTweaksResult result)
 {
     return result.any &&
            result.disableAppLibrary &&
-           result.homeAfterSpotlight &&
            result.disableIconFlyIn &&
            result.zeroWakeAnimation &&
            result.zeroBacklightFade &&
@@ -3547,7 +3541,6 @@ static SettingsDarkTweaksResult settings_apply_dark_tweaks_from_defaults_locked(
     // never actually been exercised on a device. It is enabled to be tested;
     // if it does not work the tweak reports failure rather than misbehaving.
     BOOL disableAppLibrary = [d boolForKey:kSettingsDSDisableAppLibrary];
-    BOOL homeAfterSpotlight = [d boolForKey:kSettingsDSHomeAfterSpotlight];
     BOOL disableIconFlyIn = [d boolForKey:kSettingsDSDisableIconFlyIn];
     BOOL zeroWakeAnimation = [d boolForKey:kSettingsDSZeroWakeAnimation];
     BOOL zeroBacklightFade = [d boolForKey:kSettingsDSZeroBacklightFade];
@@ -3555,7 +3548,6 @@ static SettingsDarkTweaksResult settings_apply_dark_tweaks_from_defaults_locked(
     BOOL dragCoefficientEnabled = [d boolForKey:kSettingsDSDragCoefficientEnabled];
     SettingsDarkTweaksResult result = {
         .disableAppLibrary = true,
-        .homeAfterSpotlight = true,
         .disableIconFlyIn = true,
         .zeroWakeAnimation = true,
         .zeroBacklightFade = true,
@@ -3571,10 +3563,6 @@ static SettingsDarkTweaksResult settings_apply_dark_tweaks_from_defaults_locked(
            doubleTapToLock,
            dragCoefficientEnabled);
 
-    if (homeAfterSpotlight) {
-        result.any = true;
-        result.homeAfterSpotlight = darksword_tweak_home_after_spotlight_in_session();
-    }
     if (disableAppLibrary) {
         result.any = true;
         result.disableAppLibrary = darksword_tweak_disable_app_library_in_session();
@@ -6306,7 +6294,6 @@ static BOOL settings_prime_location_sim_uber_stealth_locked(NSUserDefaults *d,
 static BOOL settings_key_is_dark_tweak(NSString *key)
 {
     return [key isEqualToString:kSettingsDSDisableAppLibrary] ||
-           [key isEqualToString:kSettingsDSHomeAfterSpotlight] ||
            [key isEqualToString:kSettingsDSDisableIconFlyIn] ||
            [key isEqualToString:kSettingsDSZeroWakeAnimation] ||
            [key isEqualToString:kSettingsDSZeroBacklightFade] ||
@@ -6756,8 +6743,6 @@ static void settings_schedule_live_apply_for_key(NSString *key)
                 bool ok = settings_dark_tweaks_result_all_ok(result);
                 if ([d boolForKey:kSettingsDSDisableAppLibrary])
                     settings_mark_tweak_applied(kSettingsDSDisableAppLibrary, result.disableAppLibrary);
-                if ([d boolForKey:kSettingsDSHomeAfterSpotlight])
-                    settings_mark_tweak_applied(kSettingsDSHomeAfterSpotlight, result.homeAfterSpotlight);
                 if ([d boolForKey:kSettingsDSDisableIconFlyIn])
                     settings_mark_tweak_applied(kSettingsDSDisableIconFlyIn, result.disableIconFlyIn);
                 if ([d boolForKey:kSettingsDSZeroWakeAnimation])
@@ -6929,7 +6914,6 @@ void settings_register_defaults(void)
         kSettingsPowercuffLevel:   @"nominal",
 
         kSettingsDSDisableAppLibrary: @NO,
-        kSettingsDSHomeAfterSpotlight: @NO,
         kSettingsDSDisableIconFlyIn:  @NO,
         kSettingsDSZeroWakeAnimation: @NO,
         kSettingsDSZeroBacklightFade: @NO,
@@ -7370,8 +7354,6 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                         bool ok = settings_dark_tweaks_result_all_ok(result);
                         if ([d boolForKey:kSettingsDSDisableAppLibrary])
                             settings_mark_tweak_applied(kSettingsDSDisableAppLibrary, result.disableAppLibrary);
-                        if ([d boolForKey:kSettingsDSHomeAfterSpotlight])
-                            settings_mark_tweak_applied(kSettingsDSHomeAfterSpotlight, result.homeAfterSpotlight);
                         if ([d boolForKey:kSettingsDSDisableIconFlyIn])
                             settings_mark_tweak_applied(kSettingsDSDisableIconFlyIn, result.disableIconFlyIn);
                         if ([d boolForKey:kSettingsDSZeroWakeAnimation])
