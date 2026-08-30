@@ -533,6 +533,18 @@ static const NSInteger kSecRepoTweaks       = 26;
                                      enabledKey:kSettingsDSDisableIconFlyIn
                                           isNew:NO],
 
+            [[Package alloc] initWithIdentifier:@"com.darksword.home-after-spotlight"
+                                           name:@"Return to Home Screen"
+                               shortDescription:@"Skip Spotlight when leaving an app"
+                                longDescription:@"Open an app from Spotlight search, then leave it, and iOS puts you back in Spotlight instead of on the Home Screen. This returns you to the Home Screen.\n\nSpotlight itself keeps working normally. If it has no effect on your iOS version, respring and turn it back off."
+                                        version:version
+                                         author:@"kolbicz"
+                                       category:@"SpringBoard"
+                                     symbolName:@"house.fill"
+                                           kind:PackageInstallKindToggle
+                                     enabledKey:kSettingsDSHomeAfterSpotlight
+                                          isNew:YES],
+
             [[Package alloc] initWithIdentifier:@"com.darksword.zero-wake-animation"
                                            name:@"Zero Wake Animation"
                                shortDescription:@"Snap on instantly when waking"

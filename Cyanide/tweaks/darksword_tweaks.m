@@ -454,6 +454,28 @@ static void ds_refresh_root_folder_after_app_library_change(uint64_t rootFC, uin
     }
 }
 
+// Launching an app from Spotlight and then leaving it returns you to Spotlight
+// rather than the Home Screen. A class dump of SBHomeScreenViewController on
+// iOS 17.3.1 turned up -returnToSpotlightPolicy (with a backing ivar), which is
+// exactly that decision and nothing else -- it is not a general "is search
+// active" predicate, so switching it off should not affect using Spotlight.
+//
+// The policy is an enum whose values are not known from a class dump. 0 is the
+// conventional none/default case, and 0 is what this technique can produce; if
+// it turns out to mean the opposite, a respring undoes it.
+bool darksword_tweak_home_after_spotlight_in_session(void)
+{
+    printf("[DST:SPOTHOME] forcing return-to-Home-Screen after Spotlight\n");
+    bool ok = ds_force_method_zero("SBHomeScreenViewController",
+                                   "returnToSpotlightPolicy");
+    if (!ok) {
+        log_user("[DST] Return to Home Screen: this iOS version has no "
+                 "returnToSpotlightPolicy.\n");
+    }
+    printf("[DST:SPOTHOME] result=%d\n", ok);
+    return ok;
+}
+
 bool darksword_tweak_disable_app_library_in_session(void)
 {
     printf("[DST:APPLIB] disabling app library\n");

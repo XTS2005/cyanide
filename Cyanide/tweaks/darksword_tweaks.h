@@ -13,6 +13,10 @@ bool darksword_tweak_zero_wake_animation_in_session(void);
 bool darksword_tweak_zero_backlight_fade_in_session(void);
 bool darksword_tweak_double_tap_to_lock_in_session(void);
 
+// Return to the Home Screen, not Spotlight, after leaving an app that was
+// launched from Spotlight search results.
+bool darksword_tweak_home_after_spotlight_in_session(void);
+
 bool darksword_tweaks_apply_in_session(bool disableAppLibrary,
                                        bool disableIconFlyIn,
                                        bool zeroWakeAnimation,
