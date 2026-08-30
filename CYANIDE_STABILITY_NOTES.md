@@ -699,3 +699,40 @@ The lesson worth keeping: the old path reported success because it counted
 does not exist and the fallback is a raw memory write, that is not evidence of
 anything. Where a tweak cannot observe its own effect, prefer dumping the real
 class surface over inferring API from a newer version's headers.
+
+
+## Parked state: the launchd anchor, and why it looked like an iOS 17 problem
+
+`vm_create_shmem_with_object` sized its local mirror to the whole remote VM
+object. Mapping a page of launchd therefore asked for an **8 GB** allocation
+(`size=0x200000000`), because the page lives in the dyld shared cache. The page
+actually wanted sits at `entryOffset=0x8000` -- 32 KB in.
+
+The local region is scaffolding, not a copy: the function maps exactly
+`PAGE_SIZE`, at `object->entryOffset`. The allocation only has to be long enough
+for the named entry's range to contain that page. Sized to
+`round_page(entryOffset + PAGE_SIZE)` and capped at the object's real size, it
+became 48 KB and the anchor succeeded first try.
+
+This was never an iOS version difference. SpringBoard's VM objects are small
+enough that the old sizing fit, so RemoteCall into SpringBoard always worked;
+launchd's target page is in the shared cache, so the anchor never did. Both
+devices had the same bug -- only the A18 happened to have a parked state from a
+run whose anchor fit.
+
+Verified on iPhone 15 Pro Max / iOS 17.3.1: `Anchor result: saved`, then the
+next run opened with `KRW restored from parked state`.
+
+## Measured: 206 remote messages per icon moved
+
+With `[R_OBJC]` finally reaching the log, the SBC rebalance reports
+`10725 remote messages, 0 settles, 0 ms slept` for 52 icons moved.
+
+That is **206 logical remote messages per move**, against the ~27 estimated when
+the loop was first analysed -- a denominator roughly 7.6x too small. The time per
+move (~31 ms) was about right, because the per-call cost was overestimated by
+about the same factor. It also explains why a "53% faster" projection measured as
+27%: the saving was real, but computed against a fraction of the true total.
+
+`0 settles` confirms Fastest sleeps not at all; the remaining cost is entirely
+round trips. Anything further has to reduce the 206, not the delay between them.
