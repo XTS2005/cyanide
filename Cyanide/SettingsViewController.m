@@ -848,6 +848,7 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 @end
 
 NSString * const kSettingsA18ExploitPath   = @"A18ExploitPath";
+NSString * const kSettingsA18ShapingMB     = @"A18ShapingMB";
 NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
 NSString * const kSettingsRunSandboxEscape   = @"RunSandboxEscape";
@@ -6890,6 +6891,7 @@ void settings_register_defaults(void)
         // This must be the default: reinstalling a sideloaded build wipes
         // NSUserDefaults, so an opt-in silently reverts to the broken path.
         kSettingsA18ExploitPath:     @1,
+        kSettingsA18ShapingMB:       @3072,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
@@ -8557,6 +8559,7 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 {
     return @[
         @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"title": @"A18 exploit path" },
+        @{ @"kind": @"a18shaping", @"key": kSettingsA18ShapingMB, @"title": @"A18 memory shaping" },
         @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },
@@ -11556,6 +11559,57 @@ void cyanide_present_contact(UIViewController *host)
         return cell;
     }
 
+    if ([kind isEqualToString:@"a18shaping"]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                       reuseIdentifier:nil];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        UILabel *title = [UILabel new];
+        title.text = row[@"title"];
+        title.font = [UIFont systemFontOfSize:17.0];
+        title.translatesAutoresizingMaskIntoConstraints = NO;
+
+        UISegmentedControl *seg =
+            [[UISegmentedControl alloc] initWithItems:@[@"2 GB", @"3 GB", @"4 GB"]];
+        seg.translatesAutoresizingMaskIntoConstraints = NO;
+        NSInteger mb = [d integerForKey:kSettingsA18ShapingMB];
+        seg.selectedSegmentIndex = (mb <= 2048) ? 0 : (mb >= 4096 ? 2 : 1);
+        seg.enabled = settings_device_is_a18_above();
+        [seg addTarget:self action:@selector(a18ShapingSegChanged:)
+      forControlEvents:UIControlEventValueChanged];
+
+        UILabel *note = [UILabel new];
+        note.numberOfLines = 0;
+        note.font = [UIFont systemFontOfSize:12.0];
+        note.textColor = UIColor.secondaryLabelColor;
+        note.text = settings_device_is_a18_above()
+            ? @"A18/M4 only, pe_v1 path. Before racing, Cyanide fills this much memory so the "
+               "physical page next to its search window is more likely to be its own. That is the "
+               "only thing that affects how often a run ends in a kernel panic. More is better "
+               "odds, but it can fail to allocate and puts other apps under pressure — it falls "
+               "back to a smaller size automatically. 3 GB is the tested default."
+            : @"A18/M4 devices only.";
+        note.translatesAutoresizingMaskIntoConstraints = NO;
+
+        [cell.contentView addSubview:title];
+        [cell.contentView addSubview:seg];
+        [cell.contentView addSubview:note];
+        UILayoutGuide *m = cell.contentView.layoutMarginsGuide;
+        [NSLayoutConstraint activateConstraints:@[
+            [title.leadingAnchor  constraintEqualToAnchor:m.leadingAnchor],
+            [title.trailingAnchor constraintEqualToAnchor:m.trailingAnchor],
+            [title.topAnchor      constraintEqualToAnchor:m.topAnchor],
+            [seg.leadingAnchor    constraintEqualToAnchor:m.leadingAnchor],
+            [seg.trailingAnchor   constraintEqualToAnchor:m.trailingAnchor],
+            [seg.topAnchor        constraintEqualToAnchor:title.bottomAnchor constant:8],
+            [note.leadingAnchor   constraintEqualToAnchor:m.leadingAnchor],
+            [note.trailingAnchor  constraintEqualToAnchor:m.trailingAnchor],
+            [note.topAnchor       constraintEqualToAnchor:seg.bottomAnchor constant:8],
+            [note.bottomAnchor    constraintEqualToAnchor:m.bottomAnchor],
+        ]];
+        return cell;
+    }
+
     if ([kind isEqualToString:@"settlemode"]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                        reuseIdentifier:nil];
@@ -12885,6 +12939,17 @@ void cyanide_present_contact(UIViewController *host)
             cell.textLabel.text = combined;
         }
     }
+}
+
+- (void)a18ShapingSegChanged:(UISegmentedControl *)sender
+{
+    static const NSInteger mbForIndex[] = { 2048, 3072, 4096 };
+    NSInteger idx = sender.selectedSegmentIndex;
+    if (idx < 0 || idx > 2) return;
+    [[NSUserDefaults standardUserDefaults] setInteger:mbForIndex[idx] forKey:kSettingsA18ShapingMB];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    log_user("[KRW] A18 memory shaping set to %ld MB. Takes effect on the next fresh chain run.\n",
+             (long)mbForIndex[idx]);
 }
 
 - (void)a18PathSegChanged:(UISegmentedControl *)sender
