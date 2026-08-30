@@ -659,3 +659,43 @@ chain log. This is a naming change only -- pe_v1 has been the default since the
 setting was added; it was still described as "experimental" from when it had never
 been run. The stored preference keeps its original encoding (1 = pe_v1, 0 = pe_v2)
 even though pe_v1 is now shown first, so upgrading does not silently switch paths.
+
+
+## Disable App Library on iOS 17: what the iOS 18 approach got wrong
+
+The tweak was gated off on iOS 17 because the iOS 18 approach did nothing there.
+The iOS 17 code path that existed was never reachable, and when enabled it
+reported `result=1` while the page stayed on screen -- every step "succeeded".
+
+A one-shot class dump on the device (iOS 17.3.1, SpringBoard) settled it:
+
+* **None of the five setters exist on iOS 17.** Not `setAppLibraryAllowed:`,
+  `setAllowsAppLibrary:`, `setAppLibraryEnabled:`, `setLibraryEnabled:` or
+  `setShowsAppLibrary:`, on any of the four classes the path touched.
+* **`-isAppLibraryAllowed` is on `SBIconController`**, not on the icon manager,
+  which is where the old code looked for it.
+* **`-iconController` returns nil on `SBHIconManager`.** The flag pass was being
+  handed a null target, while the real controller sat unused in a local.
+* **Neither `SBRootFolderController` nor `SBRootFolderView` has
+  `setTrailingCustomViewController:`** -- getter only. The path fell back to
+  writing the ivar directly, which cannot tear down a page already built (and
+  leaks the controller). On iOS 18 the plural equivalent *is* a real setter that
+  runs real teardown, which is why the same code works there.
+
+iOS 17 exposes getters with no setters, so the lever is changing the answers.
+Four `method_setImplementation` swaps to `-[NSObject isProxy]` (returns NO, and
+0 for the count):
+
+    SBIconController -isAppLibrarySupported
+    SBIconController -isAppLibraryAllowed
+    SBRootFolderView -_trailingCustomPageCount
+    SBRootFolderView -_trailingCustomViewShouldBeIndicatedInPageControl
+
+Confirmed working on iPhone 15 Pro Max, iOS 17.3.1: `gate hooks installed=4/4`,
+all four oldIMPs non-null, page gone.
+
+The lesson worth keeping: the old path reported success because it counted
+"the setter I called did not error" as success. On a version where the setter
+does not exist and the fallback is a raw memory write, that is not evidence of
+anything. Where a tweak cannot observe its own effect, prefer dumping the real
+class surface over inferring API from a newer version's headers.

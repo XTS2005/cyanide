@@ -501,7 +501,7 @@ static const NSInteger kSecRepoTweaks       = 26;
         Package *disableAppLibrary = [[Package alloc] initWithIdentifier:@"com.darksword.disable-app-library"
                                            name:@"Disable App Library"
                                shortDescription:@"Remove the App Library page"
-                                longDescription:@"Removes the App Library page that sits past your last home-screen page. Swiping past the last page becomes a no-op.\n\nOn iOS 17 this uses a different, untested code path — please report whether it works."
+                                longDescription:@"Removes the App Library page that sits past your last home-screen page. Swiping past the last page becomes a no-op.\n\nWorks on iOS 17 and later."
                                         version:@"1.1"
                                          author:@"kolbicz"
                                        category:@"SpringBoard"
