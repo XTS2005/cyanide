@@ -69,10 +69,27 @@ all of it sleeping.
 - **ipc diagnostics** were gated on an environment variable that can never be set
   for a sideloaded app; they now follow the app's own verbose flag.
 
+## Also in this build
+
+- **M-series iPads: `init_remote_call` now has a chance of working.** It has never
+  worked on those devices — the exploit succeeds and KRW is armed, but resolving
+  any mach port name to its kernel object fails, so both the launchd persistence
+  transfer and the SpringBoard session die. Two causes, both scoped to M-series
+  iPads: `kalloc_array_decode()` used a zone mask derived from `t1sz 0x19`
+  (bit 38), producing `0xffffbedf…` — not a canonical kernel address, where every
+  real pointer on the device carries the `0xfffffe` prefix; and
+  `VM_MAX_KERNEL_ADDRESS` sat just below the correctly-decoded table anyway.
+- **Chain logs now really survive a panic.** The earlier `fsync()` was not enough:
+  on Apple platforms it only reaches the drive, not the media. `F_FULLFSYNC` does.
+- **A18 staging degrades instead of blocking.** The 3 GB shaping mapping fails
+  with `KERN_NO_SPACE` often enough to stop a run outright; it now walks down
+  through 2560/2048/1536/1024 MB and logs the size it settled on.
+
 ## Notes
 
-- Tested on iPhone 16 Pro Max (A18 Pro, iOS 18.5). The M-series slide fix and the
-  ipc diagnostics have not been re-verified on an M-series iPad.
+- Tested on iPhone 16 Pro Max (A18 Pro, iOS 18.5). The M-series iPad fixes are
+  derived from a device log rather than a run — they are unverified, and the
+  iPhone path cannot be affected by them (`isMSeriesIPad` is false for it).
 - Fresh A18 runs occasionally still fault in the kernel physical aperture. That
   is inherent to the technique: the OOB read deliberately reads the physical page
   after the search mapping, and on SPTM devices a meaningful share of physical
