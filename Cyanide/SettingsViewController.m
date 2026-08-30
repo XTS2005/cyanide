@@ -3536,8 +3536,11 @@ static bool settings_dark_tweaks_result_all_ok(SettingsDarkTweaksResult result)
 
 static SettingsDarkTweaksResult settings_apply_dark_tweaks_from_defaults_locked(NSUserDefaults *d)
 {
-    NSInteger iosMajor = [[NSProcessInfo processInfo] operatingSystemVersion].majorVersion;
-    BOOL disableAppLibrary = [d boolForKey:kSettingsDSDisableAppLibrary] && iosMajor != 17;
+    // The iOS 17 gate is lifted. darksword_tweaks.m carries a complete iOS 17
+    // "singular controller" path that was never reachable from here, so it has
+    // never actually been exercised on a device. It is enabled to be tested;
+    // if it does not work the tweak reports failure rather than misbehaving.
+    BOOL disableAppLibrary = [d boolForKey:kSettingsDSDisableAppLibrary];
     BOOL disableIconFlyIn = [d boolForKey:kSettingsDSDisableIconFlyIn];
     BOOL zeroWakeAnimation = [d boolForKey:kSettingsDSZeroWakeAnimation];
     BOOL zeroBacklightFade = [d boolForKey:kSettingsDSZeroBacklightFade];

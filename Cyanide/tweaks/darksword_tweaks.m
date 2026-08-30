@@ -32,6 +32,30 @@ static uint64_t ds_object_class(uint64_t obj)
     return ds_try_msg0(obj, "class");
 }
 
+// Diagnostics only. Knowing which concrete classes SpringBoard hands back is
+// the difference between fixing the iOS 17 path and guessing at it.
+static void ds_read_class_name(uint64_t obj, char *out, size_t outLen)
+{
+    if (!out || outLen == 0) return;
+    snprintf(out, outLen, "%s", "<none>");
+    if (!r_is_objc_ptr(obj)) return;
+    uint64_t cls = r_dlsym_call(R_TIMEOUT, "object_getClass", obj, 0, 0, 0, 0, 0, 0, 0);
+    if (!r_is_objc_ptr(cls)) return;
+    uint64_t name = r_dlsym_call(R_TIMEOUT, "class_getName", cls, 0, 0, 0, 0, 0, 0, 0);
+    if (!name) return;
+    uint64_t heap = r_dlsym_call(R_TIMEOUT, "strdup", name, 0, 0, 0, 0, 0, 0, 0);
+    if (!heap) return;
+    if (remote_read(heap, out, outLen - 1)) out[outLen - 1] = '\0';
+    r_free(heap);
+}
+
+static void ds_log_target(const char *label, uint64_t obj)
+{
+    char cls[96];
+    ds_read_class_name(obj, cls, sizeof(cls));
+    printf("[DST:APPLIB]   %-24s obj=0x%llx class=%s\n", label, obj, cls);
+}
+
 static uint64_t ds_resolve_ivar_target(uint64_t obj, uint64_t cls, const char *name)
 {
     if (!r_is_objc_ptr(obj) || !r_is_objc_ptr(cls) || !name) return 0;
@@ -124,7 +148,10 @@ static bool ds_disable_app_library_flags_on_target(uint64_t obj, const char *tag
 
     bool changed = false;
     for (size_t i = 0; i < sizeof(properties) / sizeof(properties[0]); i++) {
-        if (!r_responds_main(obj, properties[i].setter)) continue;
+        if (!r_responds_main(obj, properties[i].setter)) {
+            printf("[DST:APPLIB] %s %s absent\n", tag, properties[i].setter);
+            continue;
+        }
         r_msg2_main(obj, properties[i].setter, 0, 0, 0, 0);
         bool verified = !r_responds_main(obj, properties[i].getter) ||
                         r_msg2_main(obj, properties[i].getter, 0, 0, 0, 0) == 0;
@@ -144,7 +171,11 @@ static bool ds_disable_app_library_flags_on_target(uint64_t obj, const char *tag
         NULL,
     };
     for (int i = 0; ivars[i]; i++) {
-        changed |= ds_poke_bool_ivar(obj, cls, ivars[i], false);
+        if (!ds_poke_bool_ivar(obj, cls, ivars[i], false)) {
+            printf("[DST:APPLIB] %s ivar %s unresolved\n", tag, ivars[i]);
+        } else {
+            changed = true;
+        }
     }
     return changed;
 }
@@ -230,7 +261,11 @@ static bool ds_force_object_method_nil(uint64_t obj,
         ? r_dlsym_call(R_TIMEOUT, "method_getImplementation",
                        falseMethod, 0, 0, 0, 0, 0, 0, 0)
         : 0;
-    if (!method || !falseIMP) return false;
+    if (!method || !falseIMP) {
+        printf("[DST:APPLIB] hook %s.%s unavailable (method=0x%llx falseIMP=0x%llx)\n",
+               className, selectorName, method, falseIMP);
+        return false;
+    }
 
     uint64_t oldIMP = r_dlsym_call(
         R_TIMEOUT, "method_setImplementation",
@@ -393,16 +428,30 @@ bool darksword_tweak_disable_app_library_in_session(void)
     bool ok = false;
     if (ds_ios_major_version() == 17) {
         printf("[DST:APPLIB] using iOS 17 singular controller path\n");
+        ds_log_target("SBIconController", ctrl);
+        ds_log_target("iconManager", mgr);
+        ds_log_target("iconManager.iconController", ds_try_msg0(mgr, "iconController"));
+        ds_log_target("iconManager.iconModel", ds_try_msg0(mgr, "iconModel"));
+        ds_log_target("iconManager.configuration", ds_try_msg0(mgr, "configuration"));
+        ds_log_target("rootFolderController", rootFC);
+        ds_log_target("rootFolderView", rootView);
+
         // SBIconController is SBHIconManager's delegate on iOS 17. Stop the
         // manager from sourcing library controllers without changing
         // -isAppLibraryAllowed, which is also used by dismissal/state logic.
         bool librarySourceHookOK = ds_force_object_method_nil(
             ctrl, "SBIconController", "libraryViewControllersForIconManager:", mgr);
         ok = ds_disable_app_library_singular_path(mgr, rootFC, rootView);
-        ok &= librarySourceHookOK;
-        if (ok) ds_refresh_root_folder_after_app_library_change(rootFC, rootView);
-        printf("[DST:APPLIB] iOS 17 library source hook=%d result=%d\n",
+
+        // The hook is deliberately NOT folded into the result. It is one of
+        // three independent things this path attempts, and ANDing it in meant a
+        // path that had actually worked still reported failure. Log it instead.
+        if (ok || librarySourceHookOK) {
+            ds_refresh_root_folder_after_app_library_change(rootFC, rootView);
+        }
+        printf("[DST:APPLIB] iOS 17 library source hook=%d singular=%d\n",
                librarySourceHookOK, ok);
+        ok = ok || librarySourceHookOK;
         printf("[DST:APPLIB] result=%d\n", ok);
         return ok;
     }
