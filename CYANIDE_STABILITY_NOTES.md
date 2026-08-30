@@ -570,3 +570,39 @@ Worth noting how it was found: the diagnostic that pinpointed it,
 can never be set for a sideloaded app, so it had never printed on any device.
 Re-gating it on the app's own verbose flag turned an unfalsifiable "RemoteCall
 just fails here" into a one-line diagnosis.
+
+
+## CORRECTION + result: shaping size decides the panic rate after all
+
+An earlier section concluded that "panicking runs die on pass 1, so reducing the
+search does nothing." That was drawn from a single capture at 3 GB where a 200 ms
+fsync window hid everything after the socket spray. With the interval at 50 ms and
+a 2 GB run captured, the picture is different.
+
+    run                  shaping   passes   mappings   ~OOB reads   outcome
+    3 GB successes (x5)     3 GB      1-2      16-34      240-480   OK, 0.6-3.4s
+    2 GB test               2 GB       6+         85        ~1275   PANIC
+    4 GB attempt            4 GB        -          -            -   app jetsammed
+
+So panic risk scales with **how long the search takes**, and search length depends
+on **shaping quality**. It is not a fixed per-run gamble.
+
+* **4 GB** — when the allocation succeeds the touch loop trips the per-process
+  memory limit and jetsam kills Cyanide. When it fails, the ladder silently falls
+  back to 3 GB. It is never the size actually used. Option removed.
+* **3 GB** — finds a target in 1-2 passes. Reclaim runs 0.6-0.8 GB, i.e. the system
+  is already clawing some back, which places 3 GB right at the ceiling.
+* **2 GB** — reclaim is essentially zero (0.01 GB, plenty of headroom), but the
+  search ground through 6 passes and 85 mappings without finding a target before
+  panicking: roughly 3-5x the exposure of a 3 GB run.
+
+**3 GB is the sweet spot, and it is narrow**: one step up kills the app, one step
+down multiplies the exposure. That is presumably why the original author chose it.
+
+Side effect worth knowing: during test sessions, widget extensions across the
+system are SIGKILLed with `CODESIGNING 2 | Invalid Page` at 15-20x the baseline
+rate (149 RedditWidgetsExtension, 145 WidgetExtension Production, ... clustered
+exactly in the testing hours, on a device that uses no widgets at all). The likely
+mechanism is the shaping evicting clean executable pages, which then fail hash
+validation when faulted back in. Inference from correlation plus one sample, not
+established -- but another reason not to raise the shaping size.
