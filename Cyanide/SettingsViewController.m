@@ -8344,8 +8344,43 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
     }
 }
 
+// No-KRW fallback. Nothing a sideloaded app can do reboots the device on its
+// own: reboot(2) needs uid 0 (ucred is in the SPTM-protected read-only
+// allocator), and the private restart APIs are only reachable inside
+// SpringBoard, which needs KRW. Shortcuts can do it with no privileges at all,
+// at the cost of a one-time user-created shortcut.
+- (void)presentRebootShortcutFallback
+{
+    UIAlertController *ac = [UIAlertController
+        alertControllerWithTitle:@"No kernel session"
+                         message:@"Cyanide can only reboot through SpringBoard, which needs a live "
+                                  "kernel session — so this cannot work before the chain has run.\n\n"
+                                  "As a fallback you can use a Shortcut, which needs no privileges:\n"
+                                  "1. Shortcuts app → new shortcut → add the Restart action\n"
+                                  "2. Name it exactly \u201c" @CY_REBOOT_SHORTCUT_NAME @"\u201d\n\n"
+                                  "Then this button will run it."
+                  preferredStyle:UIAlertControllerStyleAlert];
+    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel"
+                                           style:UIAlertActionStyleCancel handler:nil]];
+    [ac addAction:[UIAlertAction actionWithTitle:@"Run Shortcut"
+                                           style:UIAlertActionStyleDefault
+                                         handler:^(UIAlertAction *_) {
+        NSString *name = [@CY_REBOOT_SHORTCUT_NAME
+            stringByAddingPercentEncodingWithAllowedCharacters:NSCharacterSet.URLQueryAllowedCharacterSet];
+        NSURL *url = [NSURL URLWithString:
+            [NSString stringWithFormat:@"shortcuts://run-shortcut?name=%@", name]];
+        if (url) [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    }]];
+    [self presentViewController:ac animated:YES completion:nil];
+}
+
 - (void)navRebootTapped
 {
+    if (!device_reboot_available()) {
+        [self presentRebootShortcutFallback];
+        return;
+    }
+
     UIAlertController *ac = [UIAlertController
         alertControllerWithTitle:@"Reboot device?"
                          message:@"Cyanide asks SpringBoard to restart the device, so it goes "

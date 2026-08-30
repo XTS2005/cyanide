@@ -27,6 +27,12 @@
 // discovery run: whatever this prints is the ground truth for this device.
 void device_reboot_probe(void);
 
+// Name of the user-created Shortcut used as the no-KRW fallback.
+#define CY_REBOOT_SHORTCUT_NAME "Cyanide Reboot"
+
+// True when a SpringBoard-driven reboot is currently possible (i.e. KRW is up).
+bool device_reboot_available(void);
+
 // Attempts a reboot via SpringBoard. Returns true only if a reboot action was
 // successfully dispatched; false means nothing suitable was found, and the log
 // will say what was probed.

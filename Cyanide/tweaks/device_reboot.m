@@ -69,6 +69,11 @@ void device_reboot_probe(void)
     }
 }
 
+bool device_reboot_available(void)
+{
+    return kexploit_krw_ready();
+}
+
 bool device_reboot_now(void)
 {
     if (!kexploit_krw_ready()) {
