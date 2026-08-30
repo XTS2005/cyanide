@@ -9,6 +9,10 @@
 | ❌ Not supported | iOS 16.x and earlier, **18.7.2 – 25.x**, **26.1 and later** |
 | ❌ Not supported | **iPhone 17 family (A19 / A19 Pro)** and **M5** — Memory Integrity Enforcement blocks the exploit |
 
+**iOS 15 and 16 are out of scope by choice, not by limitation.** The technique
+would likely work there, but those versions already have full jailbreaks, so
+Cyanide has nothing to add — use one of those instead.
+
 Any iPhone or iPad on a supported version should work, including A-series and
 M-series iPads. There is no separate device whitelist: Cyanide checks the
 iOS version and finds its kernel offsets by scanning, so hardware from older
