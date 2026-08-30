@@ -6,6 +6,7 @@
 //
 
 #import "LogTextView.h"
+#import <unistd.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -28,6 +29,10 @@ static pthread_mutex_t log_mutex    = PTHREAD_MUTEX_INITIALIZER;
 // every completed line is also written here with a wall-clock timestamp.
 // Both fields are guarded by log_mutex.
 static FILE *log_file                = NULL;
+// At most one fsync per 200 ms; bounds both the cost and how much output a
+// kernel panic can swallow.
+#define LOG_FSYNC_INTERVAL_NS 200000000ULL
+static uint64_t log_last_fsync_ns = 0;
 static char  log_file_path_c[1024]   = {0};
 
 void log_init(void) {
@@ -84,6 +89,18 @@ static void log_write_raw_internal(const char *msg, int skipTimestamp) {
             if (log_file) {
                 fprintf(log_file, "%s\n", stamped_line);
                 fflush(log_file);
+                // fflush only hands the bytes to the OS; on a kernel panic the
+                // filesystem buffers never reach flash, so the run that most
+                // needs a log leaves a 0-byte file (see chain-20260829-142508.log
+                // and chain-20260830-133739.log, both from panicking runs).
+                // fsync forces them out. Rate-limited so the exploit's timing
+                // is not perturbed by a flash write per line -- worst case we
+                // lose the last LOG_FSYNC_INTERVAL_NS of output.
+                uint64_t nowNS = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
+                if (nowNS - log_last_fsync_ns >= LOG_FSYNC_INTERVAL_NS) {
+                    fsync(fileno(log_file));
+                    log_last_fsync_ns = nowNS;
+                }
             }
 
             line_pos  = 0;
