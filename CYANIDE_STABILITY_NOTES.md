@@ -550,3 +550,23 @@ the floor for the technique.
 is a fixed ~240-roll gamble against physical pages that may be carved out and
 unmapped, and no amount of tuning changes the odds per roll. The mitigation is
 parked state: win once, and later launches skip the exploit entirely.
+
+
+## CONFIRMED: M-series iPad RemoteCall fix works
+
+`init_remote_call` now succeeds on an M-series iPad. Both causes were real:
+
+* `kalloc_array_decode()` was using a zone mask derived from `t1sz 0x19` (bit 38),
+  producing `0xffffbedf...` — not a canonical kernel address. With `0x11` the mask
+  is bit 46 and the decode yields `0xfffffe9f...`, matching the `0xfffffe` prefix
+  every other pointer on the device carries.
+* `VM_MAX_KERNEL_ADDRESS` (`0xFFFFFE8FFFFFFFFF`) sat just below that correctly
+  decoded table, so it would have been rejected anyway.
+
+Both were scoped to `isMSeriesIPad`, so the iPhone path was never at risk.
+
+Worth noting how it was found: the diagnostic that pinpointed it,
+`kutils_log_ipc_reject`, had been gated behind `getenv("KUTILS_VERBOSE")` — which
+can never be set for a sideloaded app, so it had never printed on any device.
+Re-gating it on the app's own verbose flag turned an unfalsifiable "RemoteCall
+just fails here" into a one-line diagnosis.
