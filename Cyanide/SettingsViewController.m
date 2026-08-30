@@ -37,6 +37,7 @@
 #import "kexploit/persistence.h"
 #import "kexploit/machine_info.h"
 #import "tweaks/remote_objc.h"
+#import "tweaks/device_reboot.h"
 #import "installer/CYIconBadge.h"
 #import "installer/InstallProgressViewController.h"
 #import "installer/Package.h"
@@ -8332,8 +8333,50 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
                                                                          target:self
                                                                          action:@selector(navRespringTapped)];
         respringItem.accessibilityLabel = @"Respring";
-        self.navigationItem.rightBarButtonItem = respringItem;
+
+        UIImage *rebootIcon = [UIImage systemImageNamed:@"power.circle"];
+        UIBarButtonItem *rebootItem = [[UIBarButtonItem alloc] initWithImage:rebootIcon
+                                                                      style:UIBarButtonItemStylePlain
+                                                                     target:self
+                                                                     action:@selector(navRebootTapped)];
+        rebootItem.accessibilityLabel = @"Reboot";
+        self.navigationItem.rightBarButtonItems = @[respringItem, rebootItem];
     }
+}
+
+- (void)navRebootTapped
+{
+    UIAlertController *ac = [UIAlertController
+        alertControllerWithTitle:@"Reboot device?"
+                         message:@"Cyanide asks SpringBoard to restart the device, so it goes "
+                                  "through the normal shutdown path. Live tweaks are torn down "
+                                  "first. Needs a live kernel session."
+                  preferredStyle:UIAlertControllerStyleAlert];
+    [ac addAction:[UIAlertAction actionWithTitle:@"Cancel"
+                                           style:UIAlertActionStyleCancel
+                                         handler:nil]];
+    [ac addAction:[UIAlertAction actionWithTitle:@"Reboot"
+                                           style:UIAlertActionStyleDestructive
+                                         handler:^(UIAlertAction *_) {
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            if (__sync_lock_test_and_set(&g_settings_actions_running, 1)) {
+                printf("[REBOOT] blocked: actions already running\n");
+                return;
+            }
+            @try {
+                // A reboot clears all kernel state anyway, but tear the live
+                // tweaks and RemoteCall sessions down cleanly first so nothing
+                // is mid-operation when SpringBoard goes away.
+                settings_prepare_for_respring_sync();
+                if (!device_reboot_now()) {
+                    log_user("[REBOOT] Reboot could not be dispatched.\n");
+                }
+            } @finally {
+                __sync_lock_release(&g_settings_actions_running);
+            }
+        });
+    }]];
+    [self presentViewController:ac animated:YES completion:nil];
 }
 
 - (void)navRespringTapped
