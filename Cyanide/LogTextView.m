@@ -7,6 +7,7 @@
 
 #import "LogTextView.h"
 #import <unistd.h>
+#import <fcntl.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -93,12 +94,15 @@ static void log_write_raw_internal(const char *msg, int skipTimestamp) {
                 // filesystem buffers never reach flash, so the run that most
                 // needs a log leaves a 0-byte file (see chain-20260829-142508.log
                 // and chain-20260830-133739.log, both from panicking runs).
-                // fsync forces them out. Rate-limited so the exploit's timing
+                // F_FULLFSYNC forces them out. Rate-limited so the exploit's timing
                 // is not perturbed by a flash write per line -- worst case we
                 // lose the last LOG_FSYNC_INTERVAL_NS of output.
                 uint64_t nowNS = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
                 if (nowNS - log_last_fsync_ns >= LOG_FSYNC_INTERVAL_NS) {
-                    fsync(fileno(log_file));
+                    // fsync() is NOT enough on Apple platforms -- it only pushes
+                    // to the drive, which is why chain logs were still 0 bytes
+                    // after panics. F_FULLFSYNC is the one that reaches media.
+                    fcntl(fileno(log_file), F_FULLFSYNC, 0);
                     log_last_fsync_ns = nowNS;
                 }
             }
@@ -233,6 +237,10 @@ void log_session_begin(void) {
                 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
                 tm.tm_hour, tm.tm_min, tm.tm_sec);
         fflush(log_file);
+        // Same reason as the write path: without F_FULLFSYNC even the header
+        // can be lost, which is how a panicking run left a 0-byte file.
+        fcntl(fileno(log_file), F_FULLFSYNC, 0);
+        log_last_fsync_ns = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
     }
     pthread_mutex_unlock(&log_mutex);
 
