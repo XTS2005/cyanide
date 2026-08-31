@@ -233,9 +233,21 @@ struct VMShmem vm_create_shmem_with_object(struct VMObject *object)
     params.vmpp_base_relative = VM_PACKING_IS_BASE_RELATIVE(&params) ? 1 : 0;
     uint64_t packedPointer = vm_pack_pointer(object->address, &params);
  
-    uint32_t refCount = kread32(object->address + off_vm_object_ref_count);
-    refCount++;
-    kwrite32(object->address + off_vm_object_ref_count, refCount);
+    // Account for the extra reference the patched copy entry below is about to
+    // hold on this object. The kernel keeps its page accounting in the same
+    // 32-byte write window, so bump the count only while it is holding still --
+    // see kadjust32_stable(). If it will not settle, back out instead of
+    // guessing: a ref_count left too low frees the object out from under
+    // whoever else has it mapped.
+    if (!kadjust32_stable(object->address + off_vm_object_ref_count,
+                          +1, NULL, NULL)) {
+        printf("[%s:%d] refusing to map: ref_count at %#llx would not settle\n",
+               __FUNCTION__, __LINE__,
+               (unsigned long long)(object->address + off_vm_object_ref_count));
+        mach_port_deallocate(mach_task_self_, memoryObject);
+        mach_vm_deallocate(mach_task_self_, localAddr, roundedSize);
+        return shmem;
+    }
     
     entry.vme_object_or_delta = (uint32_t)packedPointer;
     entry.vme_offset = object->objectOffset;

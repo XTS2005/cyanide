@@ -17,6 +17,7 @@
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
 #include <time.h>
+#import "kexploit/machine_info.h"
 
 #define LOG_MAX_LINES   50000
 #define LOG_TRIM_TO     30000
@@ -261,6 +262,26 @@ void log_session_begin(void) {
             if (sysctlbyname("hw.cpufamily", &cpuFamily, &sz, NULL, 0) != 0)
                 cpuFamily = 0;
 
+            // Boot time and uptime. Without these, grouping runs by boot has to
+            // be reconstructed from panic-log timestamps, which is guesswork --
+            // and guessing it wrong is exactly how the "second run in a boot"
+            // theory got made up on 2026-08-31.
+            struct timeval boottv = {0};
+            size_t btsz = sizeof(boottv);
+            char bootDesc[64];
+            if (sysctlbyname("kern.boottime", &boottv, &btsz, NULL, 0) == 0 && boottv.tv_sec) {
+                time_t bt = boottv.tv_sec;
+                struct tm btm;
+                localtime_r(&bt, &btm);
+                char stamp[32];
+                strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", &btm);
+                long up = (long)(time(NULL) - bt);
+                snprintf(bootDesc, sizeof(bootDesc), "%s (up %ldm %lds)",
+                         stamp, up / 60, up % 60);
+            } else {
+                strlcpy(bootDesc, "unknown", sizeof(bootDesc));
+            }
+
             NSString *osVersion = UIDevice.currentDevice.systemVersion ?: @"unknown";
             NSBundle *bundle = [NSBundle mainBundle];
             NSString *appVersion =
@@ -268,10 +289,22 @@ void log_session_begin(void) {
             NSString *appBuild =
                 [bundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"unknown";
 
+            // Keep the raw family alongside the name: the name is what makes
+            // a log readable at a glance, the hex is what identifies a chip we
+            // have no name for yet.
+            const char *cpuName = machine_cpu_name(cpuFamily);
+            char cpuDesc[64];
+            if (cpuName)
+                snprintf(cpuDesc, sizeof(cpuDesc), "%s (0x%08x)", cpuName, cpuFamily);
+            else
+                snprintf(cpuDesc, sizeof(cpuDesc), "0x%08x", cpuFamily);
+
             fprintf(log_file,
-                    "# device %s  iOS %s (%s)  cpufamily 0x%08x\n"
+                    "# device %s  iOS %s (%s)  cpu %s\n"
+                    "# booted %s\n"
                     "# Cyanide %s (%s)\n",
-                    machine, osVersion.UTF8String, osbuild, cpuFamily,
+                    machine, osVersion.UTF8String, osbuild, cpuDesc,
+                    bootDesc,
                     appVersion.UTF8String, appBuild.UTF8String);
         }
         fflush(log_file);
