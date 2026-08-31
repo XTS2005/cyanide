@@ -6,6 +6,7 @@
 //
 
 #import "LogTextView.h"
+#import <UIKit/UIKit.h>
 #import <unistd.h>
 #import <fcntl.h>
 #include <pthread.h>
@@ -13,6 +14,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/sysctl.h>
+#include <sys/utsname.h>
 #include <time.h>
 
 #define LOG_MAX_LINES   50000
@@ -238,6 +241,39 @@ void log_session_begin(void) {
                 "# Cyanide chain session %04d-%02d-%02d %02d:%02d:%02d\n",
                 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
                 tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+        // Device and build banner. Logs arrive from other people with no idea
+        // what they were running on; every question about one of them so far
+        // has started with "which device, which iOS, which Cyanide".
+        {
+            char machine[64] = {0};
+            size_t sz = sizeof(machine);
+            if (sysctlbyname("hw.machine", machine, &sz, NULL, 0) != 0)
+                strlcpy(machine, "unknown", sizeof(machine));
+
+            char osbuild[64] = {0};
+            sz = sizeof(osbuild);
+            if (sysctlbyname("kern.osversion", osbuild, &sz, NULL, 0) != 0)
+                strlcpy(osbuild, "unknown", sizeof(osbuild));
+
+            uint32_t cpuFamily = 0;
+            sz = sizeof(cpuFamily);
+            if (sysctlbyname("hw.cpufamily", &cpuFamily, &sz, NULL, 0) != 0)
+                cpuFamily = 0;
+
+            NSString *osVersion = UIDevice.currentDevice.systemVersion ?: @"unknown";
+            NSBundle *bundle = [NSBundle mainBundle];
+            NSString *appVersion =
+                [bundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"unknown";
+            NSString *appBuild =
+                [bundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"unknown";
+
+            fprintf(log_file,
+                    "# device %s  iOS %s (%s)  cpufamily 0x%08x\n"
+                    "# Cyanide %s (%s)\n",
+                    machine, osVersion.UTF8String, osbuild, cpuFamily,
+                    appVersion.UTF8String, appBuild.UTF8String);
+        }
         fflush(log_file);
         // Same reason as the write path: without F_FULLFSYNC even the header
         // can be lost, which is how a panicking run left a 0-byte file.
