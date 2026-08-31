@@ -7,6 +7,7 @@
 #import "VPhoneDebug.h"
 #import "kexploit/kexploit_opa334.h"
 #import "kexploit/offsets.h"
+#import "kexploit/krw.h"
 #import "tweaks/sbcustomizer.h"
 #import "tweaks/powercuff.h"
 #import "tweaks/statbar.h"
@@ -849,6 +850,7 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 @end
 
 NSString * const kSettingsA18ExploitPath   = @"A18ExploitPath";
+NSString * const kSettingsA18MemoryShaping = @"A18MemoryShaping";
 NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
 NSString * const kSettingsRunSandboxEscape   = @"RunSandboxEscape";
@@ -6137,6 +6139,11 @@ void settings_register_defaults(void)
         // This must be the default: reinstalling a sideloaded build wipes
         // NSUserDefaults, so an opt-in silently reverts to the broken path.
         kSettingsA18ExploitPath:     @1,
+        // Off by default: measured 2026-08-31 on iPhone17,2 / iOS 18.5, shaping
+        // acquired KRW 0 times in 7 runs while the ordinary geometry managed
+        // 4 in 7, always on the first pass. Kept as a toggle rather than
+        // deleted because gIsA18Above also covers M4, which is untested.
+        kSettingsA18MemoryShaping:   @NO,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
@@ -6881,6 +6888,7 @@ static void settings_run_actions_internal(BOOL pendingOnly)
                     }
                 }
                 if (closedNonLiveRemoteCall) {
+                    kadjust32_report("SpringBoard session");
                     log_user("[OK] SpringBoard channel released — no persistent hooks.\n");
                     cyanide_upload_log_milestone(@"springboard-remote-call-closed");
                 }
@@ -7707,6 +7715,8 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 {
     return @[
         @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"title": @"A18 exploit path" },
+        @{ @"key": kSettingsA18MemoryShaping,   @"title": @"A18 memory shaping",
+           @"subtitle": @"Off uses the same search geometry as every other device. On restores the 3 GB shaping mapping and 4 MB search window. Measured 0/7 with shaping, 4/7 without, on iPhone 16 Pro Max / iOS 18.5. A18 and M4 only; takes effect on the next fresh chain run." },
         @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },

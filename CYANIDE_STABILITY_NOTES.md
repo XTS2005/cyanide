@@ -519,38 +519,60 @@ Use instead:
 The removed implementation is at commits `6980dfe` (SpringBoard route) and `14ada77` (Shortcuts
 fallback) if it is ever wanted back.
 
-## Settled: A18 panics happen on the first pass
+## CORRECTED: A18 panics are not confined to the first pass
 
-The first chain log ever captured from a panicking run (`chain-20260830-143427.log`,
-saved only because `F_FULLFSYNC` replaced `fsync`) ends at:
+An earlier version of this section concluded that panicking runs always die on
+pass 1, and therefore that "reducing pass count would achieve nothing — there is
+no grinding to eliminate." That was written from `chain-20260830-143427.log`, the
+only A18 log that existed at the time. With five logs the conclusion does not
+hold.
 
-```
-[14:34:27.437] # session start
-[14:34:27.443] [KRW] A18 shaping mapping: 3072 MB at 0x300000000
-[14:34:28.104] [i] socketPortsCount: 22528
-```
+Counting search passes by the `socketPortsCount` line, which is emitted once per
+pass:
 
-The panic log is stamped 14:34:52 — 25 seconds later — which initially looked like
-a 24-second stall. It is not: iOS writes the panic log on the *next boot*, and the
-gap is consistent across every pair we have (25 s, 29 s, 25 s). So the panic
-occurred roughly 0.7 s in, immediately after the socket spray, during the **first
-search mapping of the first pass**.
+| Log | Shaping | Passes | Outcome |
+| - | - | - | - |
+| `chain-20260830-143427` | 3072 MB | 1 | panic, during pass 1 |
+| `chain-20260830-145526` | 4096 MB | 0 | jetsam during shaping |
+| `chain-20260830-145636` | 4096 → 3072 fallback | 1 | **success** |
+| `chain-20260830-150230` | 2048 MB | 3 | panic, mapping 4 of pass 3 |
+| `chain-20260831-083132` | 3072 MB | 2 | panic, start of pass 2 |
 
-That closes the last open question about the aperture panics:
+Deaths occur on passes 1, 2 and 3. Reads do accumulate across passes.
 
-* successful runs take 1–2 passes (240–480 OOB reads)
-* panicking runs die on pass 1
+### There is no measured success rate for the shipping geometry
 
-So the risk is concentrated in the first ~240 reads, not accumulated over many
-passes. Reducing pass count would achieve nothing — there is no grinding to
-eliminate. 240 reads is already one full sweep of 16 mappings x 15 offsets, i.e.
-the floor for the technique.
+Note the shaping column. Those runs span the period when shaping was a user
+setting, at 2048, 3072 and 4096 MB. Only `143427` and `083132` used the fixed
+3072 MB that ships today, and both panicked; `145636` reached 3072 only via the
+4096 fallback path. Any "N successes in M runs" figure quoted from this table is
+mixing builds. **A baseline for the current build does not exist yet** and needs
+roughly ten runs on one binary before any further tuning is justified.
 
-**Conclusion: `pe_v1` on an SPTM A18 device is at its practical floor.** Each run
-is a fixed ~240-roll gamble against physical pages that may be carved out and
-unmapped, and no amount of tuning changes the odds per roll. The mitigation is
-parked state: win once, and later launches skip the exploit entirely.
+### What was actually wrong in the code
 
+`pe_v1`'s retry loop was `while (true)` whose only exit was `success == true`,
+and the function then returned an unconditional `true`. On A18 that means an
+unlucky run had no failure path — it kept rolling ~240 OOB reads per pass until
+it either won or panicked the device. The caller has always handled a `false`
+return (`[WARN] Kernel chain did not acquire early read/write`); nothing was
+using it.
+
+Now capped at 4 passes on A18, with a `[KRW] A18 search pass N/M` line per pass.
+Non-A18 devices keep the unbounded loop, since they have found the PCB on pass 1
+in every log captured.
+
+### What this does and does not change
+
+It does **not** improve the odds. Most of the risk is in pass 1, which cannot be
+skipped, and reads per pass trade off one-for-one against the chance of finding
+the PCB, so there is no free lunch in the search geometry. The earlier reading
+still stands on the substance: each read is a dice roll against SPTM carve-outs,
+shaping is the only lever on the per-roll odds, and jetsam pins it at 3072 MB.
+
+What it buys is that a failure now costs a retry instead of a reboot, and that
+the pass count is recorded rather than inferred — which is the specific gap that
+produced the wrong conclusion above.
 
 ## CONFIRMED: M-series iPad RemoteCall fix works
 
