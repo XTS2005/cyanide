@@ -736,3 +736,17 @@ about the same factor. It also explains why a "53% faster" projection measured a
 
 `0 settles` confirms Fastest sleeps not at all; the remaining cost is entirely
 round trips. Anything further has to reduce the 206, not the delay between them.
+
+
+## Shmem sizing fix verified on both devices
+
+The concern with sizing the mirror to the mapped page was that
+`vm_create_shmem_with_object` also backs SpringBoard RemoteCall, which already
+worked -- a too-small named entry would have broken it. Verified on iPhone 16
+Pro Max (iOS 18) after the change: parked state restores, the SpringBoard
+channel opens, and all six DarkSword tweaks apply. Combined with the iPhone 15
+Pro Max result that motivated the fix, both devices are covered.
+
+Also visible for the first time, thanks to the printf mirroring: the drag
+coefficient tweak takes different paths per device -- `gated=1 isFloat=0` on
+iOS 18 against `gated=0 isFloat=1` on iOS 17. Both report the same 0.0500.
