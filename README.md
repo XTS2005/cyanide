@@ -31,6 +31,80 @@ Confirmed working on iPhone 16 Pro Max (iOS 18.5), iPhone 15 Pro Max
 > (`iPhone18,x` and above, `iPad17,x` and above), so you get a clear message
 > rather than a failed exploit.
 
+## Tweaks
+
+Installed from the in-app Installer. Everything is applied in memory for the
+current boot — nothing is written to the filesystem, and a respring undoes it.
+
+### Home Screen
+
+| Tweak | What it does |
+| --- | --- |
+| **SBCustomizer** | Custom dock, grid, app placement, and page counts |
+| **Home Layout Extras** | Extra home/dock padding and per-icon scaling |
+| **Gravity Lite** | Make home-screen icons fall with physics |
+| **Hide Home Bar** | Hide the bottom home indicator |
+
+### SpringBoard
+
+| Tweak | What it does |
+| --- | --- |
+| **Axon Lite** | Group Notification Center requests by app |
+| **App Switcher Grid** | Grid-style app switcher |
+| **QuickLoader** | Executes custom .js code |
+| **Disable App Library** | Remove the App Library page |
+| **Disable Icon Fly-In** | Skip the icon spring animation |
+| **Zero Wake Animation** | Snap on instantly when waking |
+| **Zero Backlight Fade** | Instant lock/unlock backlight |
+| **Double-Tap to Lock** | Lock with a wallpaper double-tap |
+| **Drag Coefficient** | Custom SpringBoard animation speed multiplier |
+
+### Status Bar
+
+| Tweak | What it does |
+| --- | --- |
+| **StatBar** | Battery temperature + free RAM overlay |
+| **NSBar** | Network speed overlay in the status bar |
+| **NiceBar Lite** | NiceBar-style status labels |
+
+### Theming
+
+| Tweak | What it does |
+| --- | --- |
+| **SnowBoard Lite** | Local SnowBoard-style icon themes |
+| **LiveWP** | Video wallpaper for Home and Lock Screen |
+
+### System
+
+| Tweak | What it does |
+| --- | --- |
+| **Powercuff** | Underclock the CPU/GPU thermal pressure |
+| **Location Simulator** | CoreLocation static point simulation |
+| **Watch Pairing Override** | Pair a newer watch or revive an older one |
+| **Call Recording Sound** | Silence disclosure start/stop sounds |
+| **OTA Updates** | Enable or disable over-the-air system updates |
+
+### Beta
+
+| Tweak | What it does |
+| --- | --- |
+| **Dynamic Stage Lite** | Two floating app windows, iPad-style |
+| **FastLockX Lite** | Face ID retry + unlock controls |
+
+## Options
+
+Under **Settings → Launch Options**:
+
+| Option | |
+| --- | --- |
+| **A18 exploit path** | `pe_v1` (default) or `pe_v2` (fallback). A18/M4 only. |
+| **Tweak apply speed** | Compatible / Fast / Fastest. Higher settings cut the delay paid between the remote calls that apply a tweak. |
+| **Auto-run kexploit on launch** | Get kernel read/write as soon as Cyanide opens. |
+| **Sandbox escape** | Run the sandbox escape demo. |
+| **Keep app alive in background** | Needed by tweaks that keep running while Cyanide is backgrounded. |
+
+Each tweak has its own section in Settings once installed.
+
 ## Project status
 
 This repository is a fork of
