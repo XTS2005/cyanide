@@ -161,7 +161,7 @@ static NSDictionary *settings_repotweaks_caches(void)
     return [raw isKindOfClass:NSDictionary.class] ? (NSDictionary *)raw : @{};
 }
 
-static NSString * const kSettingsDefaultRepoURL = @"https://zeroxjf.github.io/cyanide-repotweaks.json";
+static NSString * const kSettingsDefaultRepoURL = @"https://0xjohnnydev.github.io/cyanide-repotweaks.json";
 
 static NSArray<NSString *> *settings_repotweaks_urls(void)
 {
@@ -850,6 +850,7 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 @end
 
 NSString * const kSettingsA18ExploitPath   = @"A18ExploitPath";
+NSString * const kSettingsA18Interleave = @"A18Interleave";
 NSString * const kSettingsA18MemoryShaping = @"A18MemoryShaping";
 NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
@@ -6135,14 +6136,20 @@ void settings_register_defaults(void)
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults registerDefaults:@{
-        // pe_v1 confirmed working on device; pe_v2's OOB race panics repeatedly.
-        // This must be the default: reinstalling a sideloaded build wipes
-        // NSUserDefaults, so an opt-in silently reverts to the broken path.
+        // pe_v1 is the default. It has a measured ~57%% A18 acquire rate
+        // (4/7 on iPhone16,2 / iOS 18.5); pe_v2 has never acquired on A18 in
+        // testing — its confirm-read race cannot win within the safe number of
+        // OOB attempts, so it always aborts cleanly without finishing. pe_v2's
+        // clean-abort safety and its failure to acquire are the same property,
+        // so it stays the fallback until that changes. Must be the default
+        // because reinstalling a sideloaded build wipes NSUserDefaults.
         kSettingsA18ExploitPath:     @1,
-        // Off by default: measured 2026-08-31 on iPhone17,2 / iOS 18.5, shaping
-        // acquired KRW 0 times in 7 runs while the ordinary geometry managed
-        // 4 in 7, always on the first pass. Kept as a toggle rather than
-        // deleted because gIsA18Above also covers M4, which is untested.
+        // Off by default: baseline bulk-spray + forward-scan is the proven pe_v1
+        // path (~4/7). Interleave+reverse-scan (approach A) pins the find to the
+        // mapping tail but has not measured a better panic rate, so it is opt-in.
+        kSettingsA18Interleave:      @NO,
+        // Off by default: measured 0/7 with shaping vs 4/7 with standard geometry
+        // on iPhone16 / iOS 18.5. Re-exposed as a toggle for experimentation.
         kSettingsA18MemoryShaping:   @NO,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
@@ -6907,7 +6914,10 @@ static void settings_run_actions_internal(BOOL pendingOnly)
         } @finally {
             // Close any legacy uploader state before the final snapshot.
             cyanide_stop_session_uploads();
-            log_session_end();
+            // Flush, but keep the file open so post-[DONE] background output
+            // (idle parking, live-tweak loops) still lands in the shareable log.
+            // The next run's log_session_begin() rotates the file.
+            log_session_flush();
             __sync_lock_release(&g_settings_actions_running);
             settings_reconcile_applied_from_defaults();
             if (__sync_bool_compare_and_swap(&g_settings_actions_rerun_requested, 1, 0)) {
@@ -7715,8 +7725,10 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 {
     return @[
         @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"title": @"A18 exploit path" },
+        @{ @"key": kSettingsA18Interleave,      @"title": @"A18 interleaved search",
+           @"subtitle": @"Experimental. On interleaves the socket spray with search-mapping allocation and scans each mapping tail-first, aiming to find the PCB in fewer reads. Off uses the proven bulk-spray + forward-scan path. A18/M4 only; effective on the next fresh chain run." },
         @{ @"key": kSettingsA18MemoryShaping,   @"title": @"A18 memory shaping",
-           @"subtitle": @"Off uses the same search geometry as every other device. On restores the 3 GB shaping mapping and 4 MB search window. Measured 0/7 with shaping, 4/7 without, on iPhone 16 Pro Max / iOS 18.5. A18 and M4 only; takes effect on the next fresh chain run." },
+           @"subtitle": @"Experimental. On pins 3 GB of physical memory and uses the 4 MB shaping search window before the scan. Measured 0/7 vs 4/7 for standard geometry, and can trigger jetsam — kept as a toggle for testing. Off uses standard geometry. A18/M4 only; effective on the next fresh chain run." },
         @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },
@@ -10567,11 +10579,10 @@ void cyanide_present_contact(UIViewController *host)
         note.font = [UIFont systemFontOfSize:12.0];
         note.textColor = UIColor.secondaryLabelColor;
         note.text = settings_device_is_a18_above()
-            ? @"A18/M4 only. pe_v1 stages 3 GB behind a single IOSurface and normally wins in "
-               "one or two passes. pe_v2 stages 2 GB as 131,072 separate IOSurfaces, but iOS caps "
-               "a process at 16,384 — so most fail, the search runs far longer, and the run is "
-               "more likely to fault in the kernel physical aperture. Leave this on pe_v1; the "
-               "fallback is here only in case pe_v1 stops working on a future build."
+            ? @"A18/M4 only. pe_v1 is the default and the only path with a measured acquire "
+               "rate (~50% per attempt; parked state makes it a one-time cost per boot). pe_v2 "
+               "stages 2 GB as 131,072 separate IOSurfaces, but iOS caps a process at 16,384 — so "
+               "most fail and it has not acquired reliably in testing. Leave this on pe_v1."
             : @"A18/M4 devices only. This device uses pe_v1 already.";
         note.translatesAutoresizingMaskIntoConstraints = NO;
 
