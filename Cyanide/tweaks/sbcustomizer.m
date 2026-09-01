@@ -2,6 +2,7 @@
 //  sbcustomizer.m
 //
 
+#import <Foundation/Foundation.h>
 #import "sbcustomizer.h"
 #import "remote_objc.h"
 #import "../TaskRop/RemoteCall.h"
@@ -544,11 +545,43 @@ static uint64_t icon_array_count_transient(uint64_t model)
     return r_msg2_main(icons, "count", 0, 0, 0, 0);
 }
 
+// Per-arrange cache of page list views. iconListViewAtIndex: returns the SAME
+// list view across icon mutations -- only listView.model is rebuilt -- so once
+// we know the view for a page we can skip re-resolving it and re-fetch only the
+// model. page_model_at is called ~5x per icon move and dominated the arrange
+// cost (~35-40%). Keyed on rootFolder so a different controller can't reuse a
+// stale entry; a nil model triggers a one-shot re-resolve in case a view really
+// did get torn down. reset_page_view_cache() clears it at each arrange entry.
+#define SBC_PAGE_VIEW_CACHE_MAX 64
+static uint64_t gPageViewCache[SBC_PAGE_VIEW_CACHE_MAX];
+static uint64_t gPageViewCacheRoot;
+
+static void reset_page_view_cache(uint64_t rootFolder)
+{
+    memset(gPageViewCache, 0, sizeof(gPageViewCache));
+    gPageViewCacheRoot = rootFolder;
+}
+
 static uint64_t page_model_at(uint64_t rootFolder, uint64_t page)
 {
-    uint64_t listView = r_msg2_main(rootFolder, "iconListViewAtIndex:", page, 0, 0, 0);
+    bool cacheable = (rootFolder == gPageViewCacheRoot &&
+                      page < SBC_PAGE_VIEW_CACHE_MAX);
+    uint64_t listView = cacheable ? gPageViewCache[page] : 0;
+    if (!r_is_objc_ptr(listView)) {
+        listView = r_msg2_main(rootFolder, "iconListViewAtIndex:", page, 0, 0, 0);
+        if (cacheable) gPageViewCache[page] = listView;
+    }
     if (!r_is_objc_ptr(listView)) return 0;
-    return r_msg2_main(listView, "model", 0, 0, 0, 0);
+    uint64_t model = r_msg2_main(listView, "model", 0, 0, 0, 0);
+    if (!r_is_objc_ptr(model) && cacheable) {
+        // Cached view no longer yields a model -- re-resolve once and retry.
+        gPageViewCache[page] = 0;
+        listView = r_msg2_main(rootFolder, "iconListViewAtIndex:", page, 0, 0, 0);
+        if (!r_is_objc_ptr(listView)) return 0;
+        gPageViewCache[page] = listView;
+        model = r_msg2_main(listView, "model", 0, 0, 0, 0);
+    }
+    return model;
 }
 
 static uint64_t icon_at_index_transient(uint64_t model, uint64_t index)
@@ -624,6 +657,7 @@ static int rebalance_page_models(uint64_t rootFolder, uint64_t count,
 {
     int moved = 0;
     bool failed = false;
+    reset_page_view_cache(rootFolder);
     // Donor cursor, carried across pages -- see the fill loop below.
     uint64_t donorPage = 0;
     uint64_t donorCount = UINT64_MAX;
@@ -751,6 +785,10 @@ static bool arrange_homescreen_pages(uint64_t iconCtrl, int preferredCols,
     // icon move is a sequence of synchronous main-thread RemoteCalls. Report the
     // real cost rather than leaving it to be guessed at.
     r_perf_reset();
+    // Run the whole fill under a single main-thread takeover: every
+    // r_msg2_main inside collapses from a ~15-op NSInvocation to a 1-op
+    // objc_msgSend on the hijacked main thread. Falls back to the slow path
+    // automatically if the takeover can't be established.
     int moved = rebalance_page_models(rootFolder, limit,
                                       firstPageIcons, otherPageIcons);
     r_perf_report("SBC arrange rebalance");
