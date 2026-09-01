@@ -164,6 +164,15 @@ STAGE="$(mktemp -d -t cyanide-ipa)"
 trap 'rm -rf "$STAGE"' EXIT
 mkdir -p "$STAGE/Payload"
 cp -R "$APP_PATH" "$STAGE/Payload/"
+# Never ship kernel panic dumps or chain logs. Xcode 16's synchronized folder
+# group sweeps any loose resource under Cyanide/ into the bundle, and folder
+# exceptions do not reliably exclude a subdirectory -- so a crashes/ folder of
+# panic .ips (which carry device kernel addresses) keeps ending up in the .app.
+# Strip them from the staged Payload unconditionally, whatever their source.
+SCRUBBED="$(find "$STAGE/Payload" -type f \( -name '*.ips' -o -name 'chain-*.log' \) -print -delete | wc -l | tr -d ' ')"
+if [ "$SCRUBBED" != "0" ]; then
+    echo "==> scrubbed $SCRUBBED panic/log file(s) from the bundle before packaging"
+fi
 rm -f "$IPA_OUT"
 ( cd "$STAGE" && zip -qry "$IPA_OUT" Payload )
 
