@@ -75,3 +75,6 @@ panic-full-*.ips
 
 # Device chain logs (contain kernel addresses; keep local)
 chain-*.log
+
+# Internal stability/analysis notes (kernel offsets, device details; keep local)
+CYANIDE_STABILITY_NOTES.md
