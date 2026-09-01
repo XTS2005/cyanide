@@ -329,6 +329,22 @@ void log_session_end(void) {
     pthread_mutex_unlock(&log_mutex);
 }
 
+// Make everything so far durable WITHOUT closing the file. A chain run used to
+// call log_session_end() at [DONE], which closed the file -- so the idle-park
+// worker and live-tweak loops that keep logging in the background had nowhere
+// to write, and their output showed only in the in-app view, never the
+// shareable chain-*.log. Flushing instead leaves the file open to capture that
+// tail; the next log_session_begin() rotates it.
+void log_session_flush(void) {
+    pthread_mutex_lock(&log_mutex);
+    if (log_file) {
+        fflush(log_file);
+        fcntl(fileno(log_file), F_FULLFSYNC, 0);
+        log_last_fsync_ns = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
+    }
+    pthread_mutex_unlock(&log_mutex);
+}
+
 NSString *log_inapp_buffer_snapshot(void) {
     pthread_mutex_lock(&log_mutex);
     NSMutableString *out = [NSMutableString stringWithCapacity:log_count * 80];
