@@ -18,9 +18,9 @@ extern uint64_t r_nsstr_retained(const char *str);
 
 static const NSUInteger kRepoTweaksMaxRepoBytes = 512 * 1024;
 static const NSUInteger kRepoTweaksMaxScriptBytes = 512 * 1024;
-static NSString * const kRepoTweaksDefaultRepoURL = @"https://zeroxjf.github.io/cyanide-repotweaks.json";
+static NSString * const kRepoTweaksDefaultRepoURL = @"https://0xjohnnydev.github.io/cyanide-repotweaks.json";
 static NSString * const kRepoTweaksDefaultReposSeedVersionKey = @"RepoTweaksDefaultReposSeedVersion";
-static NSString * const kRepoTweaksDefaultReposSeedVersion = @"4";
+static NSString * const kRepoTweaksDefaultReposSeedVersion = @"5";
 static NSString * const kRepoTweaksHideHomeBarMaterialKitAssets =
     @"/System/Library/PrivateFrameworks/MaterialKit.framework/Assets.car";
 
@@ -404,6 +404,16 @@ void repotweaks_seed_default_repos(void) {
     BOOL firstSeedForVersion = ![seedVersion isEqualToString:kRepoTweaksDefaultReposSeedVersion];
     BOOL changed = NO;
 
+    // Migration: the default repo moved from zeroxjf.github.io (now 404) to
+    // 0xjohnnydev.github.io when the author renamed the GitHub handle. Drop the
+    // stale dead URL (and its cache) from existing installs so it stops erroring.
+    NSString *deadRepoURL = @"https://zeroxjf.github.io/cyanide-repotweaks.json";
+    if ([urls containsObject:deadRepoURL]) {
+        [urls removeObject:deadRepoURL];
+        [caches removeObjectForKey:deadRepoURL];
+        changed = YES;
+    }
+
     if (firstSeedForVersion && ![urls containsObject:kRepoTweaksDefaultRepoURL]) {
         [urls addObject:kRepoTweaksDefaultRepoURL];
         changed = YES;
@@ -411,8 +421,8 @@ void repotweaks_seed_default_repos(void) {
 
     if ([urls containsObject:kRepoTweaksDefaultRepoURL] && ![caches[kRepoTweaksDefaultRepoURL] isKindOfClass:NSDictionary.class]) {
         caches[kRepoTweaksDefaultRepoURL] = @{
-            @"repoName": @"zeroxjf",
-            @"author": @"zeroxjf",
+            @"repoName": @"cyanide-repotweaks",
+            @"author": @"0xjohnnydev",
             @"tweaks": @[],
         };
         changed = YES;
