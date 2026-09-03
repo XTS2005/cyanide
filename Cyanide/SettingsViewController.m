@@ -852,6 +852,7 @@ static NSArray<NSDictionary *> *settings_repotweaks_tweaks_for_url(NSString *rep
 NSString * const kSettingsA18ExploitPath   = @"A18ExploitPath";
 NSString * const kSettingsA18Interleave = @"A18Interleave";
 NSString * const kSettingsA18MemoryShaping = @"A18MemoryShaping";
+NSString * const kSettingsA18BoundedSearch = @"A18BoundedSearch";
 NSString * const kSettingsRemoteSettleMode  = @"RemoteSettleMode";
 NSString * const kSettingsAutoRunKexploit    = @"AutoRunKexploit";
 NSString * const kSettingsRunSandboxEscape   = @"RunSandboxEscape";
@@ -6148,9 +6149,16 @@ void settings_register_defaults(void)
         // path (~4/7). Interleave+reverse-scan (approach A) pins the find to the
         // mapping tail but has not measured a better panic rate, so it is opt-in.
         kSettingsA18Interleave:      @NO,
-        // Off by default: measured 0/7 with shaping vs 4/7 with standard geometry
-        // on iPhone16 / iOS 18.5. Re-exposed as a toggle for experimentation.
-        kSettingsA18MemoryShaping:   @NO,
+        // A18 memory shaping mode: 0 = off (standard geometry), 1 = dynamic
+        // (pin ~75% of live jetsam headroom), 2 = fixed 3 GB (1.5.5). Default
+        // dynamic -- shaping's panic-reduction without the fixed-size jetsam
+        // risk. An old @YES/@NO stored value reads as 1/0, migrating cleanly.
+        kSettingsA18MemoryShaping:   @1,
+        // Default OFF = 1.5.5 behaviour: pe_v1 grinds until it acquires. On caps
+        // the search at 4 passes and returns a clean retry instead of grinding,
+        // which can otherwise end in an aperture panic on a device that never
+        // lands the PCB.
+        kSettingsA18BoundedSearch:   @NO,
         kSettingsRemoteSettleMode:   @0,
         kSettingsAutoRunKexploit:    @NO,
         kSettingsRunSandboxEscape:   @YES,
@@ -6908,6 +6916,12 @@ static void settings_run_actions_internal(BOOL pendingOnly)
             }
 
             log_user("[DONE] All requested changes finished — active until respring.\n");
+            // Synchronous park + verify at session end. The idle parker and
+            // the background hook are eventually-consistent; the post-success
+            // panics fire while the device sits idle minutes after this line.
+            // Harmless if live tweaks keep running -- their next KRW access
+            // re-arms the primitive, and the idle parker re-parks after quiet.
+            kexploit_krw_session_end_park();
             runSucceeded = YES;
             runCompletionMessage = @"Done. All requested changes finished.";
             cyanide_upload_log_milestone(@"run-complete");
@@ -7723,18 +7737,27 @@ static _CyanideMailDelegate *_cyanide_mail_delegate(void) {
 
 - (NSArray<NSDictionary *> *)launchRows
 {
-    return @[
-        @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"title": @"A18 exploit path" },
-        @{ @"key": kSettingsA18Interleave,      @"title": @"A18 interleaved search",
+    NSArray<NSDictionary *> *rows = @[
+        @{ @"kind": @"a18path", @"key": kSettingsA18ExploitPath, @"a18Only": @YES, @"title": @"A18 exploit path" },
+        @{ @"key": kSettingsA18Interleave, @"peV1Only": @YES, @"a18Only": @YES, @"title": @"A18 interleaved search",
            @"subtitle": @"Experimental. On interleaves the socket spray with search-mapping allocation and scans each mapping tail-first, aiming to find the PCB in fewer reads. Off uses the proven bulk-spray + forward-scan path. A18/M4 only; effective on the next fresh chain run." },
-        @{ @"key": kSettingsA18MemoryShaping,   @"title": @"A18 memory shaping",
-           @"subtitle": @"Experimental. On pins 3 GB of physical memory and uses the 4 MB shaping search window before the scan. Measured 0/7 vs 4/7 for standard geometry, and can trigger jetsam — kept as a toggle for testing. Off uses standard geometry. A18/M4 only; effective on the next fresh chain run." },
+        @{ @"kind": @"a18shape", @"key": kSettingsA18MemoryShaping, @"peV1Only": @YES, @"a18Only": @YES, @"title": @"A18 memory shaping" },
+        @{ @"key": kSettingsA18BoundedSearch, @"peV1Only": @YES, @"a18Only": @YES, @"title": @"A18 bounded search",
+           @"subtitle": @"On stops after 4 search passes and reports a clean retry instead of grinding — which can otherwise end in an aperture panic on a device that never lands the PCB. Off (default, matches 1.5.5) grinds until the exploit acquires. A18/M4 only; effective on the next fresh chain run." },
         @{ @"kind": @"settlemode", @"key": kSettingsRemoteSettleMode, @"title": @"Tweak apply speed" },
         @{ @"key": kSettingsAutoRunKexploit,    @"title": @"Auto-run kexploit on launch" },
         @{ @"key": kSettingsRunSandboxEscape,   @"title": @"Sandbox escape (escape_sbx_demo2)" },
         @{ @"key": kSettingsKeepAlive,          @"title": @"Keep app alive in background",
            @"subtitle": @"Required for app-driven live tweaks to persist while minimized, including StatBar receiving fresh live data." },
     ];
+    // A18/M4-only options (exploit path, interleave, shaping, bounded) are
+    // meaningless on other hardware -- pe_v1 standard geometry always runs there.
+    // Hide them entirely off-family (A18/A18 Pro/M4 and above).
+    if (settings_device_is_a18_above()) return rows;
+    NSMutableArray<NSDictionary *> *filtered = [NSMutableArray array];
+    for (NSDictionary *r in rows)
+        if (![r[@"a18Only"] boolValue]) [filtered addObject:r];
+    return filtered;
 }
 
 // The master enable / install-equivalent rows have been removed from each
@@ -10605,6 +10628,58 @@ void cyanide_present_contact(UIViewController *host)
         return cell;
     }
 
+    if ([kind isEqualToString:@"a18shape"]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                                       reuseIdentifier:nil];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        UILabel *title = [UILabel new];
+        title.text = row[@"title"];
+        title.font = [UIFont systemFontOfSize:17.0];
+        title.translatesAutoresizingMaskIntoConstraints = NO;
+
+        UISegmentedControl *seg =
+            [[UISegmentedControl alloc] initWithItems:@[@"Off", @"Dynamic", @"3 GB"]];
+        seg.translatesAutoresizingMaskIntoConstraints = NO;
+        seg.selectedSegmentIndex = [d integerForKey:kSettingsA18MemoryShaping];
+        [seg addTarget:self
+                action:@selector(a18ShapeSegChanged:)
+      forControlEvents:UIControlEventValueChanged];
+        // pe_v1-only: shaping does nothing on the pe_v2 path -- disable + dim.
+        BOOL a18shapeEnabled = ([d integerForKey:kSettingsA18ExploitPath] == 1);
+        seg.enabled = a18shapeEnabled;
+        title.textColor = a18shapeEnabled ? UIColor.labelColor : UIColor.tertiaryLabelColor;
+
+        UILabel *note = [UILabel new];
+        note.numberOfLines = 0;
+        note.font = [UIFont systemFontOfSize:12.0];
+        note.textColor = a18shapeEnabled ? UIColor.secondaryLabelColor : UIColor.tertiaryLabelColor;
+        note.text = @"A18/M4 only. Pins physical memory so the page after each search mapping is more "
+                     "often ours and valid, lowering the aperture-panic rate. Off uses standard geometry "
+                     "(no pin). Dynamic sizes the pin to live jetsam headroom (75%), adapting per device "
+                     "to avoid the jetsam kill a fixed size can cause. 3 GB is the fixed 1.5.5 size. "
+                     "Effective on the next fresh chain run.";
+        note.translatesAutoresizingMaskIntoConstraints = NO;
+
+        [cell.contentView addSubview:title];
+        [cell.contentView addSubview:seg];
+        [cell.contentView addSubview:note];
+        UILayoutGuide *m = cell.contentView.layoutMarginsGuide;
+        [NSLayoutConstraint activateConstraints:@[
+            [title.leadingAnchor  constraintEqualToAnchor:m.leadingAnchor],
+            [title.trailingAnchor constraintEqualToAnchor:m.trailingAnchor],
+            [title.topAnchor      constraintEqualToAnchor:m.topAnchor],
+            [seg.leadingAnchor    constraintEqualToAnchor:m.leadingAnchor],
+            [seg.trailingAnchor   constraintEqualToAnchor:m.trailingAnchor],
+            [seg.topAnchor        constraintEqualToAnchor:title.bottomAnchor constant:8],
+            [note.leadingAnchor   constraintEqualToAnchor:m.leadingAnchor],
+            [note.trailingAnchor  constraintEqualToAnchor:m.trailingAnchor],
+            [note.topAnchor       constraintEqualToAnchor:seg.bottomAnchor constant:8],
+            [note.bottomAnchor    constraintEqualToAnchor:m.bottomAnchor],
+        ]];
+        return cell;
+    }
+
     if ([kind isEqualToString:@"settlemode"]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                        reuseIdentifier:nil];
@@ -10848,6 +10923,11 @@ void cyanide_present_contact(UIViewController *host)
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"toggle" forIndexPath:dequeuePath];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     BOOL rowEnabled = supported && ![row[@"disabled"] boolValue];
+    // pe_v1-only options (interleave/bounded) are inert on the pe_v2 path -- grey
+    // them out so a control never looks live when it does nothing.
+    if ([row[@"peV1Only"] boolValue] &&
+        [d integerForKey:kSettingsA18ExploitPath] != 1)
+        rowEnabled = NO;
     cell.userInteractionEnabled = rowEnabled;
     NSString *subtitle = row[@"subtitle"];
     if (subtitle.length > 0) {
@@ -11527,6 +11607,9 @@ void cyanide_present_contact(UIViewController *host)
     log_user("[KRW] A18 exploit path set to %s. Takes effect on the next fresh chain run "
              "(a parked/recovered session skips the exploit entirely).\n",
              path == 1 ? "pe_v1 (default)" : "pe_v2 (fallback)");
+    // The pe_v1-only options (shaping/interleave/bounded) enable/disable with the
+    // path -- reload so they grey out or come back live immediately.
+    [self.tableView reloadData];
 }
 
 - (void)settleModeSegChanged:(UISegmentedControl *)sender
@@ -11538,6 +11621,16 @@ void cyanide_present_contact(UIViewController *host)
     log_user("[TWEAKS] Apply speed set to %s. Watch the log for \"[R_OBJC] ... ms slept\" to see "
              "the difference on the next apply.\n",
              mode == 0 ? "Compatible" : mode == 1 ? "Fast" : "Fastest");
+}
+
+- (void)a18ShapeSegChanged:(UISegmentedControl *)sender
+{
+    NSInteger mode = sender.selectedSegmentIndex;
+    [[NSUserDefaults standardUserDefaults] setInteger:mode forKey:kSettingsA18MemoryShaping];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    log_user("[KRW] A18 memory shaping set to %s. Effective on the next fresh chain run.\n",
+             mode == 0 ? "Off (standard geometry)" :
+             mode == 1 ? "Dynamic (75% of jetsam headroom)" : "3 GB (fixed)");
 }
 
 - (void)powercuffSegChanged:(UISegmentedControl *)sender
