@@ -110,18 +110,21 @@ static const NSInteger kSecSBC              = 4;
 static const NSInteger kSecStatBar          = 5;
 static const NSInteger kSecNSBar            = 6;
 static const NSInteger kSecNiceBarLite      = 7;
-static const NSInteger kSecPowercuff        = 12;
-static const NSInteger kSecDragCoefficient  = 14;
-static const NSInteger kSecLayoutExtras     = 15;
-static const NSInteger kSecNanoRegistry     = 16;
-static const NSInteger kSecSnowBoardLite    = 18;
-static const NSInteger kSecLiveWP           = 19;
-static const NSInteger kSecLocationSim      = 20;
-static const NSInteger kSecGravityLite      = 21;
-static const NSInteger kSecAppSwitcherGrid  = 22;
-static const NSInteger kSecFastLockXLite    = 24;
-static const NSInteger kSecQuickLoader      = 25;
-static const NSInteger kSecRepoTweaks       = 26;
+// Values below track SettingsViewController's SettingsSection enum. The enum
+// renumbered when the RSSI/TypeBanner/NotificationIsland/IPADecryptor sections
+// were removed in 1.5.4; keep these in sync with it.
+static const NSInteger kSecPowercuff        = 9;
+static const NSInteger kSecDragCoefficient  = 11;
+static const NSInteger kSecLayoutExtras     = 12;
+static const NSInteger kSecNanoRegistry     = 13;
+static const NSInteger kSecSnowBoardLite    = 15;
+static const NSInteger kSecLiveWP           = 16;
+static const NSInteger kSecLocationSim      = 17;
+static const NSInteger kSecGravityLite      = 18;
+static const NSInteger kSecAppSwitcherGrid  = 19;
+static const NSInteger kSecFastLockXLite    = 20;
+static const NSInteger kSecQuickLoader      = 21;
+static const NSInteger kSecRepoTweaks       = 22;
 
 + (NSArray<Package *> *)allPackages
 {
